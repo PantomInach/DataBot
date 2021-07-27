@@ -1,0 +1,27 @@
+{
+      "token": "Your Token",
+      "command_prefix": "+",
+      "log": "False",
+      "logchannel": "",
+      "levelchannel":"",
+      "spamchannel":"",
+      "infochannel":"",
+      "owner": "",
+      "textCooldown": "",
+      "privilege": {
+            
+      },
+      "server": "",
+      "serverVoiceBlacklist": [
+            "0",
+      ],
+      "serverTextWhitelist": [
+            "0",
+      ],
+      "roles": [
+
+      ],
+      "rolesXPNeed": [
+
+      ]
+}
