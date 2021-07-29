@@ -1,7 +1,9 @@
 import requests
 
 class Inspiro(object):
-	"""docstring for Inspiro"""
+	"""
+	Class fetches the url off quotes from inspirobot.me
+	"""
 	def __init__(self):
 		super(Inspiro, self).__init__()
 		self.url = "https://inspirobot.me/api?generate=true"

@@ -1,24 +1,26 @@
 import json
 import os
 import asyncio
-import time as ttime
+import time as t
 
 class Textban(object):
-	"""docstring for Textban"""
+	"""
+	Class to change textban.json.
+	"""
 	def __init__(self):
 		super(Textban, self).__init__()
 		self.binpath = str(os.path.dirname(__file__))[:-4]+"/bin/"
 		self.ban = json.load(open(self.binpath+"textban.json"))
 
 	def hasTextBan(self, userID):
-		if str(userID) in self.ban:
-			return True
-		return False
+		return str(userID) in self.ban
 
 	async def addTextBan(self, userID, time):
+		# Adds a textban for a user and delets it after the amount of time.
+		# Textbans are carryed out in main.on_message().
 		if str(time).isdigit():
 			#if self.hasTextBan(userID) and self.ban[str(userID)][1]:
-			self.ban[str(userID)] = [str(time), ttime.time()]
+			self.ban[str(userID)] = [str(time), t.time()]
 			self.saveBan()
 			await asyncio.sleep(int(time))
 			if self.hasTextBan(userID):
@@ -45,8 +47,8 @@ class Textban(object):
 
 	def clearInvalidTextban(self):
 		for userID in self.ban:
-			if ttime.time() - int(self.ban[userID][1]) >= int(self.ban[userID][0]):
-				self.removeTextBan()
+			if t.time() - int(self.ban[userID][1]) >= int(self.ban[userID][0]):
+				self.removeTextBan(userID)
 				self.saveBan()
 
 	def saveBan(self):
