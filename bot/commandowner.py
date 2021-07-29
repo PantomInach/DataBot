@@ -23,14 +23,15 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	async def test(self, ctx):
 		if int(self.jh.getPrivilegeLevel(ctx.author.id)) == 2:
 			userID = ctx.author.id
-			avatar_url = ctx.author.avatar_url
 			server = self.bot.get_guild(int(self.jh.getFromConfig("server")))
 			member = server.get_member(int(userID))
 			self.jh.addNewDataEntry(userID)
-			level = self.jh.data[str(userID)]["Level"]
-			voiceXP = self.jh.data[str(userID)]["Voice"]
-			textXP = self.jh.data[str(userID)]["Text"]
-			textCount = self.jh.data[str(userID)]["TextCount"]
+			#Create Embeded
+			avatar_url = ctx.author.avatar_url
+			level = self.jh.getUserLevel(userID)
+			voiceXP = self.jh.getUserVoice(userID)
+			textXP = self.jh.getUserText(userID)
+			textCount = self.jh.getUserTextCount(userID)
 			nextLevel = self.xpf.xpNeed(voiceXP,textXP)
 			embed = discord.Embed(title=f"{member.nick}     ({ctx.author.name})", color=12008408)
 			embed.set_thumbnail(url=avatar_url)
@@ -38,9 +39,13 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 			embed.add_field(name="MESSAGES", value=f"{str(textCount)}", inline=True)
 			embed.add_field(name="EXPERIENCE", value=f"{str(int(voiceXP)+int(textXP))}/{nextLevel}",inline=True)
 			embed.add_field(name="LEVEL", value=f"{level}", inline=True)
-			await ctx.send(embed=embed)
-			await ctx.message.delete()
+			#Send Embeded
+			await ctx.send(embed=embed, delete_after=86400)
 
+	@commands.command(name="ping")
+	async def ping(self, ctx):
+		if int(self.jh.getPrivilegeLevel(ctx.author.id)) == 2:
+			await ctx.send(message = "pong")
 
 	#Starts to log the users in voice channels
 	@commands.command(name='startlog', brief='Starts to log the users on the configured server.', description='You need privilege level 2 to use this command. Gets the connected users of the configured server und increments every minute their voice XP.')
@@ -48,14 +53,13 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		if int(self.jh.getPrivilegeLevel(ctx.author.id)) == 2 and self.jh.getFromConfig("log")=="False":
 			self.jh.config["log"] = "True"
 			self.jh.saveConfig()
-			serverid = int(self.jh.getFromConfig("server"))
-			servername = str(self.bot.get_guild(serverid))
-			await self.helpf.log(f"Start to log users from Server:\n\t{servername}",2)
+			guildeID = int(self.jh.getFromConfig("server"))
+			guildeName = str(self.bot.get_guild(guildeID))
+			await self.helpf.log(f"Start to log users from Server:\n\t{guildeName}",2)
 			while self.jh.getFromConfig("log"):
-				memids = await self.helpf.connectedUserFrom(serverid)
-				self.jh.onlineUserInc(memids)
-				await self.helpf.levelAkk()
-				await self.helpf.updateRoles()
+				self.helpf.addMembersOnlineVoiceXp(guildeID)
+				self.helpf.levelAkk()
+				self.helpf.updateRoles()
 				self.jh.saveData()
 				await asyncio.sleep(120)
 		else:
@@ -68,11 +72,11 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	@commands.command(name='stoplog', brief='Stops to log the users on configured server.', description='You need privilege level 2 to use this command. When the bot logs the connective users on the configured server, this command stops the logging process.')
 	async def stoplog(self, ctx):
 		if int(self.jh.getPrivilegeLevel(ctx.author.id)) == 2 and self.jh.getFromConfig("log")=="True":
-			serverid = int(self.jh.getFromConfig("server"))
-			servername = str(self.bot.get_guild(serverid))
+			guildeID = int(self.jh.getFromConfig("server"))
+			guildeName = str(self.bot.get_guild(guildeID))
 			self.jh.config["log"] = "False"
 			self.jh.saveConfig()
-			await self.helpf.log(f"Stopped to log users from Server:\n\t{servername}",2)
+			await self.helpf.log(f"Stopped to log users from Server:\n\t{guildeName}",2)
 		else:
 			await ctx.send(f"Your are not permitted to use this command. You need Owner privileges. Or logging is off.")
 
@@ -94,16 +98,16 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		if int(self.jh.getPrivilegeLevel(ctx.author.id)) == 2:
 			binpath = str(os.path.dirname(__file__))[:-4]+"/bin/"
 			string = ""
-			server = self.bot.get_guild(int(self.jh.getFromConfig("server")))
-			lenght = len(server.members)
-			i = 1
+			guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+			lenght = len(guilde.members)
+			i = 0
 			with open(binpath+"dataProtection.txt","r") as f:
 				string = f.read()
-			for member in server.members:
+			for member in guilde.members:
 				await self.helpf.removeRoles(member.id, ["chairman", "associate", "employee", "rookie"])
 				print(f"Progress: {i}/{lenght}")
 				i = i+1
-			message = await server.get_channel(829419028426260520).send(string)
+			message = await guilde.get_channel(self.jh.getFromConfig("loginchannel")).send(string)
 			await message.add_reaction("✅")
 		else:
 			await ctx.send(f"Your are not permitted to use this command.")
@@ -112,14 +116,14 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	async def sendGiveRoles(self, ctx):
 		if int(self.jh.getPrivilegeLevel(ctx.author.id)) == 2:
 			text = "**Choose your interest group**\n```You will be given roles based on your interest that grant you access to optional voice- and textchannels.\nInterest:                      Rolename:\n🎮 gaming                      gaming\n📚 study-channel               student\n👾 development-technology      dev-tech\n🏹 single-exchange             single\n🤑 gambling-channel            gambling\n⚡ bot-development             bot-dev```"
-			server = self.bot.get_guild(int(self.jh.getFromConfig("server")))
-			lenght = len(server.members)
+			guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+			lenght = len(guilde.members)
 			i = 1
-			for member in server.members:
+			for member in guilde.members:
 				await self.helpf.removeRoles(member.id, ["gaming", "student", "dev-tech", "single", "gambling", "bot-dev"])
 				print(f"Progress: {i}/{lenght}")
 				i = i+1
-			message = await server.get_channel(829419028426260520).send(text)
+			message = await guilde.get_channel(self.jh.getFromConfig("loginchannel")).send(text)
 			reactionsarr = ["🎮","📚","👾","🏹","🤑","⚡"]
 			for emoji in reactionsarr:
 				await message.add_reaction(emoji)

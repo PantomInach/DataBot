@@ -8,7 +8,6 @@ import datetime
 from bot.jsonhandel import Jsonhandel
 from bot.xpfunk import Xpfunk
 from bot.helpfunc import Helpfunc
-from bot.constructer import Constructer
 from bot.commanduser import Commanduser
 from bot.commandmod import Commandmod
 from bot.commandowner import Commandowner
@@ -17,58 +16,74 @@ from bot.commandmodserver import Commandmodserver
 from bot.textban import Textban
 import asyncio
 
-cons = Constructer()
-[jh, xpf, poll, tban, cntr] = cons.giveObjects()
-print("Jsonhandel, Xpfunk, Poll and Textban Object created.")
+print("Prepare to start Bot...")
 
+# Create Objects
+jh = Jsonhandel()
+xpf = Xpfunk(jh)
+poll = Poll()
+tban = Textban()
+cntr = Counter()
+
+# Create Bot Object
 intents = discord.Intents.default()
 intents.presences = True
 intents.members = True
 bot = commands.Bot(command_prefix = jh.getFromConfig("command_prefix"), intents=intents)
 
-print("Constructing helpfunc Object...")
+# Create Helpfunctions Object
 helpf = Helpfunc(bot, jh, xpf)
-print("Helpfunc Object created.")
 
-#Sends mesage to owner, when bot is online
+print("Objects created")
+
+"""
+In the following code there will be the bot.events defined
+"""
+
+# When bot is connected
 @bot.event
 async def on_ready():
+	#Sends mesage to mods, when bot is online
     print("Now Online")
-    owner = bot.get_user(int(jh.getFromConfig("owner")))
-    #await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=f"{jh.getFromConfig("command_prefix")}help"))
     await helpf.sendModsMessage("Bot ist online")
 
+# When bot reads a message
 @bot.event
 async def on_message(message):
 	if (message.author == bot.user):
 		return
+
+	# Delet messages if user is textbanned
 	if tban.hasTextBan(int(message.author.id)) and not isinstance(message.channel, discord.channel.DMChannel):
 		await message.delete()
 		return
-	a = ""
-	a += message.content
+
+	a = "" + message.content
+	# Stops user from writting in levelchannel none command messages 
 	if str(message.channel.id) == str(jh.getFromConfig("levelchannel")) and a[0] != jh.getFromConfig("command_prefix"):
 		await message.delete()
 		return
-	#Check if picture
+
+	# Checks if message containts a picture
 	if len(message.attachments) > 0 and jh.getFromConfig("log")=="True":
 		attachments = message.attachments
 		userID = message.author.id
 		for attachment in attachments:
 			name = attachment.filename
 			if name[-3:] == "jpg" or name[-3:] == "png":
-				jh.dataAddText(userID, xpf.randomRange(20,40))
+				# Gives XP when picture is in message
+				jh.addTextXP(userID, xpf.randomRange(20,40))
 				jh.saveData()
 				return
-	#When Message ist a String
+
+	# When Message is a String
 	if a != "" and a[0] != jh.getFromConfig("command_prefix") and jh.getFromConfig("log")=="True":
-		#Give XP
-		whiteList = jh.config["serverTextWhitelist"]
-		messageid = message.channel.id
-		if str(messageid) in set(whiteList):
-			userID = message.author.id
-			jh.dataAddText(userID, xpf.textXP(a))
+		# Give XP when message is not a command 
+		if jh.isInWhitelist(message.channel_id):
+			jh.addTextXP(message.author.id, xpf.textXP(a))
 			jh.saveData()
+
+	# Sends BotOwner commands, which are triggering the bot
 	if a[0] == jh.getFromConfig("command_prefix"):
 		channelName = "DM"
 		try:
@@ -86,17 +101,20 @@ async def on_disconnect():
 	await helpf.sendOwnerMessage("Bot is offline.")
 """
 
+# When a member joins a guilde
 @bot.event
 async def on_member_join(member):
 	channel = bot.get_channel(int(jh.getFromConfig("logchannel")))
-	server = bot.get_guild(int(jh.getFromConfig("server")))
-	await channel.send(f"Hey **{member.name}**, welcome to {server}")
+	guilde = bot.get_guild(int(jh.getFromConfig("server")))
+	await channel.send(f"Hey **{member.name}**, welcome to {guilde}")
 
+
+# When a member leaves the guilde
 @bot.event
 async def on_member_remove(member):
 	channel = bot.get_channel(int(jh.getFromConfig("logchannel")))
-	server = bot.get_guild(int(jh.getFromConfig("server")))
-	await channel.send(f"**{member.name}** has left {server}. Press F to pay respect.")
+	guilde = bot.get_guild(int(jh.getFromConfig("server")))
+	await channel.send(f"**{member.name}** has left {guilde}. Press F to pay respect.")
 	"""
 	#Hash user data
 	voice = jh.getUserVoice(member.id)
@@ -117,103 +135,149 @@ async def on_member_remove(member):
 	jh.removeUserFromData(member.id)
 	"""
 
+# When a reacting is added
 @bot.event
 async def on_raw_reaction_add(payload):
 	if bot.get_user(payload.user_id).bot:
 		return
+
 	userID = payload.user_id
 	message = await helpf.getMessageFromPayload(payload)
-	[state, page] = await helpf.getMessageState(message)
-	#normal message when (0,x)
+	[state, page] = helpf.getMessageState(message)
+	"""
+	State (0,0): Normal Message
+	State (1,x): Leaderboard sorted by XP on page x
+	State (2,x): Leaderboard sorted by Voice on page x
+	State (3,x): Leaderboard sorted by TextCount on page x
+	State (4,0): Poll
+	State (5,0): data protection declaration
+	State (6,0): giveRoles message
+	"""
+	
 	#Stage [1,3] =^= message is Leaderboard
 	if state in range(1,4):
 		#Handel Leaderboard reactions
-		change = await helpf.messageToState(message)
-		await message.clear_reactions()
-		if state >= 6:
-			return
-		if change <3:
-			choice = [0, page-1 if page-1>=0 else 0, page+1]  
+		change = helpf.messageToState(message)
+		"""
+		change:
+			0: to first page
+			1: page befor
+			2: page after
+			3: sort xp
+			4: sort voice
+			5: sort textcount
+			6: otherwise
+		"""
+
+		if change < 3:
+			# Set page if needed
+			choice = [0, page-1 if page-1>=0 else 0, page+1]
 			page = choice[change]
+			# Whip member reaction
+			await message.emove_reaction(payload.emoji, payload.member)
 		else:
-			state = change-2
-		text = await helpf.getLeaderboardXBy(page, state)
+			state = change-3
+			# Whip all reactions
+			await message.clear_reactions()
+
+		text = helpf.getLeaderboardPageBy(page, state)
 		if text == "":
+			# If no one is on this page, get last page.
 			page -= 1
-			text = await helpf.getLeaderboardXBy(page, state)
+			text = helpf.getLeaderboardPageBy(page, state)
+
+		# Changes Leaderboard and adds reactions	
 		await message.edit(content=f"{text}{payload.member.mention}")
-		reactionsarr = ["⏫","⬅","➡","⏰","💌","🌟"]
-		removeemoji = [5,3,4]
-		del reactionsarr[removeemoji[state-1]]
-		for emoji in reactionsarr:
-			await message.add_reaction(emoji)
-		return
+		if change >= 3:
+			# When all reactions were whipped
+			reactionsarr = ["⏫","⬅","➡","⏰","💌","🌟"]
+			removeemoji = [5,3,4]
+			del reactionsarr[removeemoji[state-1]]
+			for emoji in reactionsarr:
+				await message.add_reaction(emoji)
+
 	#State 4 =^= message is poll
 	elif state == 4:
-		newVote = await helpf.voteOption(message)
-		if await helpf.hasRole(userID, "employee"):
+		# Number which option was voted. New reaction => -1
+		newVote = helpf.votedOption(message)	
+		# Checks if user is allowed to vote and is valid
+		if helpf.hasRole(userID, "employee") and newVote != -1:
+			# changes poll message
 			pollID = int(str(message.content)[6:10])
 			optionName = poll.getOptionByNumber(pollID, newVote+1)
 			poll.addUserVote(pollID, userID, optionName)
 			await message.edit(content=f"{poll.pollString(pollID)}")
-		await message.clear_reactions()
-		reactionsarr = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣","6⃣","7⃣"]
-		for i in range(len(poll.getOptions(pollID))):
-			await message.add_reaction(reactionsarr[i])
+
+		# Removes member vote
+		await message.remove_reaction(payload.emoji, payload.member)
+
+	# State 5 =^= Note on data processing
 	elif state == 5:
-		if not await helpf.hasRole(userID, "rookie"):
+		if not helpf.hasRole(userID, "rookie"):
 			await helpf.giveRole(userID, "rookie")
-	elif state == 6 and (await helpf.hasRole(userID, "rookie") or await helpf.hasRole(userID, "etwasse")):
-		if str(payload.emoji) == "🎮" and not await helpf.hasRole(userID, "gaming"):
+
+	# State 6 =^= User interest groups
+	elif state == 6 and (helpf.hasRole(userID, "rookie") or helpf.hasRole(userID, "etwasse")):
+		# User needs to accept Note on data processing before using this feature
+		# Gives user roll depending on what they react on
+		if str(payload.emoji) == "🎮" and not helpf.hasRole(userID, "gaming"):
 			await helpf.giveRole(userID, "gaming")
-		elif str(payload.emoji) == "📚" and not await helpf.hasRole(userID, "student"):
+		elif str(payload.emoji) == "📚" and not helpf.hasRole(userID, "student"):
 			await helpf.giveRole(userID, "student")
-		elif str(payload.emoji) == "👾" and not await helpf.hasRole(userID, "dev-tech"):
+		elif str(payload.emoji) == "👾" and not helpf.hasRole(userID, "dev-tech"):
 			await helpf.giveRole(userID, "dev-tech")
-		elif str(payload.emoji) == "🏹" and not await helpf.hasRole(userID, "single"):
+		elif str(payload.emoji) == "🏹" and not helpf.hasRole(userID, "single"):
 			await helpf.giveRole(userID, "single")
-		elif str(payload.emoji) == "🤑" and not await helpf.hasRole(userID, "gambling"):
+		elif str(payload.emoji) == "🤑" and not helpf.hasRole(userID, "gambling"):
 			await helpf.giveRole(userID, "gambling")
-		elif str(payload.emoji) == "⚡" and not await helpf.hasRole(userID, "bot-dev"):
+		elif str(payload.emoji) == "⚡" and not helpf.hasRole(userID, "bot-dev"):
 			await helpf.giveRole(userID, "bot-dev")
 		else:
 			await message.remove_reaction(payload.emoji, payload.member)
-	elif state == 6 and not await helpf.hasRole(userID, "rookie"):
+
+	# When user can not get rolls
+	elif state == 6 and not helpf.hasRole(userID, "rookie"):
 		await message.remove_reaction(payload.emoji, payload.member)
+
+	# Member is reacting to other members and gets XP
 	else:
 		#Give reaction XP
 		channel = bot.get_channel(payload.channel_id)
 		whiteList = jh.config["serverTextWhitelist"]
-		if str(payload.channel_id) in set(whiteList):
+		if jh.isInWhitelist(payload.channel_id):
 			message = await channel.fetch_message(payload.message_id)
 			if not (message.author.bot or payload.member.bot) and jh.getFromConfig("log")=="True":
-				jh.dataAddReaction(payload.user_id, xpf.randomRange(1,5))
+				jh.addReactionXP(payload.user_id, xpf.randomRange(1,5))
 				jh.saveData()
-		return
 
+# When member removes a reaction
 @bot.event
 async def on_raw_reaction_remove(payload):
 	userID = payload.user_id
 	server = bot.get_guild(payload.guild_id)
 	member = server.get_member(userID)
 	message = await helpf.getMessageFromPayload(payload)
-	[state, page] = await helpf.getMessageState(message)
-	if state == 5 and (await helpf.hasRole(userID, "rookie") or await helpf.hasRole(userID, "etwasse")):
+	[state, page] = helpf.getMessageState(message)
+
+	# If member revokes his accetptans of the Note on data processing
+	if state == 5 and (helpf.hasRole(userID, "rookie") or helpf.hasRole(userID, "etwasse")):
 		await helpf.removeRoles(userID, ["chairman", "associate", "employee", "rookie", "etwasse"])
-	if state == 6:
-		if not await helpf.hasRole(userID, "rookie") and not await helpf.hasRole(userID, "etwasse"):
+
+	# When member revokes his interest in interest groups
+	elif state == 6:
+		if not helpf.hasRole(userID, "rookie") and not helpf.hasRole(userID, "etwasse"):
 			await message.remove_reaction(payload.emoji, member)
-		elif str(payload.emoji) == "🎮" and await helpf.hasRole(userID, "gaming"):
+		elif str(payload.emoji) == "🎮" and helpf.hasRole(userID, "gaming"):
 			await helpf.removeRole(userID, "gaming")
-		elif str(payload.emoji) == "📚" and await helpf.hasRole(userID, "student"):
+		elif str(payload.emoji) == "📚" and helpf.hasRole(userID, "student"):
 			await helpf.removeRole(userID, "student")
-		elif str(payload.emoji) == "👾" and await helpf.hasRole(userID, "dev-tech"):
+		elif str(payload.emoji) == "👾" and helpf.hasRole(userID, "dev-tech"):
 			await helpf.removeRole(userID, "dev-tech")
-		elif str(payload.emoji) == "🏹" and await helpf.hasRole(userID, "single"):
+		elif str(payload.emoji) == "🏹" and await .hasRole(userID, "single"):
 			await helpf.removeRole(userID, "single")
-		elif str(payload.emoji) == "🤑" and await helpf.hasRole(userID, "gambling"):
+		elif str(payload.emoji) == "🤑" and await .hasRole(userID, "gambling"):
 			await helpf.removeRole(userID, "gambling")
-		elif str(payload.emoji) == "⚡" and await helpf.hasRole(userID, "bot-dev"):
+		elif str(payload.emoji) == "⚡" and await .hasRole(userID, "bot-dev"):
 			await helpf.removeRole(userID, "bot-dev")
 """
 @bot.event

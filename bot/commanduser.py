@@ -25,10 +25,10 @@ class Commanduser(commands.Cog, name='User Commands'):
 			self.jh.addNewDataEntry(userID)
 			#Create Embeded
 			avatar_url = ctx.author.avatar_url
-			level = self.jh.data[str(userID)]["Level"]
-			voiceXP = self.jh.data[str(userID)]["Voice"]
-			textXP = self.jh.data[str(userID)]["Text"]
-			textCount = self.jh.data[str(userID)]["TextCount"]
+			level = self.jh.getUserLevel(userID)
+			voiceXP = self.jh.getUserVoice(userID)
+			textXP = self.jh.getUserText(userID)
+			textCount = self.jh.getUserTextCount(userID)
 			nextLevel = self.xpf.xpNeed(voiceXP,textXP)
 			embed = discord.Embed(title=f"{member.nick}     ({ctx.author.name})", color=12008408)
 			embed.set_thumbnail(url=avatar_url)
