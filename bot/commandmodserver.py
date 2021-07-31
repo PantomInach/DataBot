@@ -52,7 +52,7 @@ class Commandmodserver(commands.Cog, name='Server Mod Commands'):
 								await ctx.message.delete()
 							await self.helpf.log(f"User {ctx.author.mention} textbaned {user.mention} for {time} h. Reason:\n{reason}",2)
 							await logchannel.send(f"{user.mention} was textbaned for {time} h.\n**Reason**: {reason}")
-							await user.send(content=f"You recived a textban for {time} h.\n**Reason**: {reason}")
+							await user.send(content=f"You received a textban for {time} h.\n**Reason**: {reason}")
 							await self.helpf.sendServerModMessage(f"{member.nick} ({user.name}) was textbaned by {server.get_member(int(ctx.author.id)).nick} ({ctx.author.name}) for {time} h.\n**Reason**: {reason}")
 							await self.tban.addTextBan(userID, int(bantime*3600.0))
 							#Textban over
