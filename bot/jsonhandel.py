@@ -3,31 +3,59 @@ import os
 import time
 
 class Jsonhandel(object):
-	"""docstring for Jsonhandel"""
+	"""
+	Handles maipulation and reading from data.json and config.json
+	"""
 	def __init__(self):
 		super(Jsonhandel, self).__init__()
 		self.binpath = str(os.path.dirname(__file__))[:-4]+"/bin/"
 		self.config = json.load(open(self.binpath+"config.json"))
 		self.data = json.load(open(self.binpath+"data.json"))
-		#self.test()
 
-	#Config handel
+	"""
+	###########################################
+	Part: config
+		Functions to maipulate the config json
+	"""
 
-	#Get Values from config file
-	def getFromConfig(self, toget):
-		return self.config[str(toget)]
+	def isInConfig(self, isIn):
+		# Tests if isIn is in config
+		return isIn in [x for x in self.config]
 
-	#Gives back the privilege level
-	#Level 0:	User
-	#Level 1:	Mod
-	#Level 2:	Owner
+	def getFromConfig(self, toGet):
+		#Get Values from config file
+		return self.config[str(toGet)]
+
 	def getPrivilegeLevel(self, userID):
+		#Gives back the privilege level of userID
+		#Level 0:	User
+		#Level 1:	Mod
+		#Level 2:	Owner
 		if str(userID) in [x for x in self.config["privilege"]]:
 			return self.config["privilege"][str(userID)]
 		return 0
 
 	def getInPrivilege(self):
 		return [x for x in self.config["privilege"]]
+
+	def saveConfig(self):
+		with open(self.binpath+"config.json",'w') as f:
+			json.dump(self.config, f, indent = 6)
+		self.config = json.load(open(self.binpath+"config.json"))
+		print("Config saved in JSON-File.")
+
+	def getRoles(self):
+		# Rolls are given depending on xp
+		return self.config["roles"]
+
+	def getRolesXPNeed(self):
+		# Rolls are given depending on xp
+		return self.config["rolesXPNeed"]
+
+	"""
+	##########
+	channel Black and White list
+	"""
 
 	def isInBlacklist(self, channelID):
 		return str(channelID) in [x for x in self.config["serverVoiceBlacklist"]]
@@ -63,31 +91,40 @@ class Jsonhandel(object):
 			return 1
 		return 0
 
-	def saveConfig(self):
-		with open(self.binpath+"config.json",'w') as f:
-			json.dump(self.config, f, indent = 6)
-		self.config = json.load(open(self.binpath+"config.json"))
-		print("Config saved in JSON-File.")
-
-	def getRoles(self):
-		return self.config["roles"]
-
-	def getRolesXPNeed(self):
-		return self.config["rolesXPNeed"]
-
-	#Data handel
-
-	def getCooldown(self, userID):
-		if self.isInData(userID):
-			return self.data[str(userID)]["Cooldown"]
-
-	def writeCooldown(self, userID, time):
-		if self.isInData(userID):
-			self.data[str(userID)]["Cooldown"] = str(time)
+	"""
+	###########################################
+	Part: Data
+		Functions to maipulate the data json
+	"""
 
 	#Returns true if a userID is in data
 	def isInData(self, userID):
 		return str(userID) in [x for x in self.data]
+
+	def sortDataBy(self, sortBy):
+		"""
+		sortBy:
+			0 => Sort by voice + text
+			1 => Sort by voice
+			2 => Sort by textcount
+		"""
+		sortMode = [[1,1,0],[0,1,0],[0,0,1]]
+		sortedData = sorted(self.data, key = lambda id: sortMode[sortBy][0] * self.getUserVoice(id) + sortMode[sortBy][1] * self.getUserText(id) +sortMode[sortBy][2] * self.getUserTextCount(id))
+		return sortedData
+
+	def getSortedDataEntrys(self, entryBeginn, entryEnd, sortBy):
+		"""
+		Sorts Data by given parameter and returns the given entrys.
+		entryBeginn included and entryEnd is excluded.
+		When entryBeginn would be outside of the data, then a emtpy list is returned
+		When entryEnd would point outside of the data, than it points to the end 
+		"""
+		l = len(self.data)
+		if entryBeginn >= l:
+			return []
+		if entryEnd > l:
+			entryEnd = l
+		return self.sortDataBy(sortBy)[entryBeginn:entryEnd]
 
 	#Adds a new userID in data
 	def addNewDataEntry(self, userID):
@@ -104,79 +141,106 @@ class Jsonhandel(object):
 			return 1
 		return 0
 
+	#Adds a XP for Text for a userID in data
+	def addTextXP(self, userID, amount):
+		self.addNewDataEntry(userID)
+		cooldownTime = self.data[str(userID)]["Cooldown"]
+		cooldownCon = self.getFromConfig("textCooldown")
+		self.addUserTextCount(userID)
+		t = time.time()
+		deltat = t-cooldownTime
+		# Check if cooldown is up
+		if deltat >= float(cooldownCon):
+			self.addUserText(userID, amount)
+			self.setCooldown(userID, t = t)
+			print(f"\tUser {userID} gained {amount} TextXP")
+		else:
+			print(f"\tUser {userID} is on Cooldown. CurrentTime: {deltat}")	
+
+	def addReactionXP(self, userID, amount):
+		self.addNewDataEntry(str(userID))
+		cooldownTime = self.data[str(userID)]["Cooldown"]
+		cooldownCon = 10
+		t =time.time()
+		deltat = t-cooldownTime
+		# Check if cooldown is up
+		if deltat >= float(cooldownCon):
+			self.addUserText(userID, amount)
+			self.setCooldown(userID, t = t)
+			print(f"\tUser {userID} gained {amount} TextXP")
+		else:
+			print(f"\tUser {userID} is on Cooldown. CurrentTime: {deltat}")
+
+	def updateLevel(self, userID, level):
+		if self.isInData(userID):
+			self.data[str(userID)]["Level"] = level
+
+	#Increments the voice minuts for all userID in userIDs
+	def addAllUserVoice(self, userIDs):
+		for userID in userIDs:
+			self.addUserVoice(userID)
+		self.saveData()
+
+	def getUserText(self, userID):
+		return int(self.data[str(userID)]["Text"])
+
+	def getUserVoice(self, userID):
+		return int(self.data[str(userID)]["Voice"])
+
+	def getUserHours(self, userID):
+		return round(self.getUserVoice(userID)/30.0, 1)
+
+	def getUserTextCount(self, userID):
+		return int(self.data[str(userID)]["TextCount"])
+
+	def getCooldown(self, userID):
+		if self.isInData(userID):
+			return self.data[str(userID)]["Cooldown"]
+
+	def getUserLevel(self, userID):
+		if self.isInData(userID):
+			return int(self.data[str(userID)]["Level"])
+
+	def getUserIDsInData(self):
+		return [id for id in self.data]
+
+	def setCooldown(self, userID, t = time.time()):
+		if self.isInData(userID):
+			self.data[str(userID)]["Cooldown"] = str(t)
+
+	def setUserVoice(self, userID, voice):
+		self.addNewDataEntry(userID)
+		self.data[str(userID)]["Voice"] = int(voice)
+		self.saveData()
+
+	def setUserText(self, userID, text):
+		self.addNewDataEntry(userID)
+		self.data[str(userID)]["Text"] = int(text)
+		self.saveData()
+
+	def setUserTextCount(self, userID, textCount):
+		self.addNewDataEntry(userID)
+		self.data[str(userID)]["TextCount"] = int(textCount)
+		self.saveData()
+
+	def addUserVoice(self, userID, voice = 1):
+		self.addNewDataEntry(userID)
+		self.data[str(userID)]["Voice"] = int(self.data[str(userID)]["Voice"]) + int(voice)
+		self.saveData()
+
+	def addUserText(self, userID, text):
+		self.addNewDataEntry(userID)
+		self.data[str(userID)]["Text"] = int(self.data[str(userID)]["Text"]) + int(text)
+		self.saveData()
+
+	def addUserTextCount(self, userID, count = 1):
+		self.addNewDataEntry(userID)
+		self.data[str(userID)]["TextCount"] = int(self.data[str(userID)]["TextCount"]) + int(count)
+		self.saveData()
+
 	#Saves data in json file
 	def saveData(self):
 		with open(self.binpath+"data.json",'w') as f:
 			json.dump(self.data, f, indent = 6)
 		self.data = json.load(open(self.binpath+"data.json"))
 		print("Data saved in JSON-File.")
-
-	#Adds a minute of voicetime for a userID in data
-	def dataIncVoice(self, userID):
-		if self.isInData(userID):
-			self.data[str(userID)]["Voice"]=str(int(self.data[str(userID)]["Voice"])+1)
-
-	#Adds a XP for Text for a userID in data
-	def dataAddText(self, userID, amount):
-		self.addNewDataEntry(userID)
-		cooldownTime = self.data[str(userID)]["Cooldown"]
-		cooldownCon = self.getFromConfig("textCooldown")
-		self.data[str(userID)]["TextCount"] = str(int(self.data[str(userID)]["TextCount"])+1)
-		t = time.time()
-		deltat = t-cooldownTime
-		if deltat >= float(cooldownCon):
-			self.data[str(userID)]["Text"] = str(int(self.data[str(userID)]["Text"])+amount)
-			self.data[str(userID)]["Cooldown"] = t
-			print(f"\tUser {userID} gained {amount} TextXP")
-		else:
-			print(f"\tUser {userID} is on Cooldown. CurrentTime: {deltat}")
-
-	def dataAddTextXP(self, userID, amount):
-		self.addNewDataEntry(userID)
-		cur = int(self.data[str(userID)]["Text"])
-		self.data[str(userID)]["Text"] = cur + amount 		
-
-	def dataAddReaction(self, userID, amount):
-		self.addNewDataEntry(str(userID))
-		cooldownTime = self.data[str(userID)]["Cooldown"]
-		cooldownCon = 10
-		t =time.time()
-		deltat = t-cooldownTime
-		if deltat >= float(cooldownCon):
-			self.data[str(userID)]["Text"] = str(int(self.data[str(userID)]["Text"])+amount)
-			self.data[str(userID)]["Cooldown"] = t
-			print(f"\tUser {userID} gained {amount} TextXP")
-		else:
-			print(f"\tUser {userID} is on Cooldown. CurrentTime: {deltat}")
-
-	#Increments the voice minuts for all userID in userIDs
-	def onlineUserInc(self, userIDs):
-		for userID in userIDs:
-			self.addNewDataEntry(userID)
-			self.dataIncVoice(userID)
-		print("Incremented userIDs")
-		self.saveData()
-
-	def getUserText(self, userID):
-		return self.data[str(userID)]["Text"]
-
-	def getUserVoice(self, userID):
-		return self.data[str(userID)]["Voice"]
-
-	def getUserTextCount(self, userID):
-		return self.data[str(userID)]["TextCount"]
-
-	def setUserVoice(self, userID, voice):
-		self.addNewDataEntry(userID)
-		self.data[str(userID)]["Voice"] = voice
-		self.saveData()
-
-	def setUserText(self, userID, text):
-		self.addNewDataEntry(userID)
-		self.data[str(userID)]["Text"] = text
-		self.saveData()
-
-	def setUserTextCount(self, userID, textCount):
-		self.addNewDataEntry(userID)
-		self.data[str(userID)]["TextCount"] = textCount
-		self.saveData()

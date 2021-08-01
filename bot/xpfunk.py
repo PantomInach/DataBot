@@ -2,7 +2,9 @@ import random
 from .jsonhandel import Jsonhandel
 
 class Xpfunk(object):
-	"""docstring for Xpfunk"""
+	"""
+	Class to handle xp calculations
+	"""
 	def __init__(self, jh):
 		super(Xpfunk, self).__init__()
 		self.jh = jh
@@ -15,11 +17,14 @@ class Xpfunk(object):
 	def randomRange(self, start, end):
 		return random.randint(start,end)
 
+	def giveXP(self, voice, text):
+		return voice + text
+
 	def levelRoleList(self, userID):
-		roles = jh.getRoles()
-		rolesXPNeed = jh.getRolesXPNeed()
+		roles = self.jh.getRoles()
+		rolesXPNeed = self.jh.getRolesXPNeed()
 		roleList = []
-		userLevel = int(jh.data[str(userID)]["Level"])
+		userLevel = int(self.jh.getUserLevel(userID))
 		for i in range(0,len(roles)):
 			if userLevel >= rolesXPNeed(i):
 				roleList.append(roles[i])
@@ -36,7 +41,7 @@ class Xpfunk(object):
 			levelLim += 100
 			for x in [(55+y*10) for y in range(level)]:
 				levelLim += x
-		return str(level)
+		return int(level)
 
 	def xpNeed(self, voice, text):
 		level = 0

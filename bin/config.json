@@ -6,6 +6,7 @@
       "levelchannel":"",
       "spamchannel":"",
       "infochannel":"",
+      "loginchannel":"",
       "owner": "",
       "textCooldown": "",
       "privilege": {
