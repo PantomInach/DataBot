@@ -46,7 +46,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		if str(ctx.channel.id) == str(self.jh.getFromConfig("levelchannel")) or (isinstance(ctx.channel, discord.channel.DMChannel) and int(self.jh.getPrivilegeLevel(ctx.author.id)) >= 1):
 			await self.helpf.log(f"+top by {ctx.author}",1) #Notify Mods
 			#Create leaderboard
-			text = f"{await self.helpf.getLeaderboardXBy(0,1)}{ctx.author.mention}"
+			text = f"{self.helpf.getLeaderboardPageBy(0,1)}{ctx.author.mention}"
 			message = await ctx.send(text, delete_after=86400)
 			reactionsarr = ["⏫","⬅","➡","⏰","💌"]
 			for emoji in reactionsarr:

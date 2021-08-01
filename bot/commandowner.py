@@ -45,7 +45,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	@commands.command(name="ping")
 	async def ping(self, ctx):
 		if int(self.jh.getPrivilegeLevel(ctx.author.id)) == 2:
-			await ctx.send(message = "pong")
+			await ctx.send("pong")
 
 	#Starts to log the users in voice channels
 	@commands.command(name='startlog', brief='Starts to log the users on the configured server.', description='You need privilege level 2 to use this command. Gets the connected users of the configured server und increments every minute their voice XP.')
@@ -58,8 +58,8 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 			await self.helpf.log(f"Start to log users from Server:\n\t{guildeName}",2)
 			while self.jh.getFromConfig("log"):
 				self.helpf.addMembersOnlineVoiceXp(guildeID)
-				self.helpf.levelAkk()
-				self.helpf.updateRoles()
+				await self.helpf.levelAkk()
+				await self.helpf.updateRoles()
 				self.jh.saveData()
 				await asyncio.sleep(120)
 		else:
@@ -107,7 +107,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 				await self.helpf.removeRoles(member.id, ["chairman", "associate", "employee", "rookie"])
 				print(f"Progress: {i}/{lenght}")
 				i = i+1
-			message = await guilde.get_channel(self.jh.getFromConfig("loginchannel")).send(string)
+			message = await guilde.get_channel(int(self.jh.getFromConfig("loginchannel"))).send(string)
 			await message.add_reaction("✅")
 		else:
 			await ctx.send(f"Your are not permitted to use this command.")
@@ -123,7 +123,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 				await self.helpf.removeRoles(member.id, ["gaming", "student", "dev-tech", "single", "gambling", "bot-dev"])
 				print(f"Progress: {i}/{lenght}")
 				i = i+1
-			message = await guilde.get_channel(self.jh.getFromConfig("loginchannel")).send(text)
+			message = await guilde.get_channel(int(self.jh.getFromConfig("loginchannel"))).send(text)
 			reactionsarr = ["🎮","📚","👾","🏹","🤑","⚡"]
 			for emoji in reactionsarr:
 				await message.add_reaction(emoji)
@@ -134,7 +134,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	async def changeBotMessage(self, ctx, channelID, messageID, text):
 		if int(self.jh.getPrivilegeLevel(ctx.author.id)) == 2:
 			message = await self.bot.get_channel(int(channelID)).fetch_message(int(messageID))
-			if (message.author != bot.user):
+			if (message.author != self.bot.user):
 				await ctx.send("Message is not from bot.")
 				return
 			if len(text) > 2000:
@@ -148,7 +148,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	async def addReaction(self, ctx, channelID, messageID, emoji):
 		if int(self.jh.getPrivilegeLevel(ctx.author.id)) == 2:
 			message = await self.bot.get_channel(int(channelID)).fetch_message(int(messageID))
-			if (message.author != bot.user):
+			if (message.author != self.bot.user):
 				await ctx.send("Message is not from bot.")
 				return
 			try:

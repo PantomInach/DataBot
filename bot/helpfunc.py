@@ -1,5 +1,5 @@
 import discord
-from discord.utils import get
+from discord.utils import get, find
 from discord.ext import commands
 from .jsonhandel import Jsonhandel
 from .xpfunk import Xpfunk
@@ -23,13 +23,11 @@ class Helpfunc(object):
 
 	def getVoiceChannelsFrom(self, serverid):
 		guilde = self.bot.get_guild(int(serverid))
-		channels = guilde.channels
-		return [channel for channel in channels if isinstance(channel.type, discord.channel.VoiceChannel)]
+		return guilde.voice_channels
 
 	def getTextChannelsFrom(self, serverid):
 		guilde = self.bot.get_guild(int(serverid))
-		channels = guilde.channels
-		return [channel for channel in channels if isinstance(channel.type, discord.channel.TextChannel)]
+		return guilde.text_channels
 
 	def addMembersOnlineVoiceXp(self, serverid):
 		""" 
@@ -64,7 +62,7 @@ class Helpfunc(object):
 					userLevel = self.jh.getUserLevel(member.id)
 					rolesList = self.jh.getRoles()
 					roleXPNeedList = self.jh.getRolesXPNeed()
-					i = len([level for level in roleXPNeedList if level <= userLevel])
+					i = len([level for level in roleXPNeedList if int(level) <= userLevel])
 					await self.giveRoles(member.id, rolesList[:i])
 
 	def hasRole(self, userID, role):
@@ -80,7 +78,7 @@ class Helpfunc(object):
 	def hasOneRole(self, userID, roles):
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
 		member = guilde.get_member(int(userID))
-		return len(set(roles.intersection({x.name for x in member.roles}))) >= 1
+		return len(set(roles).intersection({x.name for x in member.roles})) >= 1
 
 	async def giveRole(self, userID, roleName):
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
@@ -89,14 +87,16 @@ class Helpfunc(object):
 		await member.add_roles(role)
 		await self.log(f"User {member.name} aka {member.nick} got role {roleName}.",1)
 
-	async def giveRoles(self, userID, roles):
+	async def giveRoles(self, userID, roleNames):
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
 		member = guilde.get_member(int(userID))
-		rolesList = [x for x in guilde.roles if  (x.name in roles or x.id in roles)]
+		rolesList = tuple(find(lambda role: str(role.id) == r or role.name == r, list(set(guilde.roles)-set(member.roles))) for r in roleNames)
+		rolesList = [x for x in rolesList if x != None]
 		memberRolesPrev = member.roles
-		await member.add_roles(role)
-		rolesAfter = {role.name or role in member.roles if role in memberRolesPrev}
-		await self.log(f"User {member.name} aka {member.nick} got roles {rolesAfter}.",1)
+		if len(rolesList) > 0:
+			await member.add_roles(*rolesList)
+			rolesAfter = {role.name for role in member.roles if not role in memberRolesPrev}
+			await self.log(f"User {member.name} aka {member.nick} got roles {rolesAfter}.",1)
 
 	async def removeRole(self, userID, roleName):
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
@@ -108,11 +108,13 @@ class Helpfunc(object):
 	async def removeRoles(self, userID, roleNames, reason = None):
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
 		member = guilde.get_member(int(userID))
-		rolesList = [x for x in guilde.roles if  (x.name in roles or x.id in roles)]
+		rolesList = tuple(find(lambda role: str(role.id) == r or role.name == r, list(set(guilde.roles)-set(member.roles))) for r in roleNames)
+		rolesList = [x for x in rolesList if x != None]
 		memberRolesPrev = member.roles
-		await member.remove_roles(rolesList, reason = reason)
-		rolesAfter = {role.name or role in member.roles if role in memberRolesPrev}
-		await self.log(f"User {member.name} aka {member.nick} got his roles {str(rolesAfter)} removed.",1)
+		if len(rolesList) > 0:
+			await member.remove_roles(*rolesList, reason = reason)
+			rolesAfter = {role.name for role in memberRolesPrev if not role in member.roles}
+			await self.log(f"User {member.name} aka {member.nick} got his roles {str(rolesAfter)} removed.",1)
 
 	async def levelAkk(self):
 		# Updates the level of all users in data
@@ -136,7 +138,7 @@ class Helpfunc(object):
 			2 => Sort by textcount
 		page: which page of the leaderboard is showen. A page contains 10 entrys
 		"""
-		userIDs = self.jh.getSortedDataEntrys(page*10, (page+1)*10 ,sortBy)
+		userIDs = self.jh.getSortedDataEntrys(page*10, (page+1)*10 ,sortBy)[::-1]
 		leaderborad = ""
 		rank = page*10+1
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
@@ -147,10 +149,10 @@ class Helpfunc(object):
 				nick = member.display_name
 				name = member.name
 				# Filter out Emojis in names
-				for i in len(nick):
+				for i in range(len(nick)):
 					if nick[i] in UNICODE_EMOJI['en']:
 						nick = "".nick((re[:i],"#",nick[i+1:]))
-				for i in len(name):
+				for i in range(len(name)):
 					if name[i] in UNICODE_EMOJI['en']:
 						name = "".name((re[:i],"#",name[i+1:]))
 			else:
@@ -158,7 +160,7 @@ class Helpfunc(object):
 				mane = f"ID: {userID}"
 			hours = self.jh.getUserHours(userID)
 			messages = self.jh.getUserTextCount(userID)
-			xp = self.xpf.giveXP(self.jh.getUserVoice(userID), self.getUserText(userID))
+			xp = self.xpf.giveXP(self.jh.getUserVoice(userID), self.jh.getUserText(userID))
 			level = self.jh.getUserLevel(userID)
 			leaderborad += f"```md\n{' '*(4-len(str(rank)))}{rank}. {nick}{' '*(53-len(nick+name))}({name})    Hours: {' '*(6-len(str(hours)))}{hours}     Messages: {' '*(4-len(str(messages)))}{messages}     Experience: {' '*(6-len(str(xp)))}{xp}      Level: {' '*(3-len(str(level)))}{level}\n```\n"
 			rank += 1
@@ -206,7 +208,7 @@ class Helpfunc(object):
 		pageTopRank = int(str(message.content)[6:10])
 		return (state, pageTopRank//10)
 
-	def messageToState(self, message):
+	def getLeaderboardChange(self, message):
 		"""
 		0: to first page
 		1: page befor
@@ -219,15 +221,15 @@ class Helpfunc(object):
 		i = 0
 		while reactions[i].count == 1:
 			i += 1
-		if i<3:
-			return i
-		if str(reactions[i]) == "⏰":
-			return 4
-		if str(reactions[i]) == "💌":
-			return 5
 		if str(reactions[i]) == "🌟":
-			return 3
-		return 6
+			i = 3
+		elif str(reactions[i]) == "⏰":
+			i = 4
+		elif str(reactions[i]) == "💌":
+			i = 5
+		elif i > 5:
+			i = 6
+		return i
 
 	def votedOption(self, message):
 		reactions = message.reactions
@@ -239,7 +241,7 @@ class Helpfunc(object):
 	async def sendServerModMessage(self, string):
 		server = self.bot.get_guild(int(self.jh.getFromConfig("server")))
 		for user in server.members:
-			if await self.hasRole(user.id, "COO"):
+			if self.hasRole(user.id, "COO"):
 				await user.send(string)
 
 	async def sendModsMessage(self, string):

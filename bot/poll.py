@@ -73,18 +73,19 @@ class Poll(object):
 		if self.getStatus(pollID) == "CLOSED":
 			options = self.getOptions(pollID)
 			if options != []:
-				number = 1
+				optionNumber = 1
 				# Search for option
 				for x in options:
 					if x[0] == optionName:
 						# Delet option and votes for option
 						self.pollData[str(pollID)]["options"].remove(x)
 						self.removeOptionVotes(pollID, optionName)
-						number = x[2]
+						optionNumber = x[2]
 						break
 				temp = self.pollData[str(pollID)]["options"]
-				# Degress poll option ids.
-				for i in range(1, number +1):
+				# Reduces poll option ids by 1 if ip is above removed ids.
+				# len(options)-1 because one option was removed
+				for i in range(optionNumber-1, len(options)-1):
 					self.pollData[str(pollID)]["options"][i][2] = int(self.pollData[str(pollID)]["options"][i][2]) -1
 				self.savePollData()
 				return True
@@ -320,7 +321,7 @@ class Poll(object):
 		message = self.pollHeader(pollID)
 		# Check if pollID exists.
 		if message:
-			for option in self.sortOptionsBy(pollID, sortBy)[::-1]:
+			for option in self.sortOptionsBy(pollID, sortBy):
 				optionName = str(option[0])
 				optionVotes = str(option[1])
 				optionNumber = str(option[2])

@@ -158,20 +158,24 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		channelList = [logchannelID, infochannelID, levelchannelID]
 		channelID = ctx.channel.id
 		if not (self.isDM(ctx) or channelID in channelList) and self.hasRights(ctx):
-			if not self.poll.pollOpen(pollID) and self.poll.getStatus(pollID) == "OPEN":
-				# Poll can not be opend, because it is open => delete old and resend to new location
-				messageID = self.poll.getMessageID(pollID)
-				channel = self.bot.get_channel(int(messageID[1]))
-				message = await channel.fetch_message(int(messageID[0]))
+			[messageID, channelID] = self.poll.getMessageID(pollID)
+			self.poll.pollOpen(pollID)
+			# Test if has a send poll string somewhere
+			if messageID and channelID:
+				# poll has been send somewhere => delete old one
+				channel = self.bot.get_channel(int(channelID))
+				message = await channel.fetch_message(int(messageID))
 				await message.delete()
-			# Send poll
-			text = self.poll.pollString(pollID)
-			message = await ctx.send(content=f"{text}{ctx.author.mention}")
-			reactionsarr = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣","6⃣","7⃣"]
-			for emoji in reactionsarr[:len(self.poll.getOptions(pollID))]:
-				await message.add_reaction(emoji)
-			self.poll.setMessageID(pollID, message.id, channelID)
-			await self.helpf.log(f"User {ctx.author.mention} opened the poll {pollID} in channel {ctx.channel.name}.",1)
+			# Poll is open => send it
+			if self.poll.getStatus(pollID) == "OPEN":
+				# Send poll
+				text = self.poll.pollString(pollID)
+				message = await ctx.send(content=f"{text}{ctx.author.mention}")
+				reactionsarr = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣","6⃣","7⃣"]
+				for emoji in reactionsarr[:len(self.poll.getOptions(pollID))]:
+					await message.add_reaction(emoji)
+				self.poll.setMessageID(pollID, message.id, message.channel.id)
+				await self.helpf.log(f"User {ctx.author.mention} opened the poll {pollID} in channel {ctx.channel.name}.",1)
 		if not self.isDM(ctx):
 			await ctx.message.delete()
 
@@ -179,14 +183,15 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	async def poll_close(self, ctx, pollID):
 		if self.isDM(ctx):
 			if self.hasRights(ctx):
-				if self.poll.pollClose(pollID):
-					[messageID, channelID] = self.poll.getMessageID(pollID)
+				[messageID, channelID] = self.poll.getMessageID(pollID)
+				if self.poll.pollClose(pollID) and messageID and channelID:
 					channel = self.bot.get_channel(int(channelID))
 					message = await channel.fetch_message(int(messageID))
-					await message.clear_reactions()
-					await message.edit(content=f"{self.poll.pollString(pollID)}")
-					self.poll.setMessageID(pollID, '', '')
-					await self.helpf.log(f"User {ctx.author.name} cloesed poll: \"{self.poll.getName(pollID)}\"",1)
+					if message != None:
+						await message.clear_reactions()
+						await message.edit(content=f"{self.poll.pollString(pollID)}")
+						# self.poll.setMessageID(pollID, '', '')
+						await self.helpf.log(f"User {ctx.author.name} cloesed poll: \"{self.poll.getName(pollID)}\"",1)
 				else:
 					await ctx.send("ERROR: Can't close Poll")
 			else:

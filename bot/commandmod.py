@@ -22,7 +22,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 			guilde = self.bot.get_guild(self.jh.getFromConfig("server"))
 			channels = self.helpf.getVoiceChannelsFrom(self.jh.getFromConfig("server"))
 			#Test if channel is in Server
-			if str(channelID) in channels:
+			if str(channelID) in [str(channel.id) for channel in channels]:
 				#Try to write in Blacklist
 				if self.jh.writeToBalcklist(channelID):
 					channelName = str(self.bot.get_channel(int(channelID)))
@@ -58,7 +58,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 			guilde = self.bot.get_guild(self.jh.getFromConfig("server"))
 			channels = self.helpf.getTextChannelsFrom(self.jh.getFromConfig("server"))
 			#Test if channel is in Server
-			if str(channelID) in channels:
+			if str(channelID) in [str(channel.id) for channel in channels]:
 				#Try to write in whitelist
 				if self.jh.writeToWhitelist(channelID):
 					channelName = str(self.bot.get_channel(int(channelID)))
@@ -151,7 +151,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 				level = self.jh.getUserLevel(userID)
 				voiceXP = self.jh.getUserVoice(userID)
 				textXP = self.jh.getUserText(userID)
-				textCount = self.getUserTextCount(userID)
+				textCount = self.jh.getUserTextCount(userID)
 				user = self.bot.get_user(int(userID))
 				username = "No User"
 				#Handel not existing UserIDs

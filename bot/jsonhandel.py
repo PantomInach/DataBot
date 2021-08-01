@@ -122,8 +122,8 @@ class Jsonhandel(object):
 		l = len(self.data)
 		if entryBeginn >= l:
 			return []
-		if entryEnd >= l:
-			entryEnd = l - 1
+		if entryEnd > l:
+			entryEnd = l
 		return self.sortDataBy(sortBy)[entryBeginn:entryEnd]
 
 	#Adds a new userID in data

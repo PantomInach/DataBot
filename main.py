@@ -5,16 +5,20 @@ from discord.utils import get
 from discord.ext import commands
 import time
 import datetime
+import asyncio
+
 from bot.jsonhandel import Jsonhandel
 from bot.xpfunk import Xpfunk
+from bot.poll import Poll
 from bot.helpfunc import Helpfunc
+from bot.textban import Textban
+from bot.counter import Counter
+
 from bot.commanduser import Commanduser
 from bot.commandmod import Commandmod
 from bot.commandowner import Commandowner
 from bot.commandpoll import Commandpoll
 from bot.commandmodserver import Commandmodserver
-from bot.textban import Textban
-import asyncio
 
 print("Prepare to start Bot...")
 
@@ -45,7 +49,7 @@ In the following code there will be the bot.events defined
 async def on_ready():
 	#Sends mesage to mods, when bot is online
     print("Now Online")
-    await helpf.sendModsMessage("Bot ist online")
+    # await helpf.sendModsMessage("Bot ist online")
 
 # When bot reads a message
 @bot.event
@@ -79,7 +83,7 @@ async def on_message(message):
 	# When Message is a String
 	if a != "" and a[0] != jh.getFromConfig("command_prefix") and jh.getFromConfig("log")=="True":
 		# Give XP when message is not a command 
-		if jh.isInWhitelist(message.channel_id):
+		if jh.isInWhitelist(message.channel.id):
 			jh.addTextXP(message.author.id, xpf.textXP(a))
 			jh.saveData()
 
@@ -157,7 +161,7 @@ async def on_raw_reaction_add(payload):
 	#Stage [1,3] =^= message is Leaderboard
 	if state in range(1,4):
 		#Handel Leaderboard reactions
-		change = helpf.messageToState(message)
+		change = helpf.getLeaderboardChange(message)
 		"""
 		change:
 			0: to first page
@@ -168,23 +172,34 @@ async def on_raw_reaction_add(payload):
 			5: sort textcount
 			6: otherwise
 		"""
-
+		sortBy = state - 1
+		"""
+		sortBy:
+			0 => Sort by voice + text = xp
+			1 => Sort by voice
+			2 => Sort by textcount
+		"""
 		if change < 3:
 			# Set page if needed
 			choice = [0, page-1 if page-1>=0 else 0, page+1]
 			page = choice[change]
 			# Whip member reaction
-			await message.emove_reaction(payload.emoji, payload.member)
+			await message.remove_reaction(payload.emoji, payload.member)
 		else:
-			state = change-3
+			sortBy = change - 3
+			"""
+			sortBy:
+				0 => Sort by voice + text = xp
+				1 => Sort by voice
+				2 => Sort by textcount
+			"""
 			# Whip all reactions
 			await message.clear_reactions()
 
-		text = helpf.getLeaderboardPageBy(page, state)
+		text = helpf.getLeaderboardPageBy(page, sortBy)
 		if text == "":
 			# If no one is on this page, get last page.
-			page -= 1
-			text = helpf.getLeaderboardPageBy(page, state)
+			text = helpf.getLeaderboardPageBy(page - 1, sortBy)
 
 		# Changes Leaderboard and adds reactions	
 		await message.edit(content=f"{text}{payload.member.mention}")
@@ -192,7 +207,7 @@ async def on_raw_reaction_add(payload):
 			# When all reactions were whipped
 			reactionsarr = ["⏫","⬅","➡","⏰","💌","🌟"]
 			removeemoji = [5,3,4]
-			del reactionsarr[removeemoji[state-1]]
+			del reactionsarr[removeemoji[sortBy]]
 			for emoji in reactionsarr:
 				await message.add_reaction(emoji)
 
@@ -273,11 +288,11 @@ async def on_raw_reaction_remove(payload):
 			await helpf.removeRole(userID, "student")
 		elif str(payload.emoji) == "👾" and helpf.hasRole(userID, "dev-tech"):
 			await helpf.removeRole(userID, "dev-tech")
-		elif str(payload.emoji) == "🏹" and await .hasRole(userID, "single"):
+		elif str(payload.emoji) == "🏹" and helpf.hasRole(userID, "single"):
 			await helpf.removeRole(userID, "single")
-		elif str(payload.emoji) == "🤑" and await .hasRole(userID, "gambling"):
+		elif str(payload.emoji) == "🤑" and helpf.hasRole(userID, "gambling"):
 			await helpf.removeRole(userID, "gambling")
-		elif str(payload.emoji) == "⚡" and await .hasRole(userID, "bot-dev"):
+		elif str(payload.emoji) == "⚡" and helpf.hasRole(userID, "bot-dev"):
 			await helpf.removeRole(userID, "bot-dev")
 """
 @bot.event

@@ -41,7 +41,7 @@ class Xpfunk(object):
 			levelLim += 100
 			for x in [(55+y*10) for y in range(level)]:
 				levelLim += x
-		return str(level)
+		return int(level)
 
 	def xpNeed(self, voice, text):
 		level = 0
