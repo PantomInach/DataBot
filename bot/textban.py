@@ -17,12 +17,14 @@ class Textban(object):
 
 	async def addTextBan(self, userID, time):
 		# Adds a textban for a user and delets it after the amount of time.
-		# Textbans are carryed out in main.on_message().
+		# Textbans are carryed out in main.on_message() by deleting send messages.
 		if str(time).isdigit():
 			#if self.hasTextBan(userID) and self.ban[str(userID)][1]:
 			self.ban[str(userID)] = [str(time), t.time()]
 			self.saveBan()
+			print("Added Textban")
 			await asyncio.sleep(int(time))
+			print("Remove textban")
 			if self.hasTextBan(userID):
 				self.removeTextBan(userID)
 				self.saveBan()

@@ -1,9 +1,6 @@
 import discord
 from discord.utils import get, find
 from discord.ext import commands
-from .jsonhandel import Jsonhandel
-from .xpfunk import Xpfunk
-import math
 import sys
 import os
 import datetime
@@ -54,7 +51,7 @@ class Helpfunc(object):
 	async def updateRoles(self):
 		# Gives members role in rolesList if they have the level in roleXPNeedList
 		# Also memers needs to have "etwasse" or "rookie"
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		membersList = guilde.members
 		for member in membersList:
 			if self.jh.isInData(member.id):
@@ -66,29 +63,29 @@ class Helpfunc(object):
 					await self.giveRoles(member.id, rolesList[:i])
 
 	def hasRole(self, userID, role):
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
 		return role in [x.name for x in member.roles]
 
 	def hasRoles(self, userID, roles):
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
 		return set(roles).issubset({x.name for x in member.roles})
 
 	def hasOneRole(self, userID, roles):
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
-		return len(set(roles).intersection({x.name for x in member.roles})) >= 1
+		return len({x for x in member.roles if x.id in roles or x.name in roles}) >= 1
 
 	async def giveRole(self, userID, roleName):
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
 		role = get(guilde.roles, name=roleName)
 		await member.add_roles(role)
 		await self.log(f"User {member.name} aka {member.nick} got role {roleName}.",1)
 
 	async def giveRoles(self, userID, roleNames):
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
 		rolesList = tuple(find(lambda role: str(role.id) == r or role.name == r, list(set(guilde.roles)-set(member.roles))) for r in roleNames)
 		rolesList = [x for x in rolesList if x != None]
@@ -99,14 +96,14 @@ class Helpfunc(object):
 			await self.log(f"User {member.name} aka {member.nick} got roles {rolesAfter}.",1)
 
 	async def removeRole(self, userID, roleName):
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
 		role = get(guilde.roles, name=roleName)
 		await member.remove_roles(role)
 		await self.log(f"User {member.name} aka {member.nick} got his role {roleName} removed.",1)
 
 	async def removeRoles(self, userID, roleNames, reason = None):
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
 		rolesList = tuple(find(lambda role: str(role.id) == r or role.name == r, list(set(guilde.roles)-set(member.roles))) for r in roleNames)
 		rolesList = [x for x in rolesList if x != None]
@@ -141,7 +138,7 @@ class Helpfunc(object):
 		userIDs = self.jh.getSortedDataEntrys(page*10, (page+1)*10 ,sortBy)[::-1]
 		leaderborad = ""
 		rank = page*10+1
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		# Generate Leaderboard String
 		for userID in userIDs:
 			member = guilde.get_member(int(userID))
@@ -239,7 +236,7 @@ class Helpfunc(object):
 		return i
 
 	async def sendServerModMessage(self, string):
-		server = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+		server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		for user in server.members:
 			if self.hasRole(user.id, "COO"):
 				await user.send(string)
@@ -252,7 +249,7 @@ class Helpfunc(object):
 
 	async def sendMessageToPrivilage(self, string, level):
 		for x in self.jh.getInPrivilege():
-			if int(self.jh.getPrivilegeLevel(x)) >= level:
+			if self.jh.getPrivilegeLevel(x) >= level:
 				owner = self.bot.get_user(int(x))
 				await owner.send(string, delete_after=604800)
 
