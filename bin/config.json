@@ -1,28 +1,22 @@
 {
-      "token": "Your Token",
+      "token": "Your token",
       "command_prefix": "+",
       "log": "False",
       "logchannel": "",
-      "levelchannel":"",
-      "spamchannel":"",
-      "infochannel":"",
-      "loginchannel":"",
+      "levelchannel": "",
       "owner": "",
-      "textCooldown": "",
+      "textCooldown": "75",
       "privilege": {
-            
+            "Your ID": "2",
+            "Lower rank ID": "1"
       },
-      "server": "",
+      "guilde": "Your guilde ID",
       "serverVoiceBlacklist": [
-            "0",
+            "0"
       ],
       "serverTextWhitelist": [
-            "0",
+            "0"
       ],
-      "roles": [
-
-      ],
-      "rolesXPNeed": [
-
-      ]
+      "roles": [],
+      "rolesXPNeed": []
 }
