@@ -128,23 +128,23 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@isNotInChannelOrDM("📂log","📢info","⏫level")
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_open(self, ctx, pollID):
-		[messageID, ctx.channel.id] = self.poll.getMessageID(pollID)
+		[messageID, channelID] = self.poll.getMessageID(pollID)
 		self.poll.pollOpen(pollID)
 		# Test if has a send poll string somewhere
-		if messageID and ctx.channel.id:
+		if messageID and channelID:
 			# poll has been send somewhere => delete old one
-			channel = self.bot.get_channel(int(ctx.channel.id))
-			message = await channel.fetch_message(int(messageID))
-			await message.delete()
+			channel = self.bot.get_channel(int(channelID))
+			messageToDelet = await channel.fetch_message(int(messageID))
+			await messageToDelet.delete()
 		# Poll is open => send it
 		if self.poll.getStatus(pollID) == "OPEN":
 			# Send poll
 			text = self.poll.pollString(pollID)
-			message = await ctx.send(content=f"{text}{ctx.author.mention}")
+			messageSend = await ctx.send(content=f"{text}{ctx.author.mention}")
 			reactionsarr = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣","6⃣","7⃣"]
 			for emoji in reactionsarr[:len(self.poll.getOptions(pollID))]:
-				await message.add_reaction(emoji)
-			self.poll.setMessageID(pollID, message.id, message.channel.id)
+				await messageSend.add_reaction(emoji)
+			self.poll.setMessageID(pollID, messageSend.id, messageSend.channel.id)
 			await self.helpf.log(f"User {ctx.author.mention} opened the poll {pollID} in channel {ctx.channel.name}.",1)
 		await ctx.message.delete()
 
@@ -152,9 +152,9 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_close(self, ctx, pollID):
-		[messageID, ctx.channel.id] = self.poll.getMessageID(pollID)
-		if self.poll.pollClose(pollID) and messageID and ctx.channel.id:
-			channel = self.bot.get_channel(int(ctx.channel.id))
+		[messageID, channelID] = self.poll.getMessageID(pollID)
+		if self.poll.pollClose(pollID) and messageID and channelID:
+			channel = self.bot.get_channel(int(channelID))
 			message = await channel.fetch_message(int(messageID))
 			if message != None:
 				await message.clear_reactions()
@@ -168,12 +168,11 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@isNotInChannelOrDM("📂log","📢info","⏫level")
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_publish(self, ctx, pollID):
-		ctx.channel.id = ctx.channel.id
 		if self.poll.pollPublish(pollID):
 			# Delet OPEN poll to resend as published
-			messageID = self.poll.getMessageID(pollID)
-			channel = self.bot.get_channel(int(messageID[1]))
-			message = await channel.fetch_message(int(messageID[0]))
+			[messageID, channelID] = self.poll.getMessageID(pollID)
+			channel = self.bot.get_channel(int(channelID))
+			message = await channel.fetch_message(int(messageID))
 			await message.delete()
 			# Send published poll
 			text = self.poll.pollStringSortBy(pollID, 1)

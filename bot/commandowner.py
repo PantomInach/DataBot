@@ -19,7 +19,8 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	@commands.command(name='test', pass_context=True, brief='Testing command for programmer.', description='You need privilege level Owner to use this command. Only the programmer knows what happens here.')
 	@isBotOwner()
 	async def test(self, ctx):
-		await ctx.send("Geht")		
+		await ctx.send("Geht")
+		await ctx.message.delete()		
 
 	@commands.command(name="ping")
 	@isBotOwner()
@@ -33,10 +34,10 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		if self.jh.getFromConfig("log") == "False":
 			self.jh.config["log"] = "True"
 			self.jh.saveConfig()
-			guildeID = int(self.jh.getFromConfig("server"))
+			guildeID = int(self.jh.getFromConfig("guilde"))
 			guildeName = str(self.bot.get_guild(guildeID))
 			await self.helpf.log(f"Start to log users from Server:\n\t{guildeName}",2)
-			while self.jh.getFromConfig("log"):
+			while self.jh.getFromConfig("log") == "True":
 				self.helpf.addMembersOnlineVoiceXp(guildeID)
 				await self.helpf.levelAkk()
 				await self.helpf.updateRoles()
@@ -49,7 +50,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	@isBotOwner()
 	async def stoplog(self, ctx):
 		if self.jh.getFromConfig("log")=="True":
-			guildeID = int(self.jh.getFromConfig("server"))
+			guildeID = int(self.jh.getFromConfig("guilde"))
 			guildeName = str(self.bot.get_guild(guildeID))
 			self.jh.config["log"] = "False"
 			self.jh.saveConfig()
@@ -63,7 +64,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		self.jh.saveConfig()
 		self.jh.saveData()
 		self.tban.removeAllTextBan()
-		self.helpf.log("Bot is shutdown",2)
+		await self.helpf.log("Bot is shutdown",2)
 		await ctx.bot.logout()
 		await bot.close()
 		sys.exit()
@@ -73,7 +74,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	async def sendDPD(self, ctx):
 		binpath = str(os.path.dirname(__file__))[:-4]+"/bin/"
 		string = ""
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		lenght = len(guilde.members)
 		i = 0
 		with open(binpath+"dataProtection.txt","r") as f:
@@ -89,7 +90,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	@isBotOwner()
 	async def sendGiveRoles(self, ctx):
 		text = "**Choose your interest group**\n```You will be given roles based on your interest that grant you access to optional voice- and textchannels.\nInterest:                      Rolename:\n🎮 gaming                      gaming\n📚 study-channel               student\n👾 development-technology      dev-tech\n🏹 single-exchange             single\n🤑 gambling-channel            gambling\n⚡ bot-development             bot-dev```"
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("server")))
+		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		lenght = len(guilde.members)
 		i = 1
 		for member in guilde.members:

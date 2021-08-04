@@ -82,7 +82,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 		if self.jh.isInData(userID):
 			voice = self.jh.getUserVoice(userID)
 			text = self.jh.getUserText(userID)
-			textCount = self.getUserTextCount(userID)
+			textCount = self.jh.getUserTextCount(userID)
 			message = f"User: {str(self.bot.get_user(int(userID)))} VoiceXP: {voice} TextXP: {text} TextCount: {textCount}"
 		else:
 			user = self.bot.get_user(int(userID))
