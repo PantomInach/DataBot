@@ -32,7 +32,7 @@ class Jsonhandel(object):
 		#Level 1:	Mod
 		#Level 2:	Owner
 		if str(userID) in [x for x in self.config["privilege"]]:
-			return self.config["privilege"][str(userID)]
+			return int(self.config["privilege"][str(userID)])
 		return 0
 
 	def getInPrivilege(self):

@@ -1,5 +1,4 @@
 import random
-from .jsonhandel import Jsonhandel
 
 class Xpfunk(object):
 	"""

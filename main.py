@@ -109,7 +109,7 @@ async def on_disconnect():
 @bot.event
 async def on_member_join(member):
 	channel = bot.get_channel(int(jh.getFromConfig("logchannel")))
-	guilde = bot.get_guild(int(jh.getFromConfig("server")))
+	guilde = bot.get_guild(int(jh.getFromConfig("guilde")))
 	await channel.send(f"Hey **{member.name}**, welcome to {guilde}")
 
 
@@ -117,7 +117,7 @@ async def on_member_join(member):
 @bot.event
 async def on_member_remove(member):
 	channel = bot.get_channel(int(jh.getFromConfig("logchannel")))
-	guilde = bot.get_guild(int(jh.getFromConfig("server")))
+	guilde = bot.get_guild(int(jh.getFromConfig("guilde")))
 	await channel.send(f"**{member.name}** has left {guilde}. Press F to pay respect.")
 	"""
 	#Hash user data
