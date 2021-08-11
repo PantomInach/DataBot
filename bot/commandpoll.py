@@ -25,6 +25,29 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		self.jh = jh
 		Commandpoll.helpf = helpf
 
+	@commands.command(name='polltest')
+	async def pollCommandInterprator(self, ctx, *inputs):
+		if inputs[0] == "close":
+			await self.poll_close(ctx, *inputs[1])
+		elif inputs[0] == "create":
+			await self.pollCreate(ctx, *inputs[1])
+		elif inputs[0] == "list":
+			await self.pollsList(ctx)
+		elif inputs[0] == "open":
+			await self.poll_open(ctx, *inputs[1])
+		elif inputs[0] == "publish":
+			await self.poll_publish(ctx, *inputs[1])
+		elif inputs[0] == "rm":
+			await self.poll_remove(ctx, *inputs[1])
+		elif inputs[0] == "show":
+			await self.pollSend(ctx, *inputs[1])
+		elif inputs[0] == "op" and inputs[1] == "add":
+			await self.optionAdd(ctx, *inputs[2:])
+		elif inputs[0] == "op" and inputs[1] == "rm":
+			await self.polloptionRemove(ctx, *inputs[2:])
+		else:
+			await ctx.send("Error")
+
 	@commands.command(name='poll_create', brief='Creates a new poll.', description='You need to be a \'member\', \'Administrator\' or \'moderator\' to use this command. Can only be used in private messages.\nThis command creates a new poll with given name. The pollID is the lowest possible number available.\nAs an input you have to specify a name. If you want a name with spaces than set the name in \"\". The name can not be longer than 71 characters.')
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
@@ -43,7 +66,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: The optionName is to long."
 		await ctx.send(message)
 
-	@commands.command(name='poll', brief='Prints a poll.', description='You need to be a \'member\', \'Administrator\' or \'moderator\' to use this command. Can only be used in private messages.\nThis command shows the poll with the given ID with all its options.\nAs an input you need the poll ID, which you can get with \"+polls\".')
+	#@commands.command(name='poll', brief='Prints a poll.', description='You need to be a \'member\', \'Administrator\' or \'moderator\' to use this command. Can only be used in private messages.\nThis command shows the poll with the given ID with all its options.\nAs an input you need the poll ID, which you can get with \"+polls\".')
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def pollSend(self, ctx, pollID):
