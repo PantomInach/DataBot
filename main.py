@@ -305,7 +305,7 @@ jh.config["log"] = "False"
 jh.saveConfig()
 print("Set log to False.")
 print("Loading Commands...")
-bot.add_cog(Commanduser(bot, helpf, jh, xpf))
+bot.add_cog(Commanduser(bot, helpf, tban, jh, xpf))
 bot.add_cog(Commandmod(bot, helpf, jh, xpf))
 bot.add_cog(Commandowner(bot, helpf, tban, jh, xpf))
 bot.add_cog(Commandpoll(bot, helpf, poll, jh))
