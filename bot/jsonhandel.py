@@ -159,7 +159,7 @@ class Jsonhandel(object):
 
 	def addReactionXP(self, userID, amount):
 		self.addNewDataEntry(str(userID))
-		cooldownTime = self.data[str(userID)]["Cooldown"]
+		cooldownTime = float(self.data[str(userID)]["Cooldown"])
 		cooldownCon = 10
 		t =time.time()
 		deltat = t-cooldownTime
