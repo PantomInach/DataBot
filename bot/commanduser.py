@@ -35,26 +35,30 @@ class Commanduser(commands.Cog, name='User Commands'):
 
 	@commands.command(name='user')
 	async def userCommandsInterpretor(self, ctx, *inputs):
-		if inputs[0] == "get":
+		lenght = len(inputs)
+		if lenght == 2 and inputs[0] == "get":
 			await self.getUserData(ctx, inputs[1])
 
-		elif inputs[0] == "rm":
+		elif lenght == 2 and inputs[0] == "rm":
 			await self.removeuser(ctx, inputs[1])
 
-		elif inputs[0] == "set" and inputs[1] == "tc":
+		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "tc":
 			await self.setTextCount(ctx, inputs[2], inputs[3])
 
-		elif inputs[0] == "set" and inputs[1] == "text":
+		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "text":
 			await self.setTextXP(ctx, inputs[2], inputs[3])
 
-		elif inputs[0] == "set" and inputs[1] == "voice":
+		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "voice":
 			await self.setVoiceXP(ctx, inputs[2], inputs[3])
 
-		elif inputs[0] == "tb" and inputs[1] == "add":
+		elif lenght == 4 and inputs[0] == "tb" and inputs[1] == "add":
 			await self.textban(ctx, inputs[2], inputs[3], inputs[4])
 
-		elif inputs[0] == "tb" and inputs[1] == "rm":
+		elif lenght == 3 and inputs[0] == "tb" and inputs[1] == "rm":
 			await self.textunban(ctx, inputs[2])
+
+		else:
+			await ctx.author.send(f"Command \"user {' '.join(inputs)}\" is not valid.")
 
 
 
@@ -66,7 +70,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 	######################################################################
 	"""
 
-	#@commands.command(name='getuserdata', brief='Gives VoiceXP, TextXP and writen messages back.', description='You need privilege level 1 to use this command. Returns UserName, UserID, VoiceXP, TextXP and writen messages back. As an input you need the user id, which you can get by rigth clicking on the user.')
 	@isBotMod()
 	async def getUserData(self, ctx, userID):
 		if self.jh.isInData(userID):
@@ -79,7 +82,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 			message = f"User was not in data. Created user: {user.mention}"  
 		await ctx.send(message)
 
-	#@commands.command(name='setvoicexp',brief='Sets the voiceXP of a user.', description='You need privilege level 1 to use this command. Sets the voiceXP to the given amount. As an input you need the userID, which you can get by rigth clicking on the user, and the value of the XP.')
 	@isBotMod()
 	async def setVoiceXP(self, ctx, userID, amount):
 		message = ""
@@ -91,7 +93,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await self.helpf.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} voiceXP to {amount}.",2)
 		await ctx.send(message)
 
-	#@commands.command(name='settextxp',brief='Sets the textXP of a user.', description='You need privilege level 1 to use this command. Sets the TextXP to the given amount. As an input you need the userID, which you can get by rigth clicking on the user, and the value of the XP.')
 	@isBotMod()
 	async def setTextXP(self, ctx, userID, amount):
 		message = ""
@@ -103,7 +104,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await self.helpf.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textXP to {amount}.",2)
 		await ctx.send(message)
 
-	#@commands.command(name='settextcount',brief='Sets the textCount of a user.', description='You need privilege level 1 to use this command. Sets the TextCount to the given amount. As an input you need the userID, which you can get by rigth clicking on the user, and the value of the XP.')
 	@isBotMod()
 	async def setTextCount(self, ctx, userID, amount):
 		message = ""
@@ -115,7 +115,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await self.helpf.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textCount to {amount}.",2)
 		await ctx.send(message)
 
-	#@commands.command(name='removeuser', brief='Removes user from data.', description='You need privilege level 1 to use this command. Removes the userID from the data und save it. As an input you need the userID, which you can get by rigth clicking on the user.')
 	@isBotMod()
 	async def removeuser(self, ctx, userID):
 		if self.jh.removeUserFromData(userID) == 1:
@@ -139,7 +138,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 	######################################################################
 	"""
 
-	#@commands.command(name='textban', brief='Textbans a user.', description='You need to be a \'Administrator\' or \'moderator\' to use this command. Can only be used in a private channel and \'log\'.\nAdds a user to the textban-list. The users text-messages will be deletet upon posting them. You can not change the ban time, only unban with \'+textunban\'.\nTo use this command you need the userID, which you can get be rigth-clicking on the person. Also a time is requiered. The time you input will be in seconds. Also a reason is requiered. The reason must be in \"\", otherwise the command wont work.')
 	@isDM()
 	@hasAnyRole("CEO","COO")
 	async def textban(self, ctx, userID, time, reason):
@@ -170,7 +168,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 			await ctx.send(content="ERROR: User has already a textban.", delete_after=3600)
 					
 
-	#@commands.command(name='textunban', brief='Removes textban from user.', description='You need to be a \'Administrator\' or \'moderator\' to use this command. Can only be used in a private channel and \'log\'.\nThis command will remnove a person from the textban-list and the messages from the person wont be removed anymore.\nTo use this command you need the userID, which you can get be rigth-clicking on the person.')
 	@isDM()
 	@hasAnyRole("CEO","COO")
 	async def textunban(self, ctx, userID):

@@ -81,6 +81,9 @@ def isNotInChannelOrDM(*items):
 async def sendCTX(ctx, message):
 	await ctx.send(message)
 
+async def sendAuthor(ctx, message):
+	await ctx.author.send(message)
+
 async def passFunc():
 	await asyncio.sleep(0)
 
