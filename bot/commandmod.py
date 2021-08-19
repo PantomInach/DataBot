@@ -24,15 +24,16 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 	@commands.command(name='textwl')
 	@isBotModCommand()
 	async def textwlCommandInterpretor(self, ctx, *inputs):
-		if inputs[0] == "add":
+		lenght = len(inputs)
+		if lenght == 2 and inputs[0] == "add":
 			await self.addtextwhitelist(ctx, inputs[1])
 
-		elif inputs[0] == "rm":
+		elif lenght == 2 and inputs[0] == "rm":
 			await self.removetextwhitelist(ctx, inputs[1])
 
-	#Adds text channel to whitelist
-	#@commands.command(name='addtextwhitelist', brief='Adds a text channel to the whitelist.', description='You need privilege level 1 to use this command. You can add a text channel to the whitelist. Users writting in channels from the whitelist will get text XP. As an input you need the channel id, which you can get by rigth clicking on the channel.')
-	#@isBotMod()
+		else:
+			await ctx.author.send(f"Command \"textwl {' '.join(inputs)}\" is not valid.")
+
 	async def addtextwhitelist(self, ctx, channelID):
 		guilde = self.bot.get_guild(self.jh.getFromConfig("guilde"))
 		channels = self.helpf.getTextChannelsFrom(self.jh.getFromConfig("guilde"))
@@ -49,9 +50,6 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 			await self.helpf.log(f"{message} from user {ctx.author}",2)
 		await ctx.send(message)
 
-	#Removes text channel from whitelist
-	#@commands.command(name='removetextwhitelist', brief='Removes a text channel to the whitelist.', description='You need privilege level 1 to use this command. You can remove text channels from the whitelist. Users writting in channels from the whitelist will get not get text XP. As an input you need the channel id, which you can get by rigth clicking on the channel.')
-	#@isBotMod()
 	async def removetextwhitelist(self, ctx, channelID):
 		#Try to remove from whitelist
 		if self.jh.removeFromWhitelist(channelID):
@@ -73,15 +71,16 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 	@commands.command(name='voicebl')
 	@isBotModCommand()
 	async def voiceblCommandInterpretor(self, ctx, *inputs):
-		if inputs[0] == "add":
+		lenght = len(inputs)
+		if lenght == 2 and inputs[0] == "add":
 			await self.addblacklist(ctx, inputs[1])
 
-		elif inputs[0] == "rm":
+		elif lenght == 2 and inputs[0] == "rm":
 			await self.removeblacklist(ctx, inputs[1])
 
-	#Adds channel to blacklist
-	#@commands.command(name='addvoiceblacklist', brief='Adds a voice channel to the blacklist.', description='You need privilege level 1 to use this command. You can add a voice channel to the blacklist. The users in blacklisted channels will not get voice XP. As an input you need the channel id, which you can get by rigth clicking on the channel.')
-	#@isBotMod()
+		else:
+			await ctx.author.send(f"Command \"voicebl {' '.join(inputs)}\" is not valid.")
+
 	async def addblacklist(self, ctx, channelID):
 		guilde = self.bot.get_guild(self.jh.getFromConfig("guilde"))
 		channels = self.helpf.getVoiceChannelsFrom(self.jh.getFromConfig("guilde"))
@@ -98,9 +97,6 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 		await self.helpf.log(f"{message} from user {ctx.author}",2)
 		await ctx.send(message)
 
-	#Removes channels from blacklist
-	#@commands.command(name='removevoiceblacklist', brief='Removes a voice channel to the blacklist.', description='You need privilege level 1 to use this command. You can remove a voice channel from the blacklist. The users in this channel will get voice XP. As an input you need the channel id, which you can get by rigth clicking on the channel.')
-	#@isBotMod()
 	async def removeblacklist(self, ctx, channelID):
 		#Try to remove from Blacklist
 		if self.jh.removeFromBalcklist(channelID):
