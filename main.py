@@ -1,7 +1,7 @@
 import certifi
 import os
 import discord
-from discord.utils import get
+from discord.utils import get, find
 from discord.ext import commands
 import time
 import datetime
@@ -300,6 +300,66 @@ async def on_error(event, *args, **kwargs):
 	message = f"\n_________\nERROR:\nEvent:\n\t{event}\n\nPosition:\n\t{args}\n\nKeyword:\n\t{kwargs}\nERROR END\n_________\n"
 	await helpf.log(message,2)
 """
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+	"""
+	Clones joined channel if it has a number in the end
+	"""
+	# when user joins channel: before = None; after is a voicestate
+
+
+	"""
+	User joins channel after.channel. If channel ends with a number, than a copy will be created with the lowest possible ending number. 
+	"""
+	if after.channel and len(after.channel.members) <= 1:
+		# Get channels to get lowest enumeration of channel
+		afterNumber = None 
+		nameIndex = -1
+		while after.channel.name[nameIndex:].isdigit():
+			afterNumber = int(after.channel.name[nameIndex:])	# number on the end of channel name
+			nameIndex -= 1
+		nameIndex += 1
+
+		serverid = int(jh.getFromConfig("guilde"))
+		allChannel = helpf.getVoiceChannelsFrom(serverid)
+		channelWithoutNumber = after.channel.name[:nameIndex]
+		# When after channel name ends with number and channel number 1 has user in it
+		if afterNumber and len(find(lambda c: c.name == (channelWithoutNumber + "1"), allChannel).members):
+			# Get channels with after.channel.name without numbers in it and end with digits
+			voiceChanelsWithName = [channel for channel in allChannel if after.channel.name[:nameIndex] in channel.name and channel.name[len(channelWithoutNumber):].isdigit()]
+			# Get all numbers in the end of voiceChannelsWithName
+			numbersOfChannels = [int(channel.name[len(channelWithoutNumber):]) for channel in voiceChanelsWithName]
+			lowestFreeID = min([i for i in range(2, max(numbersOfChannels) + 2) if not i in numbersOfChannels])
+			
+			channelWithNumberBefore = find(lambda c: c.name[-len(str(lowestFreeID - 1)):] == str(lowestFreeID - 1), voiceChanelsWithName)
+			newChannelName = channelWithoutNumber + str(lowestFreeID)
+			# Create channel and gets it
+			newChannel = await channelWithNumberBefore.clone(name = newChannelName)
+			# Move channel after channelWithNumberBefore
+			await newChannel.move(after = channelWithNumberBefore)
+
+	"""
+	When a user leaves a channel (before.channel) with a number endingn nobody else is connected und and number is not 1, than the channel will be deleted.
+	"""
+	if before.channel and len(before.channel.members) == 0 and before.channel.name[-1].isdigit():
+		# Member left first channel
+		if before.channel.name[-1] == "1" and not before.channel.name[-2].isdigit():
+			# Delete last channel, which has no user in it
+			serverid = int(jh.getFromConfig("guilde"))
+			allChannel = helpf.getVoiceChannelsFrom(serverid)
+
+			channelWithoutNumber = before.channel.name[:-1]
+			print([channel for channel in allChannel if channelWithoutNumber in channel.name and len(channel.members) == 0])
+			lastChannel = max([channel for channel in allChannel if channelWithoutNumber in channel.name and len(channel.members) == 0])
+
+			await lastChannel.delete()
+
+
+		# User left channel, which is not the first channel. So it will be deleted	
+		else:
+			await before.channel.delete()
+
 
 jh.config["log"] = "False"
 jh.saveConfig()
