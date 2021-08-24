@@ -324,11 +324,16 @@ async def on_voice_state_update(member, before, after):
 			if notFirstVoiceChannel:
 				lastChannel = max(notFirstVoiceChannel, key = lambda c: int(c.name[len(channelWithoutNumber):]))
 
+				# Removes channel from blacklist if nessacary
+				jh.removeFromBalcklist(lastChannel.id)
+
 				await lastChannel.delete()
 
 
 		# User left channel, which is not the first channel. So it will be deleted	
 		else:
+			# Removes channel from blacklist if nessacary
+			jh.removeFromBalcklist(before.channel.id)
 			await before.channel.delete()
 
 
@@ -359,6 +364,10 @@ async def on_voice_state_update(member, before, after):
 			newChannelName = channelWithoutNumber + str(lowestFreeID)
 			# Create channel and gets it
 			newChannel = await channelWithNumberBefore.clone(name = newChannelName)
+
+			if jh.isInBlacklist(after.channel.id):
+				jh.writeToBalcklist(newChannel.id)
+				
 			# Move channel after channelWithNumberBefore
 			await newChannel.move(after = channelWithNumberBefore)
 
