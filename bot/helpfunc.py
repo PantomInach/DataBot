@@ -44,9 +44,9 @@ class Helpfunc(object):
 			membersInChannel = [member for member in channel.members if not member.bot]
 			if len(membersInChannel) >= 2:
 				membersNotMutedOrBot = [member for member in membersInChannel if not (member.voice.self_mute or member.bot)]
-				self.jh.addAllUserVoice(membersNotMutedOrBot)
+				self.jh.addAllUserVoice([member.id for member in membersNotMutedOrBot])
 				membersStreamOrVideo = [member for member in membersNotMutedOrBot if (member.voice.self_video or member.voice.self_stream)]
-				self.jh.addAllUserVoice(membersStreamOrVideo)
+				self.jh.addAllUserVoice([member.id for member in membersStreamOrVideo])
 
 	async def updateRoles(self):
 		# Gives members role in rolesList if they have the level in roleXPNeedList
