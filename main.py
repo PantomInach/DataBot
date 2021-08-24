@@ -310,6 +310,29 @@ async def on_voice_state_update(member, before, after):
 
 
 	"""
+	When a user leaves a channel (before.channel) with a number endingn nobody else is connected und and number is not 1, than the channel will be deleted.
+	"""
+	if before.channel and len(before.channel.members) == 0 and before.channel.name[-1].isdigit():
+		# Member left first channel
+		if before.channel.name[-1] == "1" and not before.channel.name[-2].isdigit():
+			# Delete last channel, which has no user in it
+			serverid = int(jh.getFromConfig("guilde"))
+			allChannel = helpf.getVoiceChannelsFrom(serverid)
+
+			channelWithoutNumber = before.channel.name[:-1]
+			notFirstVoiceChannel = [channel for channel in allChannel if channelWithoutNumber in channel.name and len(channel.members) == 0 and channel.name != channelWithoutNumber + "1"]
+			if notFirstVoiceChannel:
+				lastChannel = max(notFirstVoiceChannel, key = lambda c: int(c.name[len(channelWithoutNumber):]))
+
+				await lastChannel.delete()
+
+
+		# User left channel, which is not the first channel. So it will be deleted	
+		else:
+			await before.channel.delete()
+
+
+	"""
 	User joins channel after.channel. If channel ends with a number, than a copy will be created with the lowest possible ending number. 
 	"""
 	if after.channel and len(after.channel.members) <= 1:
@@ -338,27 +361,6 @@ async def on_voice_state_update(member, before, after):
 			newChannel = await channelWithNumberBefore.clone(name = newChannelName)
 			# Move channel after channelWithNumberBefore
 			await newChannel.move(after = channelWithNumberBefore)
-
-	"""
-	When a user leaves a channel (before.channel) with a number endingn nobody else is connected und and number is not 1, than the channel will be deleted.
-	"""
-	if before.channel and len(before.channel.members) == 0 and before.channel.name[-1].isdigit():
-		# Member left first channel
-		if before.channel.name[-1] == "1" and not before.channel.name[-2].isdigit():
-			# Delete last channel, which has no user in it
-			serverid = int(jh.getFromConfig("guilde"))
-			allChannel = helpf.getVoiceChannelsFrom(serverid)
-
-			channelWithoutNumber = before.channel.name[:-1]
-			print([channel for channel in allChannel if channelWithoutNumber in channel.name and len(channel.members) == 0])
-			lastChannel = max([channel for channel in allChannel if channelWithoutNumber in channel.name and len(channel.members) == 0])
-
-			await lastChannel.delete()
-
-
-		# User left channel, which is not the first channel. So it will be deleted	
-		else:
-			await before.channel.delete()
 
 
 jh.config["log"] = "False"
