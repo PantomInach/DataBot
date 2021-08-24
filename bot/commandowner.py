@@ -17,19 +17,19 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		self.tban = tban
 
 	@commands.command(name='test', pass_context=True, brief='Testing command for programmer.', description='You need privilege level Owner to use this command. Only the programmer knows what happens here.')
-	@isBotOwner()
+	@isBotOwnerCommand()
 	async def test(self, ctx):
 		await ctx.send("Geht")
 		await ctx.message.delete()		
 
 	@commands.command(name="ping")
-	@isBotOwner()
+	@isBotOwnerCommand()
 	async def ping(self, ctx):
 		await ctx.send("pong")
 
 	#Starts to log the users in voice channels
 	@commands.command(name='startlog', brief='Starts to log the users on the configured server.', description='You need privilege level 2 to use this command. Gets the connected users of the configured server und increments every minute their voice XP.')
-	@isBotOwner()
+	@isBotOwnerCommand()
 	async def startlog(self, ctx):
 		if self.jh.getFromConfig("log") == "False":
 			self.jh.config["log"] = "True"
@@ -47,7 +47,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 			await ctx.send(f"Bot is logging. Logging state: True")
 
 	@commands.command(name='stoplog', brief='Stops to log the users on configured server.', description='You need privilege level 2 to use this command. When the bot logs the connective users on the configured server, this command stops the logging process.')
-	@isBotOwner()
+	@isBotOwnerCommand()
 	async def stoplog(self, ctx):
 		if self.jh.getFromConfig("log")=="True":
 			guildeID = int(self.jh.getFromConfig("guilde"))
@@ -59,7 +59,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 			await ctx.send(f"Bot is NOT logging. Logging state: False")
 
 	@commands.command(name='stopbot', brief='Shuts down the bot.', description='You need privilege level 2 to use this command. This command shuts the bot down.')
-	@isBotOwner()
+	@isBotOwnerCommand()
 	async def stopbot(self, ctx):
 		self.jh.saveConfig()
 		self.jh.saveData()
@@ -70,7 +70,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		sys.exit()
 
 	@commands.command(name='sendDPD', brief='Sends data protection declaration to channel')
-	@isBotOwner()
+	@isBotOwnerCommand()
 	async def sendDPD(self, ctx):
 		binpath = str(os.path.dirname(__file__))[:-4]+"/bin/"
 		string = ""
@@ -87,7 +87,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		await message.add_reaction("✅")
 
 	@commands.command(name='sendGR', brief='Sends message to assing roles')
-	@isBotOwner()
+	@isBotOwnerCommand()
 	async def sendGiveRoles(self, ctx):
 		text = "**Choose your interest group**\n```You will be given roles based on your interest that grant you access to optional voice- and textchannels.\nInterest:                      Rolename:\n🎮 gaming                      gaming\n📚 study-channel               student\n👾 development-technology      dev-tech\n🏹 single-exchange             single\n🤑 gambling-channel            gambling\n⚡ bot-development             bot-dev```"
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
@@ -103,7 +103,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 			await message.add_reaction(emoji)
 
 	@commands.command(name='changeBotMessage')
-	@isBotOwner()
+	@isBotOwnerCommand()
 	async def changeBotMessage(self, ctx, channelID, messageID, text):
 		message = await self.bot.get_channel(int(channelID)).fetch_message(int(messageID))
 		if (message.author != self.bot.user):
@@ -115,7 +115,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		await message.edit(content=str(text))
 
 	@commands.command(name='addReaction')
-	@isBotOwner()
+	@isBotOwnerCommand()
 	async def addReaction(self, ctx, channelID, messageID, emoji):
 		message = await self.bot.get_channel(int(channelID)).fetch_message(int(messageID))
 		if (message.author != self.bot.user):

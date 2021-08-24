@@ -6,11 +6,15 @@ from .decorators import *
 def hasAnyRole(*items):
 		"""
 		commands.has_any_role() does not work in DM since a users can't have roles.
-		This on pulls the roles from the conffigured guilde and makes the same check as commands.has_any_role().
+		This on pulls the roles from the configured guilde and makes the same check as commands.has_any_role().
 		"""
-		def predicate(ctx):
-			return Commandpoll.helpf.hasOneRole(ctx.author.id, [role for role in items])
-		return commands.check(predicate)
+		def decorator(func):
+			def wrapper(*args, **kwargs):
+				if Commandpoll.helpf.hasOneRole(args[1].author.id, [*items]):
+					return func(*args, **kwargs)
+				return passFunc()
+			return wrapper
+		return decorator
 
 class Commandpoll(commands.Cog, name='Poll Commands'):
 	"""These Commands are for creating polls."""
@@ -25,7 +29,42 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		self.jh = jh
 		Commandpoll.helpf = helpf
 
-	@commands.command(name='poll_create', brief='Creates a new poll.', description='You need to be a \'member\', \'Administrator\' or \'moderator\' to use this command. Can only be used in private messages.\nThis command creates a new poll with given name. The pollID is the lowest possible number available.\nAs an input you have to specify a name. If you want a name with spaces than set the name in \"\". The name can not be longer than 71 characters.')
+	@commands.command(name='poll')
+	async def pollCommandInterpretor(self, ctx, *inputs):
+		lenght = len(inputs)
+		if lenght == 2 and inputs[0] == "close":
+			await self.poll_close(ctx, inputs[1])
+
+		elif lenght == 2 and inputs[0] == "create":
+			await self.pollCreate(ctx, inputs[1])
+
+		elif lenght == 1 and inputs[0] == "list":
+			await self.pollsList(ctx)
+
+		elif lenght == 2 and inputs[0] == "close":
+			await self.poll_close(ctx, inputs[1])
+
+		elif lenght == 2 and inputs[0] == "open":
+			await self.poll_open(ctx, inputs[1])
+
+		elif lenght == 2 and inputs[0] == "publish":
+			await self.poll_publish(ctx, inputs[1])
+
+		elif lenght == 2 and inputs[0] == "rm":
+			await self.poll_remove(ctx, inputs[1])
+
+		elif lenght == 2 and inputs[0] == "show":
+			await self.pollSend(ctx, inputs[1])
+
+		elif lenght == 4 and inputs[0] == "op" and inputs[1] == "add":
+			await self.optionAdd(ctx, *inputs[2:4])
+
+		elif lenght == 4 and inputs[0] == "op" and inputs[1] == "rm":
+			await self.polloptionRemove(ctx, *inputs[2:4])
+
+		else:
+			await ctx.author.send(f"Command \"poll {' '.join(inputs)}\" is not valid.")
+
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def pollCreate(self, ctx, pollName):
@@ -43,7 +82,6 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: The optionName is to long."
 		await ctx.send(message)
 
-	@commands.command(name='poll', brief='Prints a poll.', description='You need to be a \'member\', \'Administrator\' or \'moderator\' to use this command. Can only be used in private messages.\nThis command shows the poll with the given ID with all its options.\nAs an input you need the poll ID, which you can get with \"+polls\".')
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def pollSend(self, ctx, pollID):
@@ -55,7 +93,6 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: Poll does not exists. Check +polls for active polls."
 		await ctx.send(message)
 
-	@commands.command(name='polloption_add', brief="Adds a poll option to vote for.", description='You need to be a \'member\', \'Administrator\' or \'moderator\' to use this command. Can only be used in private messages. The status of the poll must be \'CLOSED\' to use this command.\nThis command adds a option with name to vote for into the poll with the given ID. You can only add up to 7 options.The number of the option is always the lowest available.\nAs an input you need the poll ID, which you can get with \"+polls\", and the option Name. When you want a option with spaces in it, then set the name in \"\". The name can not be longer than 112 characters.')
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def optionAdd(self, ctx, pollID, optionName):
@@ -72,7 +109,6 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: Poll does not exists. Check +polls for active polls."
 		await ctx.send(message)
 
-	@commands.command(name='polloption_remove', brief='Removes an option from a poll.', description='You need to be a \'member\', \'Administrator\' or \'moderator\' to use this command. Can only be used in private messages. The status of the poll must be \'CLOSED\' to use this command.\nThis command removes a option with the spefified name for the poll with the given ID.\nAs an input you need the poll ID, which you can get with \"+polls\", and the option Name, which you can get with \"+poll pollID\".')
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def polloptionRemove(self, ctx, pollID, optionName):
@@ -86,7 +122,6 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: Poll does not exists. Check +polls for active polls."
 		await ctx.send(message)
 
-	@commands.command(name='polls', brief='Gives a brief list of all polls.', description='You need to be a \'member\', \'Administrator\', \'moderator\' or \'friend\' to use this command. Can only be used in private messages or in te spam-channel.\nThis command shows you the header of all stored polls.')
 	@isInChannelOrDM("🚮spam")
 	@hasAnyRole("CEO","COO","chairman","associate")
 	async def pollsList(self, ctx):
@@ -98,7 +133,6 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "No active polls."
 		await ctx.send(message)
 
-	@commands.command(name='poll_remove', brief='Removes a poll.', description='You need to be a \'member\', \'Administrator\' or \'moderator\' to use this command. Can only be used in private messages.\nThis command removes a poll completely from the storage. Can only be used if the poll is cloesed. Also it is not possible for users with no PrivilegeLevel to remove a poll while it has options. A message will then be send to an authorized to remove to poll. \nAs an input you need the poll ID, which you can get with \"+polls\".')
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_remove(self, ctx, pollID):
@@ -124,7 +158,6 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		await ctx.send(message)
 
 
-	@commands.command(name='poll_open', brief='Opens a poll for votes.', description='You need to be a \'member\', \'Administrator\' or \'moderator\' to use this command. Can only be used text-channels other than \'level\', \'info\', \'log\'. The status of the poll must be \'CLOSED\' or \'OPEN\' to use this command.\nThis command will post the poll (as seen in \'+poll\') to the text-channel. If the poll is already \'OPEN\' the previous version will be deleted from the channel and reposted. Also reactions will be added to vote with. You can change your vote as often as you like.This can sometimes break if to many users vote at once without waiting for reactions to be added. \nAs an input you need the poll ID, which you can get with \"+polls\".')
 	@isNotInChannelOrDM("📂log","📢info","⏫level")
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_open(self, ctx, pollID):
@@ -148,7 +181,6 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			await self.helpf.log(f"User {ctx.author.mention} opened the poll {pollID} in channel {ctx.channel.name}.",1)
 		await ctx.message.delete()
 
-	@commands.command(name='poll_close', brief='Closes a poll.', description='You need to be a \'member\', \'Administrator\' or \'moderator\' to use this command. Can only be used in private channels. The status of the poll must be \'OPEN\' to use this command.\nThis command will close a poll again. Then yo are free to manipulate the poll. \nAs an input you need the poll ID, which you can get with \"+polls\".')
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_close(self, ctx, pollID):
@@ -164,7 +196,6 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		else:
 			await ctx.send("ERROR: Can't close Poll")	
 
-	@commands.command(name='poll_publish', brief='Publish a poll.', description='You need to be a \'member\', \'Administrator\' or \'moderator\' to use this command. Can only be used text-channels other than \'level\', \'info\', \'log\'. The status of the poll must be \'OPEN\' to use this command.\nThis command will post the finished poll to the text channel and will be ordered by the amount of votes. The previously opened poll will be delete. \nAs an input you need the poll ID, which you can get with \"+polls\".')
 	@isNotInChannelOrDM("📂log","📢info","⏫level")
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_publish(self, ctx, pollID):

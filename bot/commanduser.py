@@ -5,17 +5,192 @@ from .inspiro import Inspiro
 from .decorators import *
 
 
+def hasAnyRole(*items):
+	"""
+	Only use for commands, which don't use @commands.command
+	commands.has_any_role() does not work in DM since a users can't have roles.
+	This on pulls the roles from the configured guilde and makes the same check as commands.has_any_role().
+	"""
+	def decorator(func):
+		def wrapper(*args, **kwargs):
+			if Commanduser.helpf.hasOneRole(args[1].author.id, [*items]):
+				return func(*args, **kwargs)
+			return passFunc()
+		return wrapper
+	return decorator
+
 class Commanduser(commands.Cog, name='User Commands'):
 	"""These Commands are available for all users."""
-	def __init__(self, bot, helpf, jh, xpf):
+
+	helpf = None
+
+	def __init__(self, bot, helpf, tban, jh, xpf):
 		super(Commanduser, self).__init__()
 		self.bot = bot
 		self.helpf = helpf
 		self.jh = jh
+		self.tban = tban
 		self.xpf = xpf
-	
+		Commanduser.helpf = helpf
+
+	@commands.command(name='user')
+	async def userCommandsInterpretor(self, ctx, *inputs):
+		lenght = len(inputs)
+		if lenght == 2 and inputs[0] == "get":
+			await self.getUserData(ctx, inputs[1])
+
+		elif lenght == 2 and inputs[0] == "rm":
+			await self.removeuser(ctx, inputs[1])
+
+		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "tc":
+			await self.setTextCount(ctx, inputs[2], inputs[3])
+
+		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "text":
+			await self.setTextXP(ctx, inputs[2], inputs[3])
+
+		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "voice":
+			await self.setVoiceXP(ctx, inputs[2], inputs[3])
+
+		elif lenght == 4 and inputs[0] == "tb" and inputs[1] == "add":
+			await self.textban(ctx, inputs[2], inputs[3], inputs[4])
+
+		elif lenght == 3 and inputs[0] == "tb" and inputs[1] == "rm":
+			await self.textunban(ctx, inputs[2])
+
+		else:
+			await ctx.author.send(f"Command \"user {' '.join(inputs)}\" is not valid.")
+
+
+
+	"""
+	######################################################################
+
+	Bot Mod user commands
+
+	######################################################################
+	"""
+
+	@isBotMod()
+	async def getUserData(self, ctx, userID):
+		if self.jh.isInData(userID):
+			voice = self.jh.getUserVoice(userID)
+			text = self.jh.getUserText(userID)
+			textCount = self.jh.getUserTextCount(userID)
+			message = f"User: {str(self.bot.get_user(int(userID)))} VoiceXP: {voice} TextXP: {text} TextCount: {textCount}"
+		else:
+			user = self.bot.get_user(int(userID))
+			message = f"User was not in data. Created user: {user.mention}"  
+		await ctx.send(message)
+
+	@isBotMod()
+	async def setVoiceXP(self, ctx, userID, amount):
+		message = ""
+		if not self.jh.isInData(userID):
+			message = f"User was not in data. Created user: {self.bot.get_user(int(userID))}\n"
+			self.jh.addNewDataEntry(userID)
+		self.jh.setUserVoice(userID, amount)
+		message += f"Set user {str(self.bot.get_user(int(userID)))} voiceXP to {amount}."
+		await self.helpf.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} voiceXP to {amount}.",2)
+		await ctx.send(message)
+
+	@isBotMod()
+	async def setTextXP(self, ctx, userID, amount):
+		message = ""
+		if not self.jh.isInData(userID):
+			message = f"User was not in data. Created user: {self.bot.get_user(int(userID))}\n"
+			self.jh.addNewDataEntry(userID)
+		self.jh.setUserText(userID, amount)
+		message += f"Set user {str(self.bot.get_user(int(userID)))} textXP to {amount}."
+		await self.helpf.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textXP to {amount}.",2)
+		await ctx.send(message)
+
+	@isBotMod()
+	async def setTextCount(self, ctx, userID, amount):
+		message = ""
+		if not self.jh.isInData(userID):
+			message = f"User was not in data. Created user: {self.bot.get_user(int(userID))}\n"
+			self.jh.addNewDataEntry(userID)
+		self.jh.setUserTextCount(userID, amount)
+		message += f"Set user {str(self.bot.get_user(int(userID)))} TextCount to {amount}."
+		await self.helpf.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textCount to {amount}.",2)
+		await ctx.send(message)
+
+	@isBotMod()
+	async def removeuser(self, ctx, userID):
+		if self.jh.removeUserFromData(userID) == 1:
+			user = self.bot.get_user(int(userID))
+			username = "No User"
+			if user != None:
+				username = user.name
+			message = f"Removed User {username} with ID {userID} from Data."
+		else:
+			message = f"User with ID {userID} is not in data."
+		await self.helpf.log(f"User {ctx.author}: {message}",2)
+		await ctx.send(message)
+
+
+
+	"""
+	######################################################################
+
+	Guilde Mod user commands
+
+	######################################################################
+	"""
+
+	@isDM()
+	@hasAnyRole("CEO","COO")
+	async def textban(self, ctx, userID, time, reason):
+		if not self.tban.hasTextBan(userID):
+			bantime = 0
+			try:
+				bantime = float(time)
+			except ValueError:
+				bantime = -1
+			if bantime >= 0.1:
+				user = self.bot.get_user(int(userID))
+				guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+				member = guilde.get_member(int(userID))
+				if user != None:
+					logchannel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
+					await self.helpf.log(f"User {ctx.author.mention} textbaned {user.mention} for {time} h. Reason:\n{reason}",2)
+					await logchannel.send(f"{user.mention} was textbaned for {time} h.\n**Reason**: {reason}")
+					await user.send(content=f"You received a textban for {time} h.\n**Reason**: {reason}")
+					await self.helpf.sendServerModMessage(f"{member.nick} ({user.name}) was textbaned by {guilde.get_member(int(ctx.author.id)).nick} ({ctx.author.name}) for {time} h.\n**Reason**: {reason}")
+					await self.tban.addTextBan(userID, int(bantime*3600.0))
+					#Textban over
+					await user.send("Your Textban is over. Pay more attention to your behavior in the future.")
+				else:
+					await ctx.send(content="ERROR: User does not exist.", delete_after=3600)
+			else:
+				await ctx.send(content="ERROR: time is not valid.", delete_after=3600)
+		else:
+			await ctx.send(content="ERROR: User has already a textban.", delete_after=3600)
+					
+
+	@isDM()
+	@hasAnyRole("CEO","COO")
+	async def textunban(self, ctx, userID):
+		if not self.tban.hasTextBan(ctx.author.id):
+			if self.tban.removeTextBan(userID):
+				logchannel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
+				user = self.bot.get_user(int(userID))
+				await self.helpf.log(f"User {ctx.author.mention} textunbaned {user.mention}",2)
+				await logchannel.send(f"User {ctx.author.mention} textunbaned {user.mention}")
+			else:
+				await ctx.send(content="ERROR: User has no textban.", delete_after=3600)
+
+
+	"""
+	######################################################################
+
+	Normal @commads.command functions
+
+	######################################################################
+	"""
+
 	@commands.command(name='level', pass_context=True, brief='Returns the level of a player.', description='You need privilege level 0 to use this command. Returns the users level on the configured server. The higher the level, the more roles you will get. Can only be used in the level Channel')
-	@isInChannel("⏫level")
+	@isInChannelCommand("⏫level")
 	async def getLevel(self, ctx):
 		userID = ctx.author.id
 		server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
@@ -39,7 +214,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await ctx.message.delete()
 
 	@commands.command(name='top',brief='Sends an interactive rank list.', description='You need privilege level 0 to use this command. Sends a list of the top 10 users orderd by XP. By klicking on ⏫, you jump to the first page, on ⬅, you go one page back, on ➡, you go one page further, on ⏰, you order by time, on 💌, you order by messages sent, and on 🌟, you order by XP. Can only be used in the level Channel')
-	@isInChannel("⏫level")
+	@isInChannelCommand("⏫level")
 	async def leaderboard(self, ctx):
 		await self.helpf.log(f"+top by {ctx.author}",1) #Notify Mods
 		#Create leaderboard
@@ -51,7 +226,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await ctx.message.delete()
 
 	@commands.command(name='quote', brief='Sends an unique inspirational quote.', description='You need privilege level 0 to use this command. Sends a random quote from inspirobot.me. Can only be used in the Spam Channel.')
-	@isInChannel("🚮spam")
+	@isInChannelCommand("🚮spam")
 	async def getPicture(self, ctx):
 		inspiro = Inspiro()
 		url = inspiro.getPictureUrl()
@@ -88,6 +263,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 	async def memeResponse(self, ctx):
 		message = "Lieber User,\nder Command nach dem du suchst ist '+ meme'.\nAn die Person, die sich gedacht hat, es sei eine gute Idee das Prefix von Dankmemer Bot soll '+' sein, you suck.\nDer Bot hat gesprochen!"
 		await ctx.send(message)
+
 		
 def setup(bot, helpf, jh, xpf):
 	bot.add_cog(Commandmod(bot, helpf, jh, xpf))
