@@ -26,17 +26,26 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 	async def textwlCommandInterpretor(self, ctx, *inputs):
 		lenght = len(inputs)
 		if lenght == 2 and inputs[0] == "add":
-			await self.addtextwhitelist(ctx, inputs[1])
+			await self.addtextwhitelist(ctx, channelID = inputs[1])
 
 		elif lenght == 2 and inputs[0] == "rm":
-			await self.removetextwhitelist(ctx, inputs[1])
+			await self.removetextwhitelist(ctx, channelID = inputs[1])
 
+		elif lenght == 1 and inputs[0] == "add":
+			await self.addtextwhitelist(ctx)
+
+		elif lenght == 1 and inputs[0] == "rm":
+			await self.removetextwhitelist(ctx)
+		
 		else:
 			await ctx.author.send(f"Command \"textwl {' '.join(inputs)}\" is not valid.")
 
-	async def addtextwhitelist(self, ctx, channelID):
+	async def addtextwhitelist(self, ctx, channelID = None):
 		guilde = self.bot.get_guild(self.jh.getFromConfig("guilde"))
 		channels = self.helpf.getTextChannelsFrom(self.jh.getFromConfig("guilde"))
+		#
+		if not channelID:
+			channelID = ctx.channel.id
 		#Test if channel is in Server
 		if str(channelID) in [str(channel.id) for channel in channels]:
 			#Try to write in whitelist
@@ -50,7 +59,10 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 			await self.helpf.log(f"{message} from user {ctx.author}",2)
 		await ctx.send(message)
 
-	async def removetextwhitelist(self, ctx, channelID):
+	async def removetextwhitelist(self, ctx, channelID = None):
+		#
+		if not channelID:
+			channelID = ctx.channel.id
 		#Try to remove from whitelist
 		if self.jh.removeFromWhitelist(channelID):
 			channelName = str(self.bot.get_channel(int(channelID)))
@@ -73,17 +85,26 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 	async def voiceblCommandInterpretor(self, ctx, *inputs):
 		lenght = len(inputs)
 		if lenght == 2 and inputs[0] == "add":
-			await self.addblacklist(ctx, inputs[1])
+			await self.addblacklist(ctx, channelID = inputs[1])
 
 		elif lenght == 2 and inputs[0] == "rm":
-			await self.removeblacklist(ctx, inputs[1])
+			await self.removeblacklist(ctx, channelID = inputs[1])
+
+		elif lenght == 1 and inputs[0] == "rm":
+			await self.addblacklist(ctx)
+
+		elif lenght == 1 and inputs[0] == "rm":
+			await self.removeblacklist(ctx)
 
 		else:
 			await ctx.author.send(f"Command \"voicebl {' '.join(inputs)}\" is not valid.")
 
-	async def addblacklist(self, ctx, channelID):
+	async def addblacklist(self, ctx, channelID = None):
 		guilde = self.bot.get_guild(self.jh.getFromConfig("guilde"))
 		channels = self.helpf.getVoiceChannelsFrom(self.jh.getFromConfig("guilde"))
+		#
+		if not channelID:
+			channelID = ctx.channel.id
 		#Test if channel is in Server
 		if str(channelID) in [str(channel.id) for channel in channels]:
 			#Try to write in Blacklist
@@ -97,8 +118,11 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 		await self.helpf.log(f"{message} from user {ctx.author}",2)
 		await ctx.send(message)
 
-	async def removeblacklist(self, ctx, channelID):
+	async def removeblacklist(self, ctx, channelID = None):
 		#Try to remove from Blacklist
+		#
+		if not channelID:
+			channelID = ctx.channel.id
 		if self.jh.removeFromBalcklist(channelID):
 			channelName = str(self.bot.get_channel(int(channelID)))
 			message = f"Removed {channelName} with id {channelID} from Blacklist. This Voice channel will be logged."

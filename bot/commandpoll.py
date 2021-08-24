@@ -179,6 +179,9 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 				await messageSend.add_reaction(emoji)
 			self.poll.setMessageID(pollID, messageSend.id, messageSend.channel.id)
 			await self.helpf.log(f"User {ctx.author.mention} opened the poll {pollID} in channel {ctx.channel.name}.",1)
+		elif self.poll.getStatus(pollID) == "CLOSED":
+			message = f"ERROR: You can't open a poll with only 1 polloption"
+			await ctx.author.send(message)
 		await ctx.message.delete()
 
 	@isDM()
