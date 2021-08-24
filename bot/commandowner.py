@@ -18,9 +18,12 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 
 	@commands.command(name='test', pass_context=True, brief='Testing command for programmer.', description='You need privilege level Owner to use this command. Only the programmer knows what happens here.')
 	@isBotOwnerCommand()
-	async def test(self, ctx):
-		await ctx.send("Geht")
-		await ctx.message.delete()		
+	async def test(self, ctx, channelID):
+		channel = self.bot.get_channel(int(channelID))
+		newName = channel.name[:-1] + str(int(channel.name[-1])+1)
+		newChannel = await channel.clone(name = newName)
+		# Move channel
+		await newChannel.move(after = channel)			
 
 	@commands.command(name="ping")
 	@isBotOwnerCommand()
