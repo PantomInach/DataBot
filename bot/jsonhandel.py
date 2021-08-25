@@ -148,7 +148,7 @@ class Jsonhandel(object):
 		cooldownCon = self.getFromConfig("textCooldown")
 		self.addUserTextCount(userID)
 		t = time.time()
-		deltat = t-cooldownTime
+		deltat = t - float(cooldownTime)
 		# Check if cooldown is up
 		if deltat >= float(cooldownCon):
 			self.addUserText(userID, amount)
