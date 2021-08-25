@@ -151,7 +151,7 @@ class Helpfunc(object):
 						nick = "".nick((re[:i],"#",nick[i+1:]))
 				for i in range(len(name)):
 					if name[i] in UNICODE_EMOJI['en']:
-						name = "".name((re[:i],"#",name[i+1:]))
+						name = "".join((re[:i],"#",name[i+1:]))
 			else:
 				nick = "Not on guilde"
 				mane = f"ID: {userID}"

@@ -49,7 +49,7 @@ In the following code there will be the bot.events defined
 async def on_ready():
 	#Sends mesage to mods, when bot is online
     print("Now Online")
-    # await helpf.sendModsMessage("Bot ist online")
+    await helpf.sendModsMessage("Bot ist online")
 
 # When bot reads a message
 @bot.event
@@ -367,7 +367,7 @@ async def on_voice_state_update(member, before, after):
 
 			if jh.isInBlacklist(after.channel.id):
 				jh.writeToBalcklist(newChannel.id)
-				
+
 			# Move channel after channelWithNumberBefore
 			await newChannel.move(after = channelWithNumberBefore)
 
