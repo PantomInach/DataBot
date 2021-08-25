@@ -135,7 +135,7 @@ class Helpfunc(object):
 			2 => Sort by textcount
 		page: which page of the leaderboard is showen. A page contains 10 entrys
 		"""
-		userIDs = self.jh.getSortedDataEntrys(page*10, (page+1)*10 ,sortBy)[::-1]
+		userIDs = self.jh.getSortedDataEntrys(page*10, (page+1)*10 ,sortBy)
 		leaderborad = ""
 		rank = page*10+1
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
@@ -148,10 +148,10 @@ class Helpfunc(object):
 				# Filter out Emojis in names
 				for i in range(len(nick)):
 					if nick[i] in UNICODE_EMOJI['en']:
-						nick = "".nick((re[:i],"#",nick[i+1:]))
+						nick = "".join((leaderborad[:i],"#",nick[i+1:]))
 				for i in range(len(name)):
 					if name[i] in UNICODE_EMOJI['en']:
-						name = "".join((re[:i],"#",name[i+1:]))
+						name = "".join((leaderborad[:i],"#",name[i+1:]))
 			else:
 				nick = "Not on guilde"
 				mane = f"ID: {userID}"
