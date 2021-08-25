@@ -109,8 +109,8 @@ class Jsonhandel(object):
 			2 => Sort by textcount
 		"""
 		sortMode = [[1,1,0],[0,1,0],[0,0,1]]
-		sortedData = sorted(self.data, key = lambda id: sortMode[sortBy][0] * self.getUserVoice(id) + sortMode[sortBy][1] * self.getUserText(id) +sortMode[sortBy][2] * self.getUserTextCount(id))
-		return sortedData
+		sortedData = sorted(self.data, key = lambda id: sortMode[sortBy][0] * self.getUserText(id) + sortMode[sortBy][1] * self.getUserVoice(id) +sortMode[sortBy][2] * self.getUserTextCount(id))
+		return sortedData[::-1]
 
 	def getSortedDataEntrys(self, entryBeginn, entryEnd, sortBy):
 		"""

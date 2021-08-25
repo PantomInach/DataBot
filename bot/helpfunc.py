@@ -154,7 +154,7 @@ class Helpfunc(object):
 						name = "".join((leaderborad[:i],"#",name[i+1:]))
 			else:
 				nick = "Not on guilde"
-				mane = f"ID: {userID}"
+				name = f"ID: {userID}"
 			hours = self.jh.getUserHours(userID)
 			messages = self.jh.getUserTextCount(userID)
 			xp = self.xpf.giveXP(self.jh.getUserVoice(userID), self.jh.getUserText(userID))
