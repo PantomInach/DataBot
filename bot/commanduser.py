@@ -218,7 +218,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 	async def leaderboard(self, ctx):
 		await self.helpf.log(f"+top by {ctx.author}",1) #Notify Mods
 		#Create leaderboard
-		text = f"{self.helpf.getLeaderboardPageBy(0,1)}{ctx.author.mention}"
+		text = f"{self.helpf.getLeaderboardPageBy(0,0)}{ctx.author.mention}"
 		message = await ctx.send(text, delete_after=86400)
 		reactionsarr = ["⏫","⬅","➡","⏰","💌"]
 		for emoji in reactionsarr:
