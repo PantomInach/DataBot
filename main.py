@@ -22,7 +22,7 @@ from bot.commandmodserver import Commandmodserver
 
 print("Prepare to start Bot...")
 
-# Create Objects
+# Create Objects for passing to command classes
 jh = Jsonhandel()
 xpf = Xpfunk(jh)
 poll = Poll()
@@ -38,22 +38,32 @@ bot = commands.Bot(command_prefix = jh.getFromConfig("command_prefix"), intents=
 # Create Helpfunctions Object
 helpf = Helpfunc(bot, jh, xpf)
 
-print("Objects created")
+print("[Startup] Objects created")
+
+
 
 """
-In the following code there will be the bot.events defined
+In the following code there will be the bot.events defined.
+Bot events are called when a specific action is seen by the bot. 
 """
+
+
 
 # When bot is connected
 @bot.event
 async def on_ready():
 	#Sends mesage to mods, when bot is online
     print("Now Online")
-    await helpf.sendModsMessage("Bot ist online")
+    await helpf.sendModsMessage(f"Bot is now online.\nVersion:\tWorkingDiscordBot v1.1.0-beta")
 
 # When bot reads a message
 @bot.event
 async def on_message(message):
+	"""
+	param message:	Message read by the bot
+
+	Ignore bot messages
+	"""
 	if (message.author == bot.user):
 		return
 
@@ -63,6 +73,7 @@ async def on_message(message):
 		return
 
 	a = "" + message.content
+
 	# Stops user from writting in levelchannel none command messages 
 	if str(message.channel.id) == str(jh.getFromConfig("levelchannel")) and a[0] != jh.getFromConfig("command_prefix"):
 		await message.delete()
@@ -108,6 +119,11 @@ async def on_disconnect():
 # When a member joins a guilde
 @bot.event
 async def on_member_join(member):
+	"""
+	param member:	User on guilde
+
+	Creates a welcom message in the logchannel
+	"""
 	channel = bot.get_channel(int(jh.getFromConfig("logchannel")))
 	guilde = bot.get_guild(int(jh.getFromConfig("guilde")))
 	await channel.send(f"Hey **{member.name}**, welcome to {guilde}")
@@ -116,6 +132,11 @@ async def on_member_join(member):
 # When a member leaves the guilde
 @bot.event
 async def on_member_remove(member):
+	"""
+	param member:	User on guilde
+
+	Sends a goodbye message in the logchannel
+	"""
 	channel = bot.get_channel(int(jh.getFromConfig("logchannel")))
 	guilde = bot.get_guild(int(jh.getFromConfig("guilde")))
 	await channel.send(f"**{member.name}** has left {guilde}. Press F to pay respect.")
@@ -142,6 +163,25 @@ async def on_member_remove(member):
 # When a reacting is added
 @bot.event
 async def on_raw_reaction_add(payload):
+	"""
+	param payload:	Gives context about the added reaction
+
+	Handels diffrent bot interactions with the server via ractions.
+
+	First:
+		Handles leaderboard interactions for new page and new sorting.
+	Second:
+		Handels voting on polls.
+	Third:
+		Give roll on data processing.
+	Forth:
+		Handels ractions on interest groups for user the get rolles.
+	Fifth:
+		Give XP when a reaction is added.
+	"""
+
+
+	# Ignore bot reactions
 	if bot.get_user(payload.user_id).bot:
 		return
 
@@ -158,9 +198,9 @@ async def on_raw_reaction_add(payload):
 	State (6,0): giveRoles message
 	"""
 	
-	#Stage [1,3] =^= message is Leaderboard
+	# Stage [1,3] =^= message is Leaderboard
 	if state in range(1,4):
-		#Handel Leaderboard reactions
+		# Handel Leaderboard reactions
 		change = helpf.getLeaderboardChange(message)
 		"""
 		change:
@@ -180,12 +220,13 @@ async def on_raw_reaction_add(payload):
 			2 => Sort by textcount
 		"""
 		if change < 3:
-			# Set page if needed
+			# Change page if needed
 			choice = [0, page-1 if page-1>=0 else 0, page+1]
 			page = choice[change]
 			# Whip member reaction
 			await message.remove_reaction(payload.emoji, payload.member)
 		else:
+			# Changes the ordering of the leaderboard
 			sortBy = change - 3
 			"""
 			sortBy:
@@ -204,7 +245,7 @@ async def on_raw_reaction_add(payload):
 		# Changes Leaderboard and adds reactions	
 		await message.edit(content=f"{text}{payload.member.mention}")
 		if change >= 3:
-			# When all reactions were whipped
+			# When all reactions were whippe. Added new Reactions
 			reactionsarr = ["⏫","⬅","➡","⏰","💌","🌟"]
 			removeemoji = [5,3,4]
 			del reactionsarr[removeemoji[sortBy]]
@@ -214,7 +255,8 @@ async def on_raw_reaction_add(payload):
 	#State 4 =^= message is poll
 	elif state == 4:
 		# Number which option was voted. New reaction => -1
-		newVote = helpf.votedOption(message)	
+		newVote = helpf.votedOption(message)
+
 		# Checks if user is allowed to vote and is valid
 		if helpf.hasRole(userID, "employee") and newVote != -1:
 			# changes poll message
@@ -228,6 +270,7 @@ async def on_raw_reaction_add(payload):
 
 	# State 5 =^= Note on data processing
 	elif state == 5:
+		# Give roll for using server
 		if not helpf.hasRole(userID, "rookie"):
 			await helpf.giveRole(userID, "rookie")
 
@@ -237,21 +280,28 @@ async def on_raw_reaction_add(payload):
 		# Gives user roll depending on what they react on
 		if str(payload.emoji) == "🎮" and not helpf.hasRole(userID, "gaming"):
 			await helpf.giveRole(userID, "gaming")
+
 		elif str(payload.emoji) == "📚" and not helpf.hasRole(userID, "student"):
 			await helpf.giveRole(userID, "student")
+
 		elif str(payload.emoji) == "👾" and not helpf.hasRole(userID, "dev-tech"):
 			await helpf.giveRole(userID, "dev-tech")
+
 		elif str(payload.emoji) == "🏹" and not helpf.hasRole(userID, "single"):
 			await helpf.giveRole(userID, "single")
+
 		elif str(payload.emoji) == "🤑" and not helpf.hasRole(userID, "gambling"):
 			await helpf.giveRole(userID, "gambling")
+
 		elif str(payload.emoji) == "⚡" and not helpf.hasRole(userID, "bot-dev"):
 			await helpf.giveRole(userID, "bot-dev")
+
 		else:
 			await message.remove_reaction(payload.emoji, payload.member)
 
 	# When user can not get rolls
 	elif state == 6 and not helpf.hasRole(userID, "rookie"):
+		# Removes user reaction
 		await message.remove_reaction(payload.emoji, payload.member)
 
 	# Member is reacting to other members and gets XP
@@ -268,6 +318,16 @@ async def on_raw_reaction_add(payload):
 # When member removes a reaction
 @bot.event
 async def on_raw_reaction_remove(payload):
+	"""
+	param payload:	Gives context about the removed reaction
+
+	Handels user interaction in which reactions are removed.
+
+	First:
+		Note on data processing remove server roll
+	Second:
+		Remove user rolls on interset groups when a raction is removed 
+	"""
 	userID = payload.user_id
 	server = bot.get_guild(payload.guild_id)
 	member = server.get_member(userID)
@@ -282,16 +342,22 @@ async def on_raw_reaction_remove(payload):
 	elif state == 6:
 		if not helpf.hasRole(userID, "rookie") and not helpf.hasRole(userID, "etwasse"):
 			await message.remove_reaction(payload.emoji, member)
+
 		elif str(payload.emoji) == "🎮" and helpf.hasRole(userID, "gaming"):
 			await helpf.removeRole(userID, "gaming")
+
 		elif str(payload.emoji) == "📚" and helpf.hasRole(userID, "student"):
 			await helpf.removeRole(userID, "student")
+
 		elif str(payload.emoji) == "👾" and helpf.hasRole(userID, "dev-tech"):
 			await helpf.removeRole(userID, "dev-tech")
+
 		elif str(payload.emoji) == "🏹" and helpf.hasRole(userID, "single"):
 			await helpf.removeRole(userID, "single")
+
 		elif str(payload.emoji) == "🤑" and helpf.hasRole(userID, "gambling"):
 			await helpf.removeRole(userID, "gambling")
+
 		elif str(payload.emoji) == "⚡" and helpf.hasRole(userID, "bot-dev"):
 			await helpf.removeRole(userID, "bot-dev")
 """
@@ -301,10 +367,21 @@ async def on_error(event, *args, **kwargs):
 	await helpf.log(message,2)
 """
 
+# When a user changes his voice state
 @bot.event
 async def on_voice_state_update(member, before, after):
 	"""
-	Clones joined channel if it has a number in the end
+	Handels user interactions when a user changes his voice stage.
+	A voice change is when a member changes/joins a channel, mutes/unmutes himself, deafs/undeafs himself.
+
+	param member:	User on guilde
+	param before:	Gives the voice state before the change
+	param after:	Gives the voice state after the change 
+
+	First:
+		Handels voice channel deletion when a user leaves a voice channel and noone else is connected to it.
+	Second:
+		Creats a new voice channel when all other channels with numbers in the end of its name are occupied.     
 	"""
 	# when user joins channel: before = None; after is a voicestate
 
@@ -374,14 +451,14 @@ async def on_voice_state_update(member, before, after):
 
 jh.config["log"] = "False"
 jh.saveConfig()
-print("Set log to False.")
-print("Loading Commands...")
+print("[Startup] Set log to False.")
+print("[Startup] Loading Commands...")
 bot.add_cog(Commanduser(bot, helpf, tban, jh, xpf))
 bot.add_cog(Commandmod(bot, helpf, jh, xpf))
 bot.add_cog(Commandowner(bot, helpf, tban, jh, xpf))
 bot.add_cog(Commandpoll(bot, helpf, poll, jh))
 bot.add_cog(Commandmodserver(bot, helpf, tban, cntr, jh))
-print("Commands loaded.")
+print("[Startup] Commands loaded.")
 
-print("Starting Bot...")
+print("[Startup] Starting Bot...")
 bot.run(jh.getFromConfig("token"))

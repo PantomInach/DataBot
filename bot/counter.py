@@ -3,7 +3,9 @@ import os
 import time
 
 class Counter(object):
-	"""docstring for Counter"""
+	"""
+	Work in progress.
+	"""
 	def __init__(self):
 		super (Counter, self).__init__()
 		self.binpath = str(os.path.dirname(__file__))[:-4]+"/bin/"

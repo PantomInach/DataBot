@@ -7,7 +7,10 @@ from .decorators import *
 import asyncio
 
 class Commandowner(commands.Cog, name='Bot Owner Commands'):
-	"""You need privilage level 2 to use these commands."""
+	"""
+	You need privilage level 2 to use these commands.
+	Only for development and Bot Owner.
+	"""
 	def __init__(self, bot, helpf, tban, jh, xpf):
 		super(Commandowner, self).__init__()
 		self.bot = bot

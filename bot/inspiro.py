@@ -4,10 +4,11 @@ class Inspiro(object):
 	"""
 	Class fetches the url off quotes from inspirobot.me
 	"""
-	def __init__(self):
-		super(Inspiro, self).__init__()
-		self.url = "https://inspirobot.me/api?generate=true"
 
-	def getPictureUrl(self):
-		r = requests.get(self.url)
+	@staticmethod
+	def getPictureUrl():
+		"""
+		Opens inspirobot site to fetch url for random new quote.
+		"""
+		r = requests.get("https://inspirobot.me/api?generate=true")
 		return str(r.content)[2:-1]

@@ -4,20 +4,31 @@ from discord.ext import commands
 from .decorators import *
 
 def hasAnyRole(*items):
-		"""
-		commands.has_any_role() does not work in DM since a users can't have roles.
-		This on pulls the roles from the configured guilde and makes the same check as commands.has_any_role().
-		"""
-		def decorator(func):
-			def wrapper(*args, **kwargs):
-				if Commandpoll.helpf.hasOneRole(args[1].author.id, [*items]):
-					return func(*args, **kwargs)
-				return passFunc()
-			return wrapper
-		return decorator
+	"""
+	Type:	Decorator for functions with ctx object in args[1].
+
+	param items:	Tuple of Strings and/or integers wit Discord Channel ids or names.
+
+	Check if a user has any of the roles in items.
+
+	Only use for commands, which don't use @commands.command
+	commands.has_any_role() does not work in DM since a users can't have roles.
+	This on pulls the roles from the configured guilde and makes the same check as commands.has_any_role().
+
+	Function is not in decorators.py since the Bot or Helpfunction Object is needed.
+	"""
+	def decorator(func):
+		def wrapper(*args, **kwargs):
+			if Commandpoll.helpf.hasOneRole(args[1].author.id, [*items]):
+				return func(*args, **kwargs)
+			return passFunc()
+		return wrapper
+	return decorator
 
 class Commandpoll(commands.Cog, name='Poll Commands'):
-	"""These Commands are for creating polls."""
+	"""
+	These Commands define interactions with polls.
+	"""
 
 	helpf = None
 
@@ -31,6 +42,12 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 
 	@commands.command(name='poll')
 	async def pollCommandInterpretor(self, ctx, *inputs):
+		"""
+		param ctx:	Discord Context object. Automatical passed.
+		param inputs:	Tuple of arguments of commands.
+
+		Interpretes send commands beginning with user and calls the right function.
+		"""
 		lenght = len(inputs)
 		if lenght == 2 and inputs[0] == "close":
 			await self.poll_close(ctx, inputs[1])
@@ -68,8 +85,15 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def pollCreate(self, ctx, pollName):
-		#Creates a poll with the given name.
-		#Sends a overwiew of the poll.
+		"""
+		param ctx:	Discord Context object.
+		param pollName:	String.
+
+		Creates a poll with the given name.
+		Poll will have the lowest possible ID.
+
+		Sends a overwiew of the poll.
+		"""
 		message = ""
 		if len(pollName) <= 71:
 			pollID = self.poll.newPoll(pollName)
@@ -85,7 +109,13 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def pollSend(self, ctx, pollID):
-		#Sends the poll with options to the user. 
+		"""
+		param ctx:	Discord Context object.
+		param pollID:	Integer. ID of a poll in poll.json
+
+		Sends the poll with options to the user.
+		Does not change status. Only as a preview.
+		"""
 		message = ""
 		if self.poll.isAPollID(pollID):
 			message = self.poll.pollString(pollID)
@@ -96,7 +126,14 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def optionAdd(self, ctx, pollID, optionName):
-		#Trys to add a option to the poll.
+		"""
+		param ctx:	Discord Context object.
+		param pollID:	Integer. ID of a poll in poll.json
+		param optionName:	String.
+
+		Trys to add a option to the poll with optionName.
+		New option gets lowest possible optionID.
+		"""
 		message = ""
 		if self.poll.isAPollID(pollID):
 			if len(optionName) <=112:
@@ -112,7 +149,14 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def polloptionRemove(self, ctx, pollID, optionName):
-		#Trys to remove a option from a poll.
+		"""
+		param ctx:	Discord Context object.
+		param pollID:	Integer. ID of a poll in poll.json
+		param optionName:	String.
+
+		Trys to remove a option from the poll with optionName.
+		All ids from options higher than the removed option will decremented.
+		"""
 		message = ""
 		if self.poll.isAPollID(pollID):
 			if not self.poll.optionRemove(pollID, str(optionName)):
@@ -125,7 +169,11 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@isInChannelOrDM("🚮spam")
 	@hasAnyRole("CEO","COO","chairman","associate")
 	async def pollsList(self, ctx):
-		#Sends a list of all polls the the channel.
+		"""
+		param ctx:	Discord Context object.
+
+		Sends the header of all polls in poll.json.
+		"""
 		message = ""
 		for pollID in self.poll.getAllPolls()[::-1]:
 			message += self.poll.pollHeader(pollID)
@@ -136,7 +184,12 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_remove(self, ctx, pollID):
-		#Removes a poll.
+		"""
+		param ctx:	Discord Context object.
+		param pollID:	Integer. ID of a poll in poll.json
+
+		Removes a poll from poll.json if requirements are meet.
+		"""
 		message = ""
 		if self.poll.isAPollID(pollID):
 			pollName = self.poll.getName(pollID)
@@ -161,6 +214,12 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@isNotInChannelOrDM("📂log","📢info","⏫level")
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_open(self, ctx, pollID):
+		"""
+		param ctx:	Discord Context object.
+		param pollID:	Integer. ID of a poll in poll.json
+
+		Posts a poll to channel, adds reactions to vote for options and opens poll.
+		"""
 		[messageID, channelID] = self.poll.getMessageID(pollID)
 		self.poll.pollOpen(pollID)
 		# Test if has a send poll string somewhere
@@ -187,6 +246,12 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@isDM()
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_close(self, ctx, pollID):
+		"""
+		param ctx:	Discord Context object.
+		param pollID:	Integer. ID of a poll in poll.json
+
+		Sets status of poll to closed and removes reactions from poll, so nobody can vote anymore.
+		"""
 		[messageID, channelID] = self.poll.getMessageID(pollID)
 		if self.poll.pollClose(pollID) and messageID and channelID:
 			channel = self.bot.get_channel(int(channelID))
@@ -202,6 +267,12 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@isNotInChannelOrDM("📂log","📢info","⏫level")
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_publish(self, ctx, pollID):
+		"""
+		param ctx:	Discord Context object.
+		param pollID:	Integer. ID of a poll in poll.json
+
+		Sets status of poll to published and removes reactions from poll, so nobody can vote anymore.
+		"""
 		if self.poll.pollPublish(pollID):
 			# Delet OPEN poll to resend as published
 			[messageID, channelID] = self.poll.getMessageID(pollID)
