@@ -21,7 +21,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 	######################################################################
 	"""
 
-	@commands.command(name='textwl')
+	@commands.command(name='textwl', brief='add, rm')
 	@isBotModCommand()
 	async def textwlCommandInterpretor(self, ctx, *inputs):
 		lenght = len(inputs)

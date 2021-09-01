@@ -29,7 +29,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		self.jh = jh
 		Commandpoll.helpf = helpf
 
-	@commands.command(name='poll')
+	@commands.command(name='poll', brief='close, create, list, open, publish, rm, show, op(add, rm)')
 	async def pollCommandInterpretor(self, ctx, *inputs):
 		lenght = len(inputs)
 		if lenght == 2 and inputs[0] == "close":
@@ -40,9 +40,6 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 
 		elif lenght == 1 and inputs[0] == "list":
 			await self.pollsList(ctx)
-
-		elif lenght == 2 and inputs[0] == "close":
-			await self.poll_close(ctx, inputs[1])
 
 		elif lenght == 2 and inputs[0] == "open":
 			await self.poll_open(ctx, inputs[1])

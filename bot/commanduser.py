@@ -33,7 +33,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		self.xpf = xpf
 		Commanduser.helpf = helpf
 
-	@commands.command(name='user')
+	@commands.command(name='user', brief='get, rm, set(tc, text, voice), tb(add, rm)')
 	async def userCommandsInterpretor(self, ctx, *inputs):
 		lenght = len(inputs)
 		if lenght == 2 and inputs[0] == "get":
@@ -189,28 +189,31 @@ class Commanduser(commands.Cog, name='User Commands'):
 	######################################################################
 	"""
 
-	@commands.command(name='level', pass_context=True, brief='Returns the level of a player.', description='You need privilege level 0 to use this command. Returns the users level on the configured server. The higher the level, the more roles you will get. Can only be used in the level Channel')
+	@commands.command(name='level', brief='Returns the level of a player.', description='You need privilege level 0 to use this command. Returns the users level on the configured server. The higher the level, the more roles you will get. Can only be used in the level Channel')
 	@isInChannelCommand("⏫level")
-	async def getLevel(self, ctx):
-		userID = ctx.author.id
-		server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+	async def getLevel(self, ctx, *inputs):
+		if not inputs:
+			userID = ctx.author.id
+		else:
+			userID = str(inputs[0]).replace('<', '').replace('>', '').replace('@','')
 		member = server.get_member(int(userID))
-		self.jh.addNewDataEntry(userID)
-		#Create Embeded
-		avatar_url = ctx.author.avatar_url
-		level = self.jh.getUserLevel(userID)
-		voiceXP = self.jh.getUserVoice(userID)
-		textXP = self.jh.getUserText(userID)
-		textCount = self.jh.getUserTextCount(userID)
-		nextLevel = self.xpf.xpNeed(voiceXP,textXP)
-		embed = discord.Embed(title=f"{member.nick}     ({ctx.author.name})", color=12008408)
-		embed.set_thumbnail(url=avatar_url)
-		embed.add_field(name="HOURS", value=f"{round(int(voiceXP)/30.0,1)}", inline=True)
-		embed.add_field(name="MESSAGES", value=f"{str(textCount)}", inline=True)
-		embed.add_field(name="EXPERIENCE", value=f"{str(int(voiceXP)+int(textXP))}/{nextLevel}",inline=True)
-		embed.add_field(name="LEVEL", value=f"{level}", inline=True)
-		#Send Embeded
-		await ctx.send(embed=embed, delete_after=86400)
+		if member != None:
+			server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+			self.jh.addNewDataEntry(userID)
+			#Create Embeded
+			avatar_url = ctx.author.avatar_url
+			level = self.jh.getUserLevel(userID)
+			voiceXP = self.jh.getUserVoice(userID)
+			textXP = self.jh.getUserText(userID)
+			textCount = self.jh.getUserTextCount(userID)
+			nextLevel = self.xpf.xpNeed(voiceXP,textXP)
+			embed = discord.Embed(title=f"{member.nick}     ({ctx.author.name})", color=12008408)
+			embed.set_thumbnail(url=avatar_url)
+			embed.add_field(name="HOURS", value=f"{round(int(voiceXP)/30.0,1)}", inline=True)
+			embed.add_field(name="MESSAGES", value=f"{str(textCount)}", inline=True)
+			embed.add_field(name="EXPERIENCE", value=f"{str(int(voiceXP)+int(textXP))}/{nextLevel}",inline=True)			embed.add_field(name="LEVEL", value=f"{level}", inline=True)
+			#Send Embeded
+			await ctx.send(embed=embed, delete_after=86400)
 		await ctx.message.delete()
 
 	@commands.command(name='top',brief='Sends an interactive rank list.', description='You need privilege level 0 to use this command. Sends a list of the top 10 users orderd by XP. By klicking on ⏫, you jump to the first page, on ⬅, you go one page back, on ➡, you go one page further, on ⏰, you order by time, on 💌, you order by messages sent, and on 🌟, you order by XP. Can only be used in the level Channel')
