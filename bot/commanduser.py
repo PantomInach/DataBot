@@ -196,8 +196,8 @@ class Commanduser(commands.Cog, name='User Commands'):
 			userID = ctx.author.id
 		else:
 			userID = str(inputs[0]).replace('<', '').replace('>', '').replace('@','')
-		member = server.get_member(int(userID))
-		if member != None:
+		if self.jh.isInData(userID)
+			member = server.get_member(int(userID))
 			server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 			self.jh.addNewDataEntry(userID)
 			#Create Embeded
