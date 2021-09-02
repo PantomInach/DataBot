@@ -54,7 +54,7 @@ Bot events are called when a specific action is seen by the bot.
 async def on_ready():
 	#Sends mesage to mods, when bot is online
     print("Now Online")
-    await helpf.sendModsMessage(f"Bot is now online.\nVersion:\tWorkingDiscordBot v1.1.0-beta")
+    await helpf.sendModsMessage(f"Bot is now online.\nVersion:\tWorkingDiscordBot v1.1.1-beta")
 
 # When bot reads a message
 @bot.event
