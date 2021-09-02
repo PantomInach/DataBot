@@ -417,7 +417,7 @@ async def on_voice_state_update(member, before, after):
 	"""
 	User joins channel after.channel. If channel ends with a number, than a copy will be created with the lowest possible ending number. 
 	"""
-	if after.channel and len(after.channel.members) <= 1:
+	if after.channel and before.channel != after.channel and len(after.channel.members) <= 1:
 		# Get channels to get lowest enumeration of channel
 		afterNumber = None 
 		nameIndex = -1
