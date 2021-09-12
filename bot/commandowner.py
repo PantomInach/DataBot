@@ -11,13 +11,14 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	You need privilage level 2 to use these commands.
 	Only for development and Bot Owner.
 	"""
-	def __init__(self, bot, helpf, tban, jh, xpf):
+	def __init__(self, bot, helpf, tban, jh, xpf, sub):
 		super(Commandowner, self).__init__()
 		self.bot = bot
 		self.helpf = helpf
 		self.jh = jh
 		self.xpf = xpf
 		self.tban = tban
+		self.sub = sub
 
 	@commands.command(name='test', pass_context=True, brief='Testing command for programmer.', description='You need privilege level Owner to use this command. Only the programmer knows what happens here.')
 	@isBotOwnerCommand()
@@ -67,9 +68,14 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	@commands.command(name='stopbot', brief='Shuts down the bot.', description='You need privilege level 2 to use this command. This command shuts the bot down.')
 	@isBotOwnerCommand()
 	async def stopbot(self, ctx):
+		# Save json files
 		self.jh.saveConfig()
 		self.jh.saveData()
+		self.sub.saveSubjson()
+		# Remove all textbans
 		self.tban.removeAllTextBan()
+		# Stop subroutine
+		self.sub.stopSubRoutine()
 		await self.helpf.log("Bot is shutdown",2)
 		await ctx.bot.logout()
 		await bot.close()
