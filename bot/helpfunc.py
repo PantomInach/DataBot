@@ -170,7 +170,7 @@ class Helpfunc(object):
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
 		# Gets the roles to remove by the role's name.
-		rolesList = tuple(find(lambda role: str(role.id) == r or role.name == r, list(set(guilde.roles)-set(member.roles))) for r in roleNames)
+		rolesList = tuple(find(lambda role: str(role.id) == r or role.name == r, member.roles) for r in roleNames)
 		# Discord None roles, which resulte in errors.
 		rolesList = [x for x in rolesList if x != None]
 		memberRolesPrev = member.roles
@@ -397,7 +397,7 @@ class Helpfunc(object):
 			l.write(f"{message}\n")
 		print(message)
 
-	def getGuild(self guildid = None):
+	def getGuild(self, guildid = None):
 		"""
 		param guildid:	integer of a guild ID. Default None.
 
@@ -405,8 +405,8 @@ class Helpfunc(object):
 		If guildid is not specified or False, than the guild from the conffig will be returned.
 		"""
 		if not guildid:
-			guildid = int(jh.getFromConfig("guilde"))
-		return bot.get_guild(guildid)
+			guildid = int(self.jh.getFromConfig("guilde"))
+		return self.bot.get_guild(guildid)
 
 	"""
 	Unsupported
