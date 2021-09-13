@@ -222,8 +222,13 @@ class Sub(object):
 			# When no entry will be created and none is found.
 			return excetutionTime
 		self.addGiveRoleOnce(excetutionTime, intervall, userID, roleID)
+<<<<<<< HEAD
 		# Format time to String in form Year Month Day DayName.
 		return time.strftime("%Y %b %d %a", excetutionTime)
+=======
+		# Format time to String in form DayName Year Month Day.
+		return time.strftime("%a %Y %b %d", excetutionTime)
+>>>>>>> parent of f5650c1... Revert "Inital subroutine and 'star of the week'"
 
 
 
