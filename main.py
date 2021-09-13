@@ -19,9 +19,8 @@ from bot.commandmod import Commandmod
 from bot.commandowner import Commandowner
 from bot.commandpoll import Commandpoll
 from bot.commandmodserver import Commandmodserver
-from bot.subroutine import Sub
 
-print("[Startup] Prepare to start Bot...")
+print("Prepare to start Bot...")
 
 # Create Objects for passing to command classes
 jh = Jsonhandel()
@@ -38,8 +37,6 @@ bot = commands.Bot(command_prefix = jh.getFromConfig("command_prefix"), intents=
 
 # Create Helpfunctions Object
 helpf = Helpfunc(bot, jh, xpf)
-# Create subroutine object
-sub = Sub(helpf)
 
 print("[Startup] Objects created")
 
@@ -58,9 +55,6 @@ async def on_ready():
 	#Sends mesage to mods, when bot is online
     print("Now Online")
     await helpf.sendModsMessage(f"Bot is now online.\nVersion:\tWorkingDiscordBot v1.1.1-beta")
-
-    # Tries to start the subroutine. When it is running, than nothing will happen.
-    sub.startSubRoutine()
 
 # When bot reads a message
 @bot.event
@@ -179,9 +173,9 @@ async def on_raw_reaction_add(payload):
 	Second:
 		Handels voting on polls.
 	Third:
-		Give role on data processing.
+		Give roll on data processing.
 	Forth:
-		Handels ractions on interest groups for user the get rolees.
+		Handels ractions on interest groups for user the get rolles.
 	Fifth:
 		Give XP when a reaction is added.
 	"""
@@ -276,14 +270,14 @@ async def on_raw_reaction_add(payload):
 
 	# State 5 =^= Note on data processing
 	elif state == 5:
-		# Give role for using server
+		# Give roll for using server
 		if not helpf.hasRole(userID, "rookie"):
 			await helpf.giveRole(userID, "rookie")
 
 	# State 6 =^= User interest groups
 	elif state == 6 and (helpf.hasRole(userID, "rookie") or helpf.hasRole(userID, "etwasse")):
 		# User needs to accept Note on data processing before using this feature
-		# Gives user role depending on what they react on
+		# Gives user roll depending on what they react on
 		if str(payload.emoji) == "🎮" and not helpf.hasRole(userID, "gaming"):
 			await helpf.giveRole(userID, "gaming")
 
@@ -305,7 +299,7 @@ async def on_raw_reaction_add(payload):
 		else:
 			await message.remove_reaction(payload.emoji, payload.member)
 
-	# When user can not get roles
+	# When user can not get rolls
 	elif state == 6 and not helpf.hasRole(userID, "rookie"):
 		# Removes user reaction
 		await message.remove_reaction(payload.emoji, payload.member)
@@ -330,9 +324,9 @@ async def on_raw_reaction_remove(payload):
 	Handels user interaction in which reactions are removed.
 
 	First:
-		Note on data processing remove server role
+		Note on data processing remove server roll
 	Second:
-		Remove user roles on interset groups when a raction is removed 
+		Remove user rolls on interset groups when a raction is removed 
 	"""
 	userID = payload.user_id
 	server = bot.get_guild(payload.guild_id)
@@ -459,9 +453,9 @@ jh.config["log"] = "False"
 jh.saveConfig()
 print("[Startup] Set log to False.")
 print("[Startup] Loading Commands...")
-bot.add_cog(Commanduser(bot, helpf, tban, jh, xpf, sub))
+bot.add_cog(Commanduser(bot, helpf, tban, jh, xpf))
 bot.add_cog(Commandmod(bot, helpf, jh, xpf))
-bot.add_cog(Commandowner(bot, helpf, tban, jh, xpf, sub))
+bot.add_cog(Commandowner(bot, helpf, tban, jh, xpf))
 bot.add_cog(Commandpoll(bot, helpf, poll, jh))
 bot.add_cog(Commandmodserver(bot, helpf, tban, cntr, jh))
 print("[Startup] Commands loaded.")

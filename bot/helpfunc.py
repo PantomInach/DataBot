@@ -128,7 +128,7 @@ class Helpfunc(object):
 	async def giveRoles(self, userID, roleNames):
 		"""
 		param userID:	Is the userID from discord user as a String or int
-		param roleNames:	List of roles to give. Needs to be the role's name or id.
+		param roleNames:	List of roles to give. Needs to be the role's name.
 
 		Gives the member with userID the roles roleNames.
 		"""
@@ -162,7 +162,7 @@ class Helpfunc(object):
 	async def removeRoles(self, userID, roleNames, reason = None):
 		"""
 		param userID:	Is the userID from discord user as a String or int
-		param roleNames:	List of roles to remove. Needs to be the role's name or id.
+		param roleNames:	List of roles to remove. Needs to be the role's name.
 		param reason:	Specify reason in AuditLog from Guilde. Default is None.
 
 		Removes the member with userID the roles roleNames.
@@ -396,17 +396,6 @@ class Helpfunc(object):
 		with open(logfile,'a') as l:
 			l.write(f"{message}\n")
 		print(message)
-
-	def getGuild(self guildid = None):
-		"""
-		param guildid:	integer of a guild ID. Default None.
-
-		Returns the guilde with guildid.
-		If guildid is not specified or False, than the guild from the conffig will be returned.
-		"""
-		if not guildid:
-			guildid = int(jh.getFromConfig("guilde"))
-		return bot.get_guild(guildid)
 
 	"""
 	Unsupported

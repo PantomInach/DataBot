@@ -40,7 +40,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 
 	helpf = None
 
-	def __init__(self, bot, helpf, tban, jh, xpf, sub):
+	def __init__(self, bot, helpf, tban, jh, xpf):
 		super(Commanduser, self).__init__()
 		# Defines all needed objects
 		self.bot = bot
@@ -48,7 +48,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 		self.jh = jh
 		self.tban = tban
 		self.xpf = xpf
-		self.sub = sub
 		# For hasAnyRole Decorator
 		Commanduser.helpf = helpf
 
@@ -81,9 +80,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 
 		elif lenght == 3 and inputs[0] == "tb" and inputs[1] == "rm":
 			await self.textunban(ctx, inputs[2])
-
-		elif lenght == 2 and inputs[0] == "star":
-			await self.giveStarOfTheWeek(ctx, inputs[1])
 
 		else:
 			await ctx.author.send(f"Command \"user {' '.join(inputs)}\" is not valid.")
@@ -263,30 +259,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 				await logchannel.send(f"User {ctx.author.mention} textunbaned {user.mention}")
 			else:
 				await ctx.send(content="ERROR: User has no textban.", delete_after=3600)
-
-	@isDM
-	@hasAnyRole("CEO","COO")
-	async def giveStarOfTheWeek(self, ctx, userID):
-		guild = ctx.guild
-		role = find(lambda role: role.name == "star of the week", guild.roles)
-		if role and userID.isdigit() and find(lambda user: user.id == int(userID), guild.members):
-			if role.members:
-				# When someone has already the role => Queue in subroutine to give role
-				timeWhenWillBeGiven = self.sub.queueGiveRoleOnceAfter(userID, role.id, 604800)
-				user = self.bot.get_user(int(userID))
-				await self.helpf.log(f"User {ctx.author.name} {ctx.author.id} queued {user.name} {user.id} for 'star of the week' on the {timeWhenWillBeGiven}.", 2)
-				await ctx.send(f"Member {user.name} will get 'star of the week' on the {timeWhenWillBeGiven}.")
-
-			else:
-				# When no one has the role
-				self.helpf.giveRoles(userID, role.id)
-				await self.helpf.log(f"User {ctx.author.name} {ctx.author.id} gave {user.name} {user.id} 'star of the week' threw. +user star ", 2)
-				await ctx.send(f"Member {user.name} got 'star of the week' now.")
-		else:
-			await ctx.send(f"Invalid input. Either userID is not from user of the guild {guild.name} or it is not a ID.")
-
-
-
 
 
 	"""
