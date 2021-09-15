@@ -11,22 +11,19 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	You need privilage level 2 to use these commands.
 	Only for development and Bot Owner.
 	"""
-	def __init__(self, bot, helpf, tban, jh, xpf):
+	def __init__(self, bot, helpf, tban, jh, xpf, sub):
 		super(Commandowner, self).__init__()
 		self.bot = bot
 		self.helpf = helpf
 		self.jh = jh
 		self.xpf = xpf
 		self.tban = tban
+		self.sub = sub
 
 	@commands.command(name='test', pass_context=True, brief='Testing command for programmer.', description='You need privilege level Owner to use this command. Only the programmer knows what happens here.')
 	@isBotOwnerCommand()
-	async def test(self, ctx, channelID):
-		channel = self.bot.get_channel(int(channelID))
-		newName = channel.name[:-1] + str(int(channel.name[-1])+1)
-		newChannel = await channel.clone(name = newName)
-		# Move channel
-		await newChannel.move(after = channel)			
+	async def test(self, ctx):
+		await self.helpf.giveRoles(ctx.author.id, ["star of the week", 844913934963572736])	
 
 	@commands.command(name="ping")
 	@isBotOwnerCommand()
@@ -67,10 +64,18 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	@commands.command(name='stopbot', brief='Shuts down the bot.', description='You need privilege level 2 to use this command. This command shuts the bot down.')
 	@isBotOwnerCommand()
 	async def stopbot(self, ctx):
+		await self.helpf.log("[Shut down] Beginning shutdown...",2)
+		# Save json files
 		self.jh.saveConfig()
 		self.jh.saveData()
+		self.sub.saveSubjson()
+		await self.helpf.log("[Shut down] Files saved",2)
+		# Remove all textbans
 		self.tban.removeAllTextBan()
-		await self.helpf.log("Bot is shutdown",2)
+		# Stop subroutine
+		await self.sub.stopSubRoutine()
+		await self.helpf.log("[Shut down] Stopped subroutine",2)
+		await self.helpf.log("[Shut down] Bot is shutdown",2)
 		await ctx.bot.logout()
 		await bot.close()
 		sys.exit()

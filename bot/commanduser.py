@@ -1,8 +1,11 @@
 import discord
-from discord.utils import get
+from discord.utils import get, find
 from discord.ext import commands
 from .inspiro import Inspiro
 from .decorators import *
+
+import datetime
+import time
 
 
 def hasAnyRole(*items):
@@ -40,7 +43,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 
 	helpf = None
 
-	def __init__(self, bot, helpf, tban, jh, xpf):
+	def __init__(self, bot, helpf, tban, jh, xpf, sub):
 		super(Commanduser, self).__init__()
 		# Defines all needed objects
 		self.bot = bot
@@ -48,6 +51,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		self.jh = jh
 		self.tban = tban
 		self.xpf = xpf
+		self.sub = sub
 		# For hasAnyRole Decorator
 		Commanduser.helpf = helpf
 
@@ -80,6 +84,9 @@ class Commanduser(commands.Cog, name='User Commands'):
 
 		elif lenght == 3 and inputs[0] == "tb" and inputs[1] == "rm":
 			await self.textunban(ctx, inputs[2])
+
+		elif lenght == 2 and inputs[0] == "star":
+			await self.giveStarOfTheWeek(ctx, inputs[1])
 
 		else:
 			await ctx.author.send(f"Command \"user {' '.join(inputs)}\" is not valid.")
@@ -259,6 +266,40 @@ class Commanduser(commands.Cog, name='User Commands'):
 				await logchannel.send(f"User {ctx.author.mention} textunbaned {user.mention}")
 			else:
 				await ctx.send(content="ERROR: User has no textban.", delete_after=3600)
+
+	@isDM()
+	@hasAnyRole("CEO","COO")
+	async def giveStarOfTheWeek(self, ctx, userID):
+		guild = self.helpf.getGuild()
+		role = find(lambda role: role.name == "star of the week", guild.roles)
+		if role and userID.isdigit() and guild.get_member(int(userID)):
+			user = self.bot.get_user(int(userID))
+			if role.members:
+				# Get next monday in Unix Epoch
+				timeWhenNothingInQueue = self._nextWeekdayInUnixEpoch(0)
+				# When someone has already the role => Queue in subroutine to give role
+				timeString = self.sub.queueGiveRoleOnceAfter(int(userID), role.id, 604800, timeWhenNothingInQueue)
+				await self.helpf.log(f"User {ctx.author.name} {ctx.author.id} queued {user.name} {user.id} for 'star of the week' on the {timeString}.", 2)
+				await ctx.send(f"Member {user.name} will get 'star of the week' on the {timeString}.")
+
+			else:
+				# When no one has the role => Give user 'star of the week' immediately
+				await self.helpf.giveRoles(userID, [role.id])
+				await self.helpf.log(f"User {ctx.author.name} {ctx.author.id} gave {user.name} {user.id} 'star of the week' threw. +user star ", 2)
+				await ctx.send(f"Member {user.name} got 'star of the week' now.")
+		else:
+			await ctx.send(f"Invalid input. Either userID is not from user of the guild {guild.name} or it is not a ID.")
+
+	def _nextWeekdayInUnixEpoch(self, toWeekday):
+		"""
+		param weekday:	Which next weekday to output. In [0,6]
+
+		Takes current date and returns next weekday in Unix Epoch.
+		"""
+		today = datetime.date.today()
+		nextWeekday = today + datetime.timedelta(days=-today.weekday() + toWeekday, weeks=1)
+		return time.mktime(time.strptime(f"{nextWeekday.year} {nextWeekday.month} {nextWeekday.day}", "%Y %m %d"))
+
 
 
 	"""

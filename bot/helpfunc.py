@@ -128,23 +128,22 @@ class Helpfunc(object):
 	async def giveRoles(self, userID, roleNames):
 		"""
 		param userID:	Is the userID from discord user as a String or int
-		param roleNames:	List of roles to give. Needs to be the role's name.
+		param roleNames:	List of roles to give. Needs to be the role's name or id.
 
 		Gives the member with userID the roles roleNames.
 		"""
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
 		# Gets the roles to give by the role's name.
-		rolesList = tuple(find(lambda role: str(role.id) == r or role.name == r, list(set(guilde.roles)-set(member.roles))) for r in roleNames)
-		# Discord None roles, which resulte in errors.
+		rolesList = tuple(find(lambda role: str(role.id) == r or role.id == r or role.name == r, list(set(guilde.roles)-set(member.roles))) for r in roleNames)
+		print(rolesList)
+		# Discard Discord None roles, which resulte in errors.
 		rolesList = [x for x in rolesList if x != None]
-		memberRolesPrev = member.roles
 		if len(rolesList) > 0:
 			# Give roles
 			await member.add_roles(*rolesList)
 			# Get newly given roles for message.
-			rolesAfter = {role.name for role in member.roles if not role in memberRolesPrev}
-			await self.log(f"User {member.name} aka {member.nick} got roles {rolesAfter}.",1)
+			await self.log(f"User {member.name} aka {member.nick} got roles {[role.name for role in rolesList]}.",1)
 
 	async def removeRole(self, userID, roleName):
 		"""
@@ -162,7 +161,7 @@ class Helpfunc(object):
 	async def removeRoles(self, userID, roleNames, reason = None):
 		"""
 		param userID:	Is the userID from discord user as a String or int
-		param roleNames:	List of roles to remove. Needs to be the role's name.
+		param roleNames:	List of roles to remove. Needs to be the role's name or id.
 		param reason:	Specify reason in AuditLog from Guilde. Default is None.
 
 		Removes the member with userID the roles roleNames.
@@ -170,7 +169,7 @@ class Helpfunc(object):
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
 		# Gets the roles to remove by the role's name.
-		rolesList = tuple(find(lambda role: str(role.id) == r or role.name == r, list(set(guilde.roles)-set(member.roles))) for r in roleNames)
+		rolesList = tuple(find(lambda role: str(role.id) == r or role.id == r or role.name == r, member.roles) for r in roleNames)
 		# Discord None roles, which resulte in errors.
 		rolesList = [x for x in rolesList if x != None]
 		memberRolesPrev = member.roles
@@ -396,6 +395,17 @@ class Helpfunc(object):
 		with open(logfile,'a') as l:
 			l.write(f"{message}\n")
 		print(message)
+
+	def getGuild(self, guildid = None):
+		"""
+		param guildid:	integer of a guild ID. Default None.
+
+		Returns the guilde with guildid.
+		If guildid is not specified or False, than the guild from the conffig will be returned.
+		"""
+		if not guildid:
+			guildid = int(self.jh.getFromConfig("guilde"))
+		return self.bot.get_guild(guildid)
 
 	"""
 	Unsupported
