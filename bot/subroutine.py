@@ -32,8 +32,7 @@ class Sub(object):
 
 			"giveRoleOnce":{
 				"some number": [
-					offset as float,
-					intervall as float,
+					time in UTC when role willbe given
 					userID to whom the role is given as int,
 					ID of role to give as int
 				]
@@ -48,34 +47,35 @@ class Sub(object):
 	def __init__(self, helpf):
 		super(Sub, self).__init__()
 		self.helpf = helpf
-		self.loop = None
+		self.run = False
 		# Indicates if subroutine can be stopped savely.
 		self.canStop = True
 		# Reads sub.json
 		self.binpath = str(os.path.dirname(__file__))[:-4]+"/bin/"
-		self.subjson = json.load(open(binpath+"sub.json"))		
+		self.subjson = json.load(open(self.binpath+"sub.json"))		
 
-	def startSubRoutine(self):
+	async def startSubRoutine(self):
 		"""
 		Creates a new asyncio event loop in which the subroutine runs.
 		If the subroutine is already running nothing happens.
 		"""
-		if self.loop:
+		if self.run:
 			# Subroutine is running
 			return
 
-		self.loop = asyncio.new_event_loop()
-		self.loop.run_until_complete(subRoutine)
+		self.run = True
+		await self.subRoutine()
 
 	async def stopSubRoutine(self):
-		if not self.loop:
+		if not self.run:
 			# Subroutine is not running
 			return
+		if not self.canStop:
+			await self.helpf.log("[Subroutine] Waiting for subRoutine to stop...",2)
 		while not self.canStop:
-			print("[Subroutine] Waiting for subRoutine to stop...")
-			await asyncio.sleep(0.1)
-		print("[Subroutine] Stopping subRoutine")
-		self.loop.close()
+			await asyncio.sleep(0.05)
+		await self.helpf.log("[Subroutine] Stopping subRoutine",2)
+		self.run = False
 
 	async def subRoutine(self):
 		"""
@@ -85,22 +85,25 @@ class Sub(object):
 			Remove role
 			Give role once
 		"""
+		await self.helpf.log("[Subroutine] Started subroutine",2)
 		"""
 		waitTime says how long the subroutine will sleep between cycles. 
 		Also indicates buffer of activities.
 		When a time is mentiont in this function, than a time window is ment from 0 to waitTime.
+		!!! waitTime must be an int !!!
 		"""
 		waitTime = 120
 
 		guild = self.helpf.getGuild()
-		while True:
+		while self.run:
+			self.canStop = False
 			currentTime = time.time()
 
 			"""
 			Remove role subroutine:
 				Continuously removes the role in a given intervall starting on the offset.
 			"""
-			await self.removeRoleSubroutineFunction(currentTime)
+			await self.removeRoleSubroutineFunction(currentTime, waitTime, guild)
 
 			"""
 			Give role once:
@@ -108,14 +111,18 @@ class Sub(object):
 				The time window is defined with an offset and intervall.
 				If the intervall is hit beginning on the offset, than only once the role is given. 
 			"""
-			await giveRoleOnceSubroutineFunction(currentTime)
+			await self.giveRoleOnceSubroutineFunction(currentTime)
 
 			# Pauses the subroutine.
 			self.canStop = True
-			await asyncio.sleep(waitTime)
-			self.canStop = False
+			for i in range(waitTime):
+				if not self.run:
+					# Stop subroutine preemptively
+					break
+				await asyncio.sleep(1)
+			
 
-	async def removeRoleSubroutineFunction(self, currentTime):
+	async def removeRoleSubroutineFunction(self, currentTime, waitTime, guild):
 		"""
 		param currentTime:	Float time on what the timing will be compared on.
 
@@ -124,12 +131,18 @@ class Sub(object):
 		Than determants if they should be carried out and carrys them out.
 		"""
 		for toRemove in self.subjson["removeRole"]:
+			if not toRemove.isdigit():
+				await self.helpf.log(f"[Subroutine ERROR] In 'removeRoleSubroutineFunction'. Key {toRemove} in removeRole is no role id. Remove key to ressolve this error.",2)
+				continue
 			offset, intervall = self.subjson["removeRole"][toRemove][:2]
 			if (currentTime - offset) % intervall < waitTime and currentTime > offset:
-				role = guilde.get_role(int(toRemove))
-				# Remove roles
-				for member in role.members:
-					await self.helpf.removeRoles(member.id, [toRemove])
+				role = guild.get_role(int(toRemove))
+				if role == None:
+					await self.helpf.log(f"[Subroutine ERROR] In 'removeRoleSubroutineFunction'. Role with id {toRemove} is not in Guilde. Remove it from 'sub.json' to fix this issue.",2)
+				else:
+					# Remove roles
+					for member in role.members:
+						await self.helpf.removeRoles(member.id, [toRemove])
 
 	async def giveRoleOnceSubroutineFunction(self, currentTime):
 		"""
@@ -139,19 +152,21 @@ class Sub(object):
 		Scans sub.json for timing, userID and roleID.
 		Than determants if they should be carried out and carrys them out.
 		"""
+		entrysToDelet = []
 		for toGiveOnce in self.subjson["giveRoleOnce"]:
-			offset, intervall, userID, roleID = self.subjson["giveRoleOnce"][toGiveOnce]
-			if (currentTime - offset) % intervall < waitTime and currentTime > offset:
-				# Removes role from member and clears entry in sub.json.
+			time, userID, roleID = self.subjson["giveRoleOnce"][toGiveOnce]
+			if time <= currentTime:
+				# Gives role to member and clears entry in sub.json.
 				try:
-					self.helpf.giveRoles(userID, roleID)
+					await self.helpf.giveRoles(userID, [roleID])
 				except AttributeError as e:
 					# When user is not anymore in the guild.
-					print("[ERROR] Tried to give member role which is not in the guild.")
-					print(traceback.format_exc())
-
-				del self.subjson["giveRoleOnce"][toGiveOnce]
-				self.saveSubjson()
+					await self.helpf.log("[ERROR] Tried to give member role which is not in the guild.",2)
+					await self.helpf.log(traceback.format_exc(),2)
+				entrysToDelet.append(toGiveOnce)
+		for entry in entrysToDelet:
+			del self.subjson["giveRoleOnce"][entry]
+		self.saveSubjson()
 
 
 
@@ -170,61 +185,43 @@ class Sub(object):
 		with open(self.binpath+"sub.json",'w') as f:
 			json.dump(self.subjson, f, indent = 6)
 
-	def addGiveRoleOnce(self, offset, intervall, userID, roleID):
+	def addGiveRoleOnce(self, timeWhenGiveRole, userID, roleID):
 		"""
-		param offset:	Starting point as float time. Can be determaint through 'time.mktime(time.strptime("2021 Jan 4 CEST","%Y %b %d %Z"))'
-		param intervall:	How long between time windows should be waited as float.
-		param userID:	Is the userID from discord user as int
+		param timeWhenGiveRole:	Unix Epoch time as float when role will be given.
+		param userID:	Is the userID from discord user as int.
 		param roleID:	The id of a role on the discord guilde as int.
 
 		Makes a entry in sub.json to give a role in specified time window.
 		Entries will have the lowest key possible.
 		The giving of a role is carried out by subRoutine().
 		"""
+		if timeWhenGiveRole < time.time():
+			return
 		i = 1
 		while str(i) in self.subjson["giveRoleOnce"].keys():
 			i += 1
-		self.subjson["giveRoleOnce"][str(i)] = [offset, intervall, userID, roleID]
+		self.subjson["giveRoleOnce"][str(i)] = [timeWhenGiveRole, userID, roleID]
 		self.saveSubjson()
 
-	def queueGiveRoleOnceAfter(self, userID, roleID, after, intervallDefaulte = 604800, offsetDefaulte = 345600):
+	def queueGiveRoleOnceAfter(self, userID, roleID, after, timeWhenNothingInQueue):
 		"""
 		param userID:	Is the userID from discord user as int
 		param roleID:	The id of a role on the discord guilde as int.
-		param after:	Float how long sshould be waited.
-		param intervallDefaulte:	Definess intervall as int if no entry is found. Defaulte = 604800 =^= 1 Week.
-		param offsetDefaulte:	Offset when a new entry will be created. Defaulte = 345600 =^= Set to Monday.
+		param after:	Float how long should be waited.
+		param timeWhenNothingInQueue:	Time in float when will be queued if queue is empty.
 
-		Queues a new give role after an existing giveRoleOnce entry.
+		Queues a new give role after an existing giveRoleOnce entry, which matches the roleid.
 		Always the last entry by offfset will be queued after.
 
 		When entry does not exist, than a new entry will be added with the intervallDefaulte.
-		Only does it if intervallDefaulte is not 0.
 		"""
-		offset = 0
-		intervall = 0
-		excetutionTime = None
-		# Get last queued giveRoleOnce matching with role. Last is determanted by offset.
-		for queueBefor in sorted(self.subjson["giveRoleOnce"]):
-			offsetBefor, intervallBefor, userIDBefor, roleIDBefor = self.subjson["giveRoleOnce"][toGiveOnce][:4]
-			if roleID == roleIDAfter and offsetBefor > offset:
-				offset, intervall = offsetBefor, intervallBefor
-				excetutionTime = ((offsetBefor // intervall) + 1) * intervall
-
-		if excetutionTime:
-			# When a entry matches search parameters.
-			excetutionTime += after
-		elif intervallDefaulte:
-			# Create new entry ssince no entry is found.
-			intervall = intervallDefaulte
-			excetutionTime = (((time.time() + offsetDefaulte) // intervall) + 1) * intervall
-		if not excetutionTime:
-			# When no entry will be created and none is found.
-			return excetutionTime
-		self.addGiveRoleOnce(excetutionTime, intervall, userID, roleID)
+		excetutionTime = timeWhenNothingInQueue
+		timesWithRole = [entry[0] for entry in self.subjson["giveRoleOnce"].values() if entry[2] == roleID]
+		if timesWithRole:
+			# Entry exists => queue new entry
+			lastEntryTime = max(timesWithRole, key =  lambda entry: entry)
+			excetutionTime = lastEntryTime + after
+		self.addGiveRoleOnce(excetutionTime, userID, roleID)
 		# Format time to String in form Year Month Day DayName.
-		return time.strftime("%Y %b %d %a", excetutionTime)
-
-
-
+		return time.strftime("%Y %b %d %a %H:%M:%S", time.localtime(excetutionTime))
 
