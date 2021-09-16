@@ -57,7 +57,7 @@ Bot events are called when a specific action is seen by the bot.
 async def on_ready():
 	#Sends mesage to mods, when bot is online
     print("Now Online")
-    await helpf.sendModsMessage(f"Bot is now online.\nVersion:\tWorkingDiscordBot v1.2.0-alpha")
+    await helpf.sendModsMessage(f"Bot is now online.\nVersion:\tWorkingDiscordBot v1.2.0-beta")
 
     # Tries to start the subroutine. When it is running, than nothing will happen.
     await sub.startSubRoutine()
