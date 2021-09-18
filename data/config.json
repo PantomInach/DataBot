@@ -1,0 +1,22 @@
+{
+      "token": "Your token",
+      "command_prefix": "+",
+      "log": "False",
+      "logchannel": "",
+      "levelchannel": "",
+      "owner": "",
+      "textCooldown": "75",
+      "privilege": {
+            "Your ID": "2",
+            "Lower rank ID": "1"
+      },
+      "guilde": "Your guilde ID",
+      "serverVoiceBlacklist": [
+            "0"
+      ],
+      "serverTextWhitelist": [
+            "0"
+      ],
+      "roles": [],
+      "rolesXPNeed": []
+}
