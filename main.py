@@ -1,25 +1,21 @@
-import certifi
-import os
 import discord
-from discord.utils import get, find
+from discord.utils import find
 from discord.ext import commands
-import time
-import datetime
-import asyncio
 
-from bot.jsonhandel import Jsonhandel
-from bot.xpfunk import Xpfunk
-from bot.poll import Poll
-from bot.helpfunc import Helpfunc
-from bot.textban import Textban
-from bot.counter import Counter
+from datahandler.counter import Counter
+from datahandler.jsonhandel import Jsonhandel
+from datahandler.poll import Poll
+from datahandler.subroutine import Sub
+from datahandler.textban import Textban
 
-from bot.commanduser import Commanduser
-from bot.commandmod import Commandmod
-from bot.commandowner import Commandowner
-from bot.commandpoll import Commandpoll
-from bot.commandmodserver import Commandmodserver
-from bot.subroutine import Sub
+from helpfunctions.helpfunc import Helpfunc
+from helpfunctions.xpfunk import Xpfunk
+
+from cogs.commandmod import Commandmod
+from cogs.commandmodserver import Commandmodserver
+from cogs.commandowner import Commandowner
+from cogs.commandpoll import Commandpoll
+from cogs.commanduser import Commanduser
 
 print("[Startup] Prepare to start Bot...")
 
