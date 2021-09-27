@@ -19,6 +19,19 @@ class Jsonhandel(object):
 		Functions to maipulate the config json
 	"""
 
+	def _reloadConfig(func):
+		"""
+		Type:	Decorator for functions in Jsonhandel using self.config
+
+		Reloads the config file and executes the function.
+		Midigates race conditions and data corruption when creating multiple Jsonhandel objects.
+		"""
+		def decorator(self, *args, **kwargs):
+			self.config = json.load(open(self.datapath + "config.json"))
+			return func(self, *args, **kwargs)
+		return decorator
+
+	@_reloadConfig
 	def isInConfig(self, isIn):
 		"""
 		param isIn:		String or integer which may be in config.json.
@@ -27,6 +40,7 @@ class Jsonhandel(object):
 		"""
 		return isIn in [x for x in self.config]
 
+	@_reloadConfig
 	def getFromConfig(self, toGet):
 		"""
 		param toget:	Reads String or integer from config.json
@@ -35,6 +49,7 @@ class Jsonhandel(object):
 		"""
 		return self.config[str(toGet)]
 
+	@_reloadConfig
 	def getPrivilegeLevel(self, userID):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -48,6 +63,7 @@ class Jsonhandel(object):
 			return int(self.config["privilege"][str(userID)])
 		return 0
 
+	@_reloadConfig
 	def getInPrivilege(self):
 		"""
 		Get userIDs with there privilage level in config.json.
@@ -61,14 +77,15 @@ class Jsonhandel(object):
 		with open(self.datapath+"config.json",'w') as f:
 			json.dump(self.config, f, indent = 6)
 		self.config = json.load(open(self.datapath+"config.json"))
-		print("Config saved in JSON-File.")
 
+	@_reloadConfig
 	def getRoles(self):
 		"""
 		Get from config.json the rolls which the bot will give depending on the users XP.
 		"""
 		return self.config["roles"]
 
+	@_reloadConfig
 	def getRolesXPNeed(self):
 		"""
 		Gets which level is needed for each role.
@@ -80,6 +97,7 @@ class Jsonhandel(object):
 	channel Black and White list
 	"""
 
+	@_reloadConfig
 	def isInBlacklist(self, channelID):
 		"""
 		param channelID:	The id of the channel the message of messageID is in.
@@ -88,6 +106,7 @@ class Jsonhandel(object):
 		"""
 		return str(channelID) in [x for x in self.config["serverVoiceBlacklist"]]
 
+	@_reloadConfig
 	def writeToBalcklist(self, channelID):
 		"""
 		param channelID:	The id of the channel the message of messageID is in.
@@ -100,6 +119,7 @@ class Jsonhandel(object):
 			return 1
 		return 0
 
+	@_reloadConfig
 	def removeFromBalcklist(self, channelID):
 		"""
 		param channelID:	The id of the channel the message of messageID is in.
@@ -112,6 +132,7 @@ class Jsonhandel(object):
 			return 1
 		return 0
 
+	@_reloadConfig
 	def isInWhitelist(self, channelID):
 		"""
 		param channelID:	The id of the channel the message of messageID is in.
@@ -120,6 +141,7 @@ class Jsonhandel(object):
 		"""
 		return str(channelID) in [x for x in self.config["serverTextWhitelist"]]
 
+	@_reloadConfig
 	def writeToWhitelist(self, channelID):
 		"""
 		param channelID:	The id of the channel the message of messageID is in.
@@ -132,6 +154,7 @@ class Jsonhandel(object):
 			return 1
 		return 0
 
+	@_reloadConfig
 	def removeFromWhitelist(self, channelID):
 		"""
 		param channelID:	The id of the channel the message of messageID is in.
@@ -150,6 +173,19 @@ class Jsonhandel(object):
 		Functions to maipulate the userdata.json
 	"""
 
+	def _reloadData(func):
+		"""
+		Type:	Decorator for functions in Jsonhandel using self.config
+
+		Reloads the data file and executes the function.
+		Midigates race conditions and data corruption when creating multiple Jsonhandel objects.
+		"""
+		def decorator(self, *args, **kwargs):
+			self.data = json.load(open(self.datapath + "userdata.json"))
+			return func(self, *args, **kwargs)
+		return decorator
+
+	@_reloadData
 	def isInData(self, userID):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -158,6 +194,7 @@ class Jsonhandel(object):
 		"""
 		return str(userID) in [x for x in self.data]
 
+	@_reloadData
 	def sortDataBy(self, sortBy):
 		"""
 		param sortBy:
@@ -171,6 +208,7 @@ class Jsonhandel(object):
 		sortedData = sorted(self.data, key = lambda id: sortMode[sortBy][0] * self.getUserText(id) + sortMode[sortBy][1] * self.getUserVoice(id) +sortMode[sortBy][2] * self.getUserTextCount(id))
 		return sortedData[::-1]
 
+	@_reloadData
 	def getSortedDataEntrys(self, entryBeginn, entryEnd, sortBy):
 		"""
 		param entrBeginn:	Beginn of user entry which will be returned. When into in data range, than empty list will be returned.
@@ -189,6 +227,7 @@ class Jsonhandel(object):
 			entryEnd = l
 		return self.sortDataBy(sortBy)[entryBeginn:entryEnd]
 
+	@_reloadData
 	def addNewDataEntry(self, userID):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -204,6 +243,7 @@ class Jsonhandel(object):
 			print(f"\tCreated userID-Entry: {userID, self.data[str(userID)]}")
 			self.saveData()
 
+	@_reloadData
 	def removeUserFromData(self, userID):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -216,6 +256,7 @@ class Jsonhandel(object):
 			return 1
 		return 0
 
+	@_reloadData
 	def addTextMindCooldown(self, userID, amount, cooldown):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -239,6 +280,7 @@ class Jsonhandel(object):
 		else:
 			print(f"\tUser {userID} is on Cooldown. CurrentTime: {deltat}")
 
+	@_reloadData
 	def addTextXP(self, userID, amount):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -249,6 +291,7 @@ class Jsonhandel(object):
 		cooldownCon = self.getFromConfig("textCooldown")
 		self.addTextMindCooldown(userID, amount, cooldownCon)
 
+	@_reloadData
 	def addReactionXP(self, userID, amount):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -258,6 +301,7 @@ class Jsonhandel(object):
 		"""
 		self.addTextMindCooldown(userID, amount, 10)
 
+	@_reloadData
 	def updateLevel(self, userID, level):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -268,6 +312,7 @@ class Jsonhandel(object):
 		if self.isInData(userID):
 			self.data[str(userID)]["Level"] = level
 
+	@_reloadData
 	def addAllUserVoice(self, userIDs):
 		"""
 		param userIDs:	Is a list of userIDs from discord user as a String or int
@@ -279,6 +324,7 @@ class Jsonhandel(object):
 			self.addUserVoice(userID)
 		self.saveData()
 
+	@_reloadData
 	def getUserText(self, userID):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -287,6 +333,7 @@ class Jsonhandel(object):
 		"""
 		return int(self.data[str(userID)]["Text"])
 
+	@_reloadData
 	def getUserVoice(self, userID):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -295,6 +342,7 @@ class Jsonhandel(object):
 		"""
 		return int(self.data[str(userID)]["Voice"])
 
+	@_reloadData
 	def getUserHours(self, userID):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -303,6 +351,7 @@ class Jsonhandel(object):
 		"""
 		return round(self.getUserVoice(userID)/30.0, 1)
 
+	@_reloadData
 	def getUserTextCount(self, userID):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -311,6 +360,7 @@ class Jsonhandel(object):
 		"""
 		return int(self.data[str(userID)]["TextCount"])
 
+	@_reloadData
 	def getCooldown(self, userID):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -320,6 +370,7 @@ class Jsonhandel(object):
 		if self.isInData(userID):
 			return self.data[str(userID)]["Cooldown"]
 
+	@_reloadData
 	def getUserLevel(self, userID):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -329,12 +380,14 @@ class Jsonhandel(object):
 		if self.isInData(userID):
 			return int(self.data[str(userID)]["Level"])
 
+	@_reloadData
 	def getUserIDsInData(self):
 		"""
 		Gets the userIDs in userdata.json.
 		"""
 		return [id for id in self.data]
 
+	@_reloadData
 	def setCooldown(self, userID, t = time.time()):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -345,6 +398,7 @@ class Jsonhandel(object):
 		if self.isInData(userID):
 			self.data[str(userID)]["Cooldown"] = str(t)
 
+	@_reloadData
 	def setUserVoice(self, userID, voice):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -356,6 +410,7 @@ class Jsonhandel(object):
 		self.data[str(userID)]["Voice"] = int(voice)
 		self.saveData()
 
+	@_reloadData
 	def setUserText(self, userID, text):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -367,6 +422,7 @@ class Jsonhandel(object):
 		self.data[str(userID)]["Text"] = int(text)
 		self.saveData()
 
+	@_reloadData
 	def setUserTextCount(self, userID, textCount):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -378,6 +434,7 @@ class Jsonhandel(object):
 		self.data[str(userID)]["TextCount"] = int(textCount)
 		self.saveData()
 
+	@_reloadData
 	def addUserVoice(self, userID, voice = 1):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -389,6 +446,7 @@ class Jsonhandel(object):
 		self.data[str(userID)]["Voice"] = int(self.data[str(userID)]["Voice"]) + int(voice)
 		self.saveData()
 
+	@_reloadData
 	def addUserText(self, userID, text):
 		"""
 		param userID:	Is the userID from discord user as a String or int
@@ -400,6 +458,7 @@ class Jsonhandel(object):
 		self.data[str(userID)]["Text"] = int(self.data[str(userID)]["Text"]) + int(text)
 		self.saveData()
 
+	@_reloadData
 	def addUserTextCount(self, userID, count = 1):
 		"""
 		param userID:	Is the userID from discord user as a String or int

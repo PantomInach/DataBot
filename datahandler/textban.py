@@ -26,6 +26,18 @@ class Textban(object):
 		"""
 		return str(userID) in self.ban
 
+	@staticmethod
+	def staticHasTextBan(userID):
+		"""
+		param userID:	Is the userID from discord user as a String or int
+
+		Same as hasTextBan but is a static method.
+		Checks if a user has an entry in textban.json.	
+		"""
+		datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
+		ban = json.load(open(datapath+"textban.json"))
+		return str(userID) in ban
+
 	async def addTextBan(self, userID, time):
 		"""
 		param userID:	Is the userID from discord user as a String or int

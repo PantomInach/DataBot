@@ -1,17 +1,21 @@
 import discord
 from discord.ext import commands
+
 from helpfunctions.decorators import isBotModCommand, isBotMod
+from helpfunctions.xpfunk import Xpfunk
+from helpfunctions.utils import Utils
+from datahandler.jsonhandel import Jsonhandel
 
 class Commandmod(commands.Cog, name='Bot Mod Commands'):
 	"""
 	You need privilage level 1 to use these commands.
 	"""
-	def __init__(self, bot, helpf, jh, xpf):
+	def __init__(self, bot):
 		super(Commandmod, self).__init__()
 		self.bot = bot
-		self.helpf = helpf
-		self.jh = jh
-		self.xpf = xpf
+		self.jh = Jsonhandel()
+		self.utils = Utils(bot, jh = self.jh)
+		self.xpf = Xpfunk()
 
 
 	"""
@@ -55,7 +59,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 		Adds channel to whitlist so users can get XP in the channel.
 		"""
 		guilde = self.bot.get_guild(self.jh.getFromConfig("guilde"))
-		channels = self.helpf.getTextChannelsFrom(self.jh.getFromConfig("guilde"))
+		channels = self.bot.guilds[0].text_channels
 		# When channelID is not given, use ctx.channel.id.
 		if not channelID:
 			channelID = ctx.channel.id
@@ -69,7 +73,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 				message = "Channel is already in Whitelist."
 		else:
 			message = f"Channel is not in the server {str(guilde)}"
-			await self.helpf.log(f"{message} from user {ctx.author}",2)
+			await self.utils.log(f"{message} from user {ctx.author}",2)
 		await ctx.send(message)
 
 	async def removetextwhitelist(self, ctx, channelID = None):
@@ -88,7 +92,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 			message = f"Removed {channelName} with id {channelID} from Whitelist. This Text channel will not be logged."
 		else:
 			message = "Channel does not exist or is not in Whitelist"
-			await self.helpf.log(f"{message} from user {ctx.author}",2)
+			await self.utils.log(f"{message} from user {ctx.author}",2)
 		await ctx.send(message)
 
 	"""
@@ -126,7 +130,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 		Adds channel to whitlist so users can not get XP in the channel.
 		"""
 		guilde = self.bot.get_guild(self.jh.getFromConfig("guilde"))
-		channels = self.helpf.getVoiceChannelsFrom(self.jh.getFromConfig("guilde"))
+		channels = self.bot.guilds[0].voice_channels
 		#Test if channel is in Server
 		if str(channelID) in [str(channel.id) for channel in channels]:
 			#Try to write in Blacklist
@@ -137,7 +141,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 				message = "Channel is already in Blacklist."
 		else:
 			message = f"Channel is not in the server {str(guilde)}"
-		await self.helpf.log(f"{message} from user {ctx.author}",2)
+		await self.utils.log(f"{message} from user {ctx.author}",2)
 		await ctx.send(message)
 
 	async def removeblacklist(self, ctx, channelID = None):
@@ -155,7 +159,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 			message = f"Removed {channelName} with id {channelID} from Blacklist. This Voice channel will be logged."
 		else:
 			message = "Channel does not exist or is not in Blacklist"
-		await self.helpf.log(f"{message} from user {ctx.author}",2)
+		await self.utils.log(f"{message} from user {ctx.author}",2)
 		await ctx.send(message)
 
 	"""
@@ -199,6 +203,5 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 		await ctx.send(message)
 
 
-
-def setup(bot, helpf, jh, xpf):
-	bot.add_cog(Commandmod(bot, helpf, jh, xpf))
+def setup(bot):
+	bot.add_cog(Commandmod(bot))

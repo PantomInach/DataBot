@@ -1,28 +1,32 @@
 import discord
 import sys
 import os
-from discord.ext import commands
-from helpfunctions.decorators import isBotModCommand, isBotOwnerCommand
 import asyncio
+from discord.ext import commands
+
+from helpfunctions.decorators import isBotModCommand, isBotOwnerCommand
+from helpfunctions.xpfunk import Xpfunk
+from helpfunctions.utils import Utils
+from datahandler.textban import Textban
+from datahandler.jsonhandel import Jsonhandel
 
 class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	"""
 	You need privilage level 2 to use these commands.
 	Only for development and Bot Owner.
 	"""
-	def __init__(self, bot, helpf, tban, jh, xpf, sub):
+	def __init__(self, bot):
 		super(Commandowner, self).__init__()
 		self.bot = bot
-		self.helpf = helpf
-		self.jh = jh
-		self.xpf = xpf
-		self.tban = tban
-		self.sub = sub
+		self.jh = Jsonhandel()
+		self.utils = Utils(bot, jh = self.jh)
+		self.xpf = Xpfunk()
+		self.tban = Textban()
 
 	@commands.command(name='test', pass_context=True, brief='Testing command for programmer.', description='You need privilege level Owner to use this command. Only the programmer knows what happens here.')
 	@isBotOwnerCommand()
 	async def test(self, ctx):
-		print(self.bot.cogs)
+		await ctx.send(self.bot.cogs)
 
 	@commands.command(name="ping")
 	@isBotOwnerCommand()
@@ -38,13 +42,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 			self.jh.saveConfig()
 			guildeID = int(self.jh.getFromConfig("guilde"))
 			guildeName = str(self.bot.get_guild(guildeID))
-			await self.helpf.log(f"Start to log users from Server:\n\t{guildeName}",2)
-			while self.jh.getFromConfig("log") == "True":
-				self.helpf.addMembersOnlineVoiceXp(guildeID)
-				await self.helpf.levelAkk()
-				await self.helpf.updateRoles()
-				self.jh.saveData()
-				await asyncio.sleep(120)
+			await self.utils.log(f"Start to log users from Server:\n\t{guildeName}",2)
 		else:
 			await ctx.send(f"Bot is logging. Logging state: True")
 
@@ -56,28 +54,23 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 			guildeName = str(self.bot.get_guild(guildeID))
 			self.jh.config["log"] = "False"
 			self.jh.saveConfig()
-			await self.helpf.log(f"Stopped to log users from Server:\n\t{guildeName}",2)
+			await self.utils.log(f"Stopped to log users from Server:\n\t{guildeName}",2)
 		else:
 			await ctx.send(f"Bot is NOT logging. Logging state: False")
 
 	@commands.command(name='stopbot', brief='Shuts down the bot.', description='You need privilege level 2 to use this command. This command shuts the bot down.')
 	@isBotOwnerCommand()
 	async def stopbot(self, ctx):
-		await self.helpf.log("[Shut down] Beginning shutdown...",2)
+		await self.utils.log("[Shut down] Beginning shutdown...",2)
 		# Save json files
 		self.jh.saveConfig()
 		self.jh.saveData()
-		self.sub.saveSubjson()
-		await self.helpf.log("[Shut down] Files saved",2)
+		await self.utils.log("[Shut down] Files saved",2)
 		# Remove all textbans
 		self.tban.removeAllTextBan()
-		# Stop subroutine
-		await self.sub.stopSubRoutine()
-		await self.helpf.log("[Shut down] Stopped subroutine",2)
-		await self.helpf.log("[Shut down] Bot is shutdown",2)
-		await self.bot.logout()
+		await self.utils.log("[Shut down] Bot is shutdown",2)
+		#await self.bot.logout()
 		await self.bot.close()
-		sys.exit()
 
 	@commands.command(name='sendDPD', brief='Sends data protection declaration to channel')
 	@isBotOwnerCommand()
@@ -90,7 +83,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		with open(datapath+"dataProtection.txt","r") as f:
 			string = f.read()
 		for member in guilde.members:
-			await self.helpf.removeRoles(member.id, ["chairman", "associate", "employee", "rookie"])
+			await self.utils.removeRoles(member.id, ["chairman", "associate", "employee", "rookie"])
 			print(f"Progress: {i}/{lenght}")
 			i = i+1
 		message = await ctx.send(string)
@@ -104,7 +97,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		lenght = len(guilde.members)
 		i = 1
 		for member in guilde.members:
-			await self.helpf.removeRoles(member.id, ["gaming", "student", "dev-tech", "single", "gambling", "bot-dev"])
+			await self.utils.removeRoles(member.id, ["gaming", "student", "dev-tech", "single", "gambling", "bot-dev"])
 			print(f"Progress: {i}/{lenght}")
 			i = i+1
 		message = await ctx.send(string)
@@ -136,5 +129,26 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		except InvalidArgument:
 			await ctx.send("No vaild emoji was sent by user.")
 
-def setup(bot, helpf, jh, xpf):
-	bot.add_cog(Commandmod(bot, helpf, tban, jh, xpf))
+	@commands.command(name = 'rlext')
+	@isBotOwnerCommand()
+	async def reloadExtensions(self, ctx, *extensions):
+		"""
+		param ctx:	Discord Context object.
+		param *ext:	Names of extensions to be reloaded.
+
+		Reloads given extensions so changes are taken over.
+		When no extension is given, all extensions will be reloaded.
+		"""
+		if not extensions:
+			extensions = self.bot.extensions.copy()
+			list(extensions.keys()).extend(["cogs." + ext[:-3] for ext in os.listdir("./") if ext.endswith(".py")])
+		reloadedExtensions = []
+		for ext in extensions:
+			if ext in self.bot.extensions:
+				self.bot.unload_extension(ext)
+				self.bot.load_extension(ext)
+				reloadedExtensions.append(ext)
+		await self.utils.log(f"Reloaded extensions: {', '.join(reloadedExtensions)}", 2)
+
+def setup(bot):
+	bot.add_cog(Commandowner(bot))
