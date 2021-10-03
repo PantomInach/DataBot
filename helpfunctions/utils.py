@@ -154,10 +154,10 @@ class Utils(object):
 				# Filter out Emojis in names
 				for i in range(len(nick)):
 					if nick[i] in UNICODE_EMOJI['en']:
-						nick = "".join((leaderborad[:i],"#",nick[i+1:]))
+						nick = "".join((nick[:i],"#",nick[i+1:]))
 				for i in range(len(name)):
 					if name[i] in UNICODE_EMOJI['en']:
-						name = "".join((leaderborad[:i],"#",name[i+1:]))
+						name = "".join((name[:i],"#",name[i+1:]))
 			else:
 				# When user is not in guild.
 				nick = "Not on guild"
