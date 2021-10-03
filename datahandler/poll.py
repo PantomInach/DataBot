@@ -38,8 +38,8 @@ class Poll(object):
 		"""
 		super(Poll, self).__init__()
 		# Opens poll.json file
-		self.binpath = str(os.path.dirname(__file__))[:-4]+"/bin/"
-		self.pollData = json.load(open(self.binpath+"poll.json"))
+		self.datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
+		self.pollData = json.load(open(self.datapath+"poll.json"))
 
 	def newPoll(self, pollName):
 		"""
@@ -409,9 +409,9 @@ class Poll(object):
 		"""
 		Saves pollData to poll.json
 		"""
-		with open(self.binpath+"poll.json",'w') as f:
+		with open(self.datapath+"poll.json",'w') as f:
 			json.dump(self.pollData, f ,indent = 6)
-		self.pollData = json.load(open(self.binpath+"poll.json"))
+		self.pollData = json.load(open(self.datapath+"poll.json"))
  
 	def sortOptionsBy(self, pollID, sortBy):
 		"""

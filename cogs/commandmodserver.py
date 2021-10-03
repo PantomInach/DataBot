@@ -1,8 +1,12 @@
 import discord
 from discord.utils import get
 from discord.ext import commands
-from .decorators import *
 import asyncio
+
+from helpfunctions.utils import Utils
+from datahandler.textban import Textban
+from datahandler.counter import Counter
+from datahandler.jsonhandel import Jsonhandel
 
 def hasAnyRole(*items):
 	"""
@@ -20,7 +24,7 @@ def hasAnyRole(*items):
 	"""
 	def decorator(func):
 		def wrapper(*args, **kwargs):
-			if Commandpoll.helpf.hasOneRole(args[1].author.id, [*items]):
+			if Commandmodserver.utils.hasOneRole(args[1].author.id, [*items]):
 				return func(*args, **kwargs)
 			return passFunc()
 		return wrapper
@@ -31,15 +35,17 @@ class Commandmodserver(commands.Cog, name='Server Mod Commands'):
 	Currently unused
 	"""
 
-	helpf = None
+	utils = None
 
-	def __init__(self, bot, helpf, tban, counter, jh):
+	def __init__(self, bot):
 		super(Commandmodserver, self).__init__()
 		self.bot = bot
-		self.tban = tban
-		self.jh = jh
-		self.helpf = helpf
-		Commandmodserver.helpf = helpf
+		self.jh = Jsonhandel()
+		self.tban = Textban()
+		self.jh = Jsonhandel
+		self.utils = Utils(bot, jh = self.jh)
+		self.counter = Counter()
+		Commandmodserver.utils = self.utils
 
-def setup(bot, helpf, tban, jh):
-	bot.add_cog(Commandpoll(bot, helpf, tban, jh))
+def setup(bot):
+	bot.add_cog(Commandmodserver(bot))

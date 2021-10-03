@@ -8,13 +8,13 @@ class Counter(object):
 	"""
 	def __init__(self):
 		super (Counter, self).__init__()
-		self.binpath = str(os.path.dirname(__file__))[:-4]+"/bin/"
-		self.counterData = json.load(open(self.binpath+"counter.json"))
+		self.datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
+		self.counterData = json.load(open(self.datapath+"counter.json"))
 
 	def saveCounter(self):
-		with open(self.binpath+"counter.json",'w') as f:
+		with open(self.datapath+"counter.json",'w') as f:
 			json.dump(self.counterData, f ,indent = 6)
-		self.counterData = json.load(open(self.binpath+"counter.json"))
+		self.counterData = json.load(open(self.datapath+"counter.json"))
 
 	def createCounter(self, counterName):
 		counterID = 1

@@ -1,129 +1,78 @@
 import discord
 from discord.utils import get, find
 from discord.ext import commands
-import sys
 import os
 import datetime
-import hashlib
+
+from helpfunctions.xpfunk import Xpfunk
+from datahandler.jsonhandel import Jsonhandel
+# import hashlib
 
 from emoji import UNICODE_EMOJI
 
-class Helpfunc(object):
+class Utils(object):
 	"""
 	This Class holds multip purpose commands for all classes.
 	"""
-	def __init__(self, bot, jh, xpf):
-		super(Helpfunc, self).__init__()
+	def __init__(self, bot, jh = None):
+		"""
+		param bot:	commands.Bot object.
+		param jh:	Jsonhandel object from datahandler.jsonhandel. When not given than a new instance will be created.
+		"""
+		super(Utils, self).__init__()
 		self.bot = bot
-		self.jh = jh
-		self.xpf = xpf
-
-	def getVoiceChannelsFrom(self, serverid):
-		"""
-		param serverid:	Guilde ID of a Discord Guilde.
-
-		Gets the voice channels from a Discord Guilde.
-		"""
-		guilde = self.bot.get_guild(int(serverid))
-		return guilde.voice_channels
-
-	def getTextChannelsFrom(self, serverid):
-		"""
-		param serverid:	Guilde ID of a Discord Guilde.
-
-		Gets the text channels from a Discord Guilde.
-		"""
-		guilde = self.bot.get_guild(int(serverid))
-		return guilde.text_channels
-
-	def addMembersOnlineVoiceXp(self, serverid):
-		""" 
-		param serverid:	Guilde ID of a Discord Guilde.
-
-		Increments to voice xp of member in voice channel if
-			1)	member is not alone in channel
-			2)	member is not a bot
-		Gain extra xp if
-			1)	member has cam on
-			2)	member is streaming
-		"""
-		guilde = self.bot.get_guild(int(serverid))
-		voiceChanels = self.getVoiceChannelsFrom(serverid)
-		# Filter out BlackList
-		voiceChanels = [channel for channel in voiceChanels if not self.jh.isInBlacklist(channel.id)]
-		# Total all connected members
-		for channel in voiceChanels:
-			membersInChannel = [member for member in channel.members if not member.bot]
-			# Check if more than one person is in channel
-			if len(membersInChannel) >= 2:
-				membersNotMutedOrBot = [member for member in membersInChannel if not (member.voice.self_mute or member.bot)]
-				self.jh.addAllUserVoice([member.id for member in membersNotMutedOrBot])
-				# Extra XP
-				membersStreamOrVideo = [member for member in membersNotMutedOrBot if (member.voice.self_video or member.voice.self_stream)]
-				self.jh.addAllUserVoice([member.id for member in membersStreamOrVideo])
-
-	async def updateRoles(self):
-		"""
-		Gives members role in rolesList if they have the level in roleXPNeedList.
-		Also members needs to have "etwasse" or "rookie". Another SubServer (not yet implemented) are also ok.
-		"""
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
-		membersList = guilde.members
-		for member in membersList:
-			if self.jh.isInData(member.id):
-				if self.hasOneRole(member.id, {"etwasse", "rookie"}):
-					# Give all roles user is qualified for even if he already has some roles.
-					userLevel = self.jh.getUserLevel(member.id)
-					rolesList = self.jh.getRoles()
-					roleXPNeedList = self.jh.getRolesXPNeed()
-					i = len([level for level in roleXPNeedList if int(level) <= userLevel])
-					await self.giveRoles(member.id, rolesList[:i])
+		self.jh = jh if jh else Jsonhandel()
+		self.xpf = Xpfunk()
 
 	def hasRole(self, userID, role):
 		"""
 		param userID:	Is the userID from discord user as a String or int
-		param role:		Which role to check. Needs to be the role's name.
+		param role:		Which role to check. Needs to be the role's name or id.
 
 		Checks if a member has the role.
 		"""
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
-		return role in [x.name for x in member.roles]
+		return find(lambda r: r.name == role or r.id == role or str(r.id) == role, member.roles)
 
 	def hasRoles(self, userID, roles):
 		"""
 		param userID:	Is the userID from discord user as a String or int
-		param role:		List of roles which to check for. Needs to be the role's name.
+		param role:		List of roles which to check for. Needs to be the role's name or id.
 
 		Checks if a member has all roles in roles.
 		"""
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
-		return set(roles).issubset({x.name for x in member.roles})
+		memberRoles = set().union({x.name for x in member.roles}).union({x.id for x in member.roles}).union({str(x.id)for x in member.roles})
+		return set(roles).issubset(memberRoles)
 
 	def hasOneRole(self, userID, roles):
 		"""
 		param userID:	Is the userID from discord user as a String or int
-		param roles:	List of roles which to check for. Needs to be the role's name.
+		param roles:	List of roles which to check for. Needs to be the role's name or id.
 
 		Checks if a member has any one role of roles.
 		"""
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
-		return len({x for x in member.roles if x.id in roles or x.name in roles}) >= 1
+		return len({x for x in member.roles if x.id in roles or str(x.id) in roles or x.name in roles}) >= 1
 
-	async def giveRole(self, userID, roleName):
+	async def giveRole(self, userID, role):
 		"""
 		param userID:	Is the userID from discord user as a String or int
-		param roleName:	Role to give. Needs to be the role's name.
+		param role:	Role to give. Needs to be the role's name or id.
 
 		Gives the member with userID the role roleName.
 		"""
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
-		role = get(guilde.roles, name=roleName)
-		await member.add_roles(role)
-		await self.log(f"User {member.name} aka {member.nick} got role {roleName}.",1)
+		role = find(lambda r: r.id == role or str(r.id) == role or r.name == role, guilde.roles)
+		if role:
+			await member.add_roles(role)
+			await self.log(f"User {member.name} aka {member.nick} got role {roleName}.",1)
+		else:
+			self.log(f"[ERROR] In giveRole:\t Role {roleName} not found")
 
 	async def giveRoles(self, userID, roleNames):
 		"""
@@ -136,7 +85,6 @@ class Helpfunc(object):
 		member = guilde.get_member(int(userID))
 		# Gets the roles to give by the role's name.
 		rolesList = tuple(find(lambda role: str(role.id) == r or role.id == r or role.name == r, list(set(guilde.roles)-set(member.roles))) for r in roleNames)
-		print(rolesList)
 		# Discard Discord None roles, which resulte in errors.
 		rolesList = [x for x in rolesList if x != None]
 		if len(rolesList) > 0:
@@ -148,17 +96,20 @@ class Helpfunc(object):
 	async def removeRole(self, userID, roleName):
 		"""
 		param userID:	Is the userID from discord user as a String or int
-		param roleName:	Role to remove. Needs to be the role's name.
+		param roleName:	Role to remove. Needs to be the role's name or id.
 
 		Removes the member with userID the role roleName.
 		"""
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
-		role = get(guilde.roles, name=roleName)
-		await member.remove_roles(role)
-		await self.log(f"User {member.name} aka {member.nick} got his role {roleName} removed.",1)
+		role = find(lambda r: r.id == role or str(r.id) == role or r.name == role, member.roles)
+		if role:
+			await member.remove_roles(role)
+			await self.log(f"User {member.name} aka {member.nick} got his role {roleName} removed.",1)
+		else:
+			self.log(f"[ERROR] In giveRole:\t Role {roleName} not found")
 
-	async def removeRoles(self, userID, roleNames, reason = None):
+	async def removeRoles(self, removeRole, roleNames, reason = None):
 		"""
 		param userID:	Is the userID from discord user as a String or int
 		param roleNames:	List of roles to remove. Needs to be the role's name or id.
@@ -178,23 +129,6 @@ class Helpfunc(object):
 			# Get newly removed roles for message.
 			rolesAfter = {role.name for role in memberRolesPrev if not role in member.roles}
 			await self.log(f"User {member.name} aka {member.nick} got his roles {str(rolesAfter)} removed.",1)
-
-	async def levelAkk(self):
-		"""
-		Updates the level of all users in data
-		"""
-		for userID in self.jh.getUserIDsInData():
-			voice = self.jh.getUserVoice(userID)
-			text = self.jh.getUserText(userID)
-			oldLevel = self.jh.getUserLevel(userID)
-			levelByXP = self.xpf.levelFunk(voice, text)
-			# Check for level cahnge
-			if levelByXP != oldLevel:
-				self.jh.updateLevel(userID, levelByXP)
-				# Write new level to channel
-				levelchannel = self.bot.get_channel(int(self.jh.getFromConfig("levelchannel")))
-				member = self.bot.get_user(int(userID))
-				await levelchannel.send(f"**{member.mention}** reached level **{levelByXP}**.")
 
 	def getLeaderboardPageBy(self, page, sortBy):
 		"""
@@ -220,15 +154,15 @@ class Helpfunc(object):
 				# Filter out Emojis in names
 				for i in range(len(nick)):
 					if nick[i] in UNICODE_EMOJI['en']:
-						nick = "".join((leaderborad[:i],"#",nick[i+1:]))
+						nick = "".join((nick[:i],"#",nick[i+1:]))
 				for i in range(len(name)):
 					if name[i] in UNICODE_EMOJI['en']:
-						name = "".join((leaderborad[:i],"#",name[i+1:]))
+						name = "".join((name[:i],"#",name[i+1:]))
 			else:
-				# When user is not in guilde.
-				nick = "Not on guilde"
+				# When user is not in guild.
+				nick = "Not on guild"
 				name = f"ID: {userID}"
-			# Get user data from data.json.
+			# Get user data from userdata.json.
 			hours = self.jh.getUserHours(userID)
 			messages = self.jh.getUserTextCount(userID)
 			xp = self.xpf.giveXP(self.jh.getUserVoice(userID), self.jh.getUserText(userID))
@@ -238,17 +172,8 @@ class Helpfunc(object):
 			rank += 1
 		return leaderborad
 
-	async def getMessageFromPayload(self, payload):
-		"""
-		param payload:	Discord payload object.
-
-		Gets the message String from the payload since it only contains channelID and messageID.
-		"""
-		channel = self.bot.get_channel(int(payload.channel_id))
-		message = await channel.fetch_message(int(payload.message_id))
-		return message
-
-	def getMessageState(self, message):
+	@staticmethod
+	def getMessageState(message):
 		"""
 		param message:	String of a message in Discord.
 
@@ -272,6 +197,7 @@ class Helpfunc(object):
 		for reaction in reactions:
 			reactionstr += str(reaction)
 		state = 0
+
 		# Check for Leaderboard
 		if reactionstr == "⏫⬅➡⏰💌":
 			state = 1
@@ -300,75 +226,34 @@ class Helpfunc(object):
 		pageTopRank = int(str(message.content)[6:10])
 		return (state, pageTopRank//10)
 
-	def getLeaderboardChange(self, message):
-		"""
-		param message:	Discord Message object. Should be from a Leaderboard.
-
-		Gets how to change the leaderboard depending on its reactions.
-
-		Return:
-			0: to first page
-			1: page befor
-			2: page after
-			3: sort xp
-			4: sort voice
-			5: sort textcount
-		"""
-		reactions = message.reactions
-		i = 0
-		while reactions[i].count == 1:
-			i += 1
-		if str(reactions[i]) == "🌟":
-			i = 3
-		elif str(reactions[i]) == "⏰":
-			i = 4
-		elif str(reactions[i]) == "💌":
-			i = 5
-		elif i > 5:
-			i = 6
-		return i
-
-	def votedOption(self, message):
-		"""
-		param message:	Discord Message object. Should be from a Poll.
-
-		Gets which option is voted for in a Poll created by the Bot via the reactions.
-		"""
-		reactions = message.reactions
-		i = 0
-		while reactions[i].count == 1:
-			i += 1
-		return i
-
-	async def sendServerModMessage(self, string):
+	async def sendServerModMessage(self, string, embed = None):
 		"""
 		param string:	String which is send.
-
 		Sends all Mods on the Server string. 
 		!!! Not mudular and sents it to COO !!!
 		"""
 		server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		for user in server.members:
 			if self.hasRole(user.id, "COO"):
-				await user.send(string)
+				await user.send(string, embed = embed)
 
-	async def sendModsMessage(self, string):
+	async def sendModsMessage(self, string, embed = None):
 		"""
 		param string:	String which is send.
 
 		Sends all Mods of the Bot with privilage level of 1 or higher the string. 
 		"""
-		await self.sendMessageToPrivilage(string, 1)
+		await self.sendMessageToPrivilage(string, 1, embed = embed)
 
-	async def sendOwnerMessage(self, string):
+	async def sendOwnerMessage(self, string, embed = None):
 		"""
 		param string:	String which is send.
 
 		Sends all Owners of the Bot with privilage level of 2 or higher the string. 
 		"""
-		await self.sendMessageToPrivilage(string, 2)
+		await self.sendMessageToPrivilage(string, 2, embed = embed)
 
-	async def sendMessageToPrivilage(self, string, level):
+	async def sendMessageToPrivilage(self, string, level, embed = None):
 		"""
 		param string:	String which is send.
 		param level:	Integer of the minimum level. 
@@ -377,8 +262,8 @@ class Helpfunc(object):
 		"""
 		for x in self.jh.getInPrivilege():
 			if self.jh.getPrivilegeLevel(x) >= level:
-				owner = self.bot.get_user(int(x))
-				await owner.send(string, delete_after=604800)
+				user = self.bot.get_user(int(x))
+				await user.send(string, delete_after=604800 ,embed = embed)
 
 	async def log(self, message, level):
 		"""
@@ -387,25 +272,31 @@ class Helpfunc(object):
 
 		Saves a message to the log.txt and messages all Users with a privilage level of level or higher.
 		"""
-		message = str(datetime.datetime.now())+":\t"+message
+		message = str(datetime.datetime.now())+":\t" + message
 		# Send message
 		await self.sendMessageToPrivilage(message, level)
 		# Log to log.
-		logfile = str(os.path.dirname(os.path.abspath(__file__)))[:-4]+"/bin/log.txt"
-		with open(logfile,'a') as l:
-			l.write(f"{message}\n")
+		self.logToFile(message)
 		print(message)
 
-	def getGuild(self, guildid = None):
+	def logToFile(self, message, withDate = False):
 		"""
-		param guildid:	integer of a guild ID. Default None.
+		param message:	String to write to log.txt.
 
-		Returns the guilde with guildid.
-		If guildid is not specified or False, than the guild from the conffig will be returned.
+		Writes message to log.txt
 		"""
-		if not guildid:
-			guildid = int(self.jh.getFromConfig("guilde"))
-		return self.bot.get_guild(guildid)
+		if withDate:
+			message = str(datetime.datetime.now())+":\n" + message
+		message = "\n" + message
+		logfile = str(os.path.dirname(os.path.dirname(__file__))) + "/data/log.txt"
+		with open(logfile,'a') as l:
+			l.write(f"{message}\n")
+
+	def getJH(self):
+		"""
+		Returns the Jsonhandel object in self.jh.
+		"""
+		return self.jh
 
 	"""
 	Unsupported

@@ -1,18 +1,21 @@
 import random
 
+from datahandler.jsonhandel import Jsonhandel
+
 class Xpfunk(object):
 	"""
 	Class calculates XP specific operations.
 	"""
 
-	def __init__(self, jh):
+	def __init__(self):
 		"""
 		param jh:	Jsonhandel object passed when created.
 
 		Creats object.
 		"""
 		super(Xpfunk, self).__init__()
-		self.jh = jh
+		# Read only
+		self.jh = Jsonhandel()
 		
 	def textXP(self, message):
 		"""

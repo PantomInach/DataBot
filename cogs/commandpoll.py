@@ -1,7 +1,10 @@
 import discord
-from discord.utils import get
 from discord.ext import commands
-from .decorators import *
+
+from helpfunctions.decorators import isDM, isInChannelOrDM, isNotInChannelOrDM
+from helpfunctions.utils import Utils
+from datahandler.poll import Poll
+from datahandler.jsonhandel import Jsonhandel
 
 def hasAnyRole(*items):
 	"""
@@ -19,7 +22,7 @@ def hasAnyRole(*items):
 	"""
 	def decorator(func):
 		def wrapper(*args, **kwargs):
-			if Commandpoll.helpf.hasOneRole(args[1].author.id, [*items]):
+			if Commandpoll.utils.hasOneRole(args[1].author.id, [*items]):
 				return func(*args, **kwargs)
 			return passFunc()
 		return wrapper
@@ -30,15 +33,15 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	These Commands define interactions with polls.
 	"""
 
-	helpf = None
+	utils = None
 
-	def __init__(self, bot, helpf, poll, jh):
+	def __init__(self, bot):
 		super(Commandpoll, self).__init__()
 		self.bot = bot
-		self.helpf = helpf
-		self.poll = poll
-		self.jh = jh
-		Commandpoll.helpf = helpf
+		self.poll = Poll()
+		self.jh = Jsonhandel()
+		self.utils = Utils(bot, jh = self.jh)
+		Commandpoll.utils = self.utils
 
 	@commands.command(name='poll')
 	async def pollCommandInterpretor(self, ctx, *inputs):
@@ -101,7 +104,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			status = self.poll.getStatus(pollID)
 			sumVotes = self.poll.getSumVotes(pollID)
 			message = f"```md\n{pollID}\t{pollName}\t{datum}\t{status}\t{sumVotes}\n```\n"
-			await self.helpf.log(f"User {ctx.author} created the poll {pollName} with ID: {pollID}.",1)
+			await self.utils.log(f"User {ctx.author} created the poll {pollName} with ID: {pollID}.",1)
 		else:
 			message = "ERROR: The optionName is to long."
 		await ctx.send(message)
@@ -193,19 +196,19 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		message = ""
 		if self.poll.isAPollID(pollID):
 			pollName = self.poll.getName(pollID)
-			if len(self.poll.getOptions(pollID)) == 0 or self.jh.getPrivilegeLevel(ctx.author.id) >= 1 or self.helpf.hasRole(ctx.author.id, "chairman"):
+			if len(self.poll.getOptions(pollID)) == 0 or self.jh.getPrivilegeLevel(ctx.author.id) >= 1 or self.utils.hasRole(ctx.author.id, "chairman"):
 				if self.poll.removePoll(pollID):
 					message = f"Removed Poll {pollName}."
-					await self.helpf.log(f"User {ctx.author.mention} removed the poll: \"{pollName}\".", 2)
+					await self.utils.log(f"User {ctx.author.mention} removed the poll: \"{pollName}\".", 2)
 					channel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
 					server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 					await channel.send(f"User {ctx.author.mention} removed the poll: \"{pollName}\".")
 				else:
 					message = "ERROR: Something strange happend."
-					await self.helpf.log(f"User {ctx.author.name} tried to remove poll: \"{pollName}\", {pollID} with message: {ctx.message.content}")
+					await self.utils.log(f"User {ctx.author.name} tried to remove poll: \"{pollName}\", {pollID} with message: {ctx.message.content}")
 			else:
 				message = "Can't remove a poll with options. Contacted Bot Mods to review your command. The poll will maybe be removed."
-				await self.helpf.sendServerModMessage(f"User {ctx.author.mention} wants to removed the poll: \"{pollName}\". Use Command \"+poll_remove {pollID}.\" to remove to poll.")
+				await self.utils.sendServerModMessage(f"User {ctx.author.mention} wants to removed the poll: \"{pollName}\". Use Command \"+poll_remove {pollID}.\" to remove to poll.")
 		else:
 			message = "ERROR: Poll does not exists. Check +polls for active polls."
 		await ctx.send(message)
@@ -237,7 +240,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			for emoji in reactionsarr[:len(self.poll.getOptions(pollID))]:
 				await messageSend.add_reaction(emoji)
 			self.poll.setMessageID(pollID, messageSend.id, messageSend.channel.id)
-			await self.helpf.log(f"User {ctx.author.mention} opened the poll {pollID} in channel {ctx.channel.name}.",1)
+			await self.utils.log(f"User {ctx.author.mention} opened the poll {pollID} in channel {ctx.channel.name}.",1)
 		elif self.poll.getStatus(pollID) == "CLOSED":
 			message = f"ERROR: You can't open a poll with only 1 polloption"
 			await ctx.author.send(message)
@@ -260,7 +263,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 				await message.clear_reactions()
 				await message.edit(content=f"{self.poll.pollString(pollID)}")
 				# self.poll.setMessageID(pollID, '', '')
-				await self.helpf.log(f"User {ctx.author.name} cloesed poll: \"{self.poll.getName(pollID)}\"",1)
+				await self.utils.log(f"User {ctx.author.name} cloesed poll: \"{self.poll.getName(pollID)}\"",1)
 		else:
 			await ctx.send("ERROR: Can't close Poll")	
 
@@ -288,7 +291,76 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 				self.jh.addReactionXP(vote[0], 25)
 		else:
 			await ctx.send(content="ERROR: Poll does not exist or poll is not OPEN.", delete_after=7200)
-		await ctx.message.delete()			
+		await ctx.message.delete()
 
-def setup(bot, helpf, poll, jh):
-	bot.add_cog(Commandpoll(bot, helpf, poll, jh))
+	@commands.Cog.listener()
+	async def on_raw_reaction_add(self, payload):
+		"""
+		param payload:	Gives context about the added reaction
+
+		Handels diffrent bot interactions with the server via ractions.
+
+		First:
+			Handles leaderboard interactions for new page and new sorting.
+		Second:
+			Handels voting on polls.
+		Third:
+			Give role on data processing.
+		Forth: (Handel here)
+			Handels ractions on interest groups for user the get roles.
+		Fifth:
+			Give XP when a reaction is added.
+		Sixth:
+			Give role of giveRoles message.
+		"""	
+
+		# Ignore bot reactions
+		if self.bot.get_user(payload.user_id).bot:
+			return
+
+		userID = payload.user_id
+		channel = self.bot.get_channel(int(payload.channel_id))
+		message = await channel.fetch_message(int(payload.message_id))
+		[state, page] = Utils.getMessageState(message)
+		"""
+		State (0,0): Normal Message
+		State (1,x): Leaderboard sorted by XP on page x
+		State (2,x): Leaderboard sorted by Voice on page x
+		State (3,x): Leaderboard sorted by TextCount on page x
+		State (4,0): Poll
+		State (5,0): data protection declaration
+		State (6,0): giveRoles message
+		"""
+
+		if state == 4:
+			# Number which option was voted. New reaction => -1
+			newVote = self.votedOption(message)
+
+			# Checks if user is allowed to vote and is valid
+			if self.utils.hasRole(userID, "employee") and newVote != -1:
+				# changes poll message
+				pollID = int(str(message.content)[6:10])
+				optionName = self.poll.getOptionByNumber(pollID, newVote+1)
+				self.poll.addUserVote(pollID, userID, optionName)
+				await message.edit(content=f"{self.poll.pollString(pollID)}")
+
+			# Removes member vote
+			await message.remove_reaction(payload.emoji, payload.member)
+
+	"""
+	"""
+
+	def votedOption(self, message):
+		"""
+		param message:	Discord Message object. Should be from a Poll.
+
+		Gets which option is voted for in a Poll created by the Bot via the reactions.
+		"""
+		reactions = message.reactions
+		i = 0
+		while reactions[i].count == 1:
+			i += 1
+		return i
+
+def setup(bot):
+	bot.add_cog(Commandpoll(bot))

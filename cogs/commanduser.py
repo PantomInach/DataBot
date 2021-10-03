@@ -1,8 +1,14 @@
 import discord
-from discord.utils import get, find
+from discord.utils import find
 from discord.ext import commands
-from .inspiro import Inspiro
-from .decorators import *
+
+from helpfunctions.inspiro import Inspiro
+from helpfunctions.decorators import isBotMod, isDM, isInChannelCommand
+from helpfunctions.xpfunk import Xpfunk
+from helpfunctions.utils import Utils
+from datahandler.textban import Textban
+from datahandler.sub import Sub
+from datahandler.jsonhandel import Jsonhandel
 
 import datetime
 import time
@@ -25,7 +31,7 @@ def hasAnyRole(*items):
 	def decorator(func):
 		def wrapper(*args, **kwargs):
 			# Wrapper for inputs in func
-			if Commanduser.helpf.hasOneRole(args[1].author.id, [*items]):
+			if Commanduser.utils.hasOneRole(args[1].author.id, [*items]):
 				return func(*args, **kwargs)
 			return passFunc()
 		return wrapper
@@ -41,19 +47,19 @@ class Commanduser(commands.Cog, name='User Commands'):
 		meme
 	"""
 
-	helpf = None
+	utils = None
 
-	def __init__(self, bot, helpf, tban, jh, xpf, sub):
+	def __init__(self, bot):
 		super(Commanduser, self).__init__()
 		# Defines all needed objects
 		self.bot = bot
-		self.helpf = helpf
-		self.jh = jh
-		self.tban = tban
-		self.xpf = xpf
-		self.sub = sub
+		self.jh = Jsonhandel()
+		self.utils = Utils(bot, jh = self.jh)
+		self.tban = Textban()
+		self.xpf = Xpfunk()
+		self.sub = Sub()
 		# For hasAnyRole Decorator
-		Commanduser.helpf = helpf
+		Commanduser.utils = self.utils
 
 	@commands.command(name='user')
 	async def userCommandsInterpretor(self, ctx, *inputs):
@@ -79,14 +85,17 @@ class Commanduser(commands.Cog, name='User Commands'):
 		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "voice":
 			await self.setVoiceXP(ctx, inputs[2], inputs[3])
 
-		elif lenght == 4 and inputs[0] == "tb" and inputs[1] == "add":
+		elif lenght == 4 and inputs[0] == "tb" and inputs[1] == "give":
 			await self.textban(ctx, inputs[2], inputs[3], inputs[4])
 
 		elif lenght == 3 and inputs[0] == "tb" and inputs[1] == "rm":
 			await self.textunban(ctx, inputs[2])
 
 		elif lenght == 2 and inputs[0] == "star":
-			await self.giveStarOfTheWeek(ctx, inputs[1])
+			# First option queues the role when someone has the role
+			# await self.giveStarOfTheWeek(ctx, inputs[1])
+			# Second option gives role only when noone has the role
+			await self.giveStarOfTheWeekNow(ctx, inputs[1])
 
 		else:
 			await ctx.author.send(f"Command \"user {' '.join(inputs)}\" is not valid.")
@@ -138,7 +147,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 			self.jh.addNewDataEntry(userID)
 		self.jh.setUserVoice(userID, amount)
 		message += f"Set user {str(self.bot.get_user(int(userID)))} voiceXP to {amount}."
-		await self.helpf.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} voiceXP to {amount}.",2)
+		await self.utils.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} voiceXP to {amount}.",2)
 		await ctx.send(message)
 
 	@isBotMod()
@@ -158,7 +167,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 			self.jh.addNewDataEntry(userID)
 		self.jh.setUserText(userID, amount)
 		message += f"Set user {str(self.bot.get_user(int(userID)))} textXP to {amount}."
-		await self.helpf.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textXP to {amount}.",2)
+		await self.utils.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textXP to {amount}.",2)
 		await ctx.send(message)
 
 	@isBotMod()
@@ -178,7 +187,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 			self.jh.addNewDataEntry(userID)
 		self.jh.setUserTextCount(userID, amount)
 		message += f"Set user {str(self.bot.get_user(int(userID)))} TextCount to {amount}."
-		await self.helpf.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textCount to {amount}.",2)
+		await self.utils.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textCount to {amount}.",2)
 		await ctx.send(message)
 
 	@isBotMod()
@@ -199,7 +208,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 			message = f"Removed User {username} with ID {userID} from Data."
 		else:
 			message = f"User with ID {userID} is not in data."
-		await self.helpf.log(f"User {ctx.author}: {message}",2)
+		await self.utils.log(f"User {ctx.author}: {message}",2)
 		await ctx.send(message)
 
 
@@ -239,10 +248,10 @@ class Commanduser(commands.Cog, name='User Commands'):
 				if user != None:
 					logchannel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
 					# Send messages
-					await self.helpf.log(f"User {ctx.author.mention} textbaned {user.mention} for {time} h. Reason:\n{reason}",2)
+					await self.utils.log(f"User {ctx.author.mention} textbaned {user.mention} for {time} h. Reason:\n{reason}",2)
 					await logchannel.send(f"{user.mention} was textbaned for {time} h.\n**Reason**: {reason}")
 					await user.send(content=f"You received a textban for {time} h.\n**Reason**: {reason}")
-					await self.helpf.sendServerModMessage(f"{member.nick} ({user.name}) was textbaned by {guilde.get_member(int(ctx.author.id)).nick} ({ctx.author.name}) for {time} h.\n**Reason**: {reason}")
+					await self.utils.sendServerModMessage(f"{member.nick} ({user.name}) was textbaned by {guilde.get_member(int(ctx.author.id)).nick} ({ctx.author.name}) for {time} h.\n**Reason**: {reason}")
 					# Textban user and wait till it is over.
 					await self.tban.addTextBan(userID, int(bantime*3600.0))
 					#Textban over
@@ -258,11 +267,18 @@ class Commanduser(commands.Cog, name='User Commands'):
 	@isDM()
 	@hasAnyRole("CEO","COO")
 	async def textunban(self, ctx, userID):
+		"""
+		param ctx:	Discord Context object.
+		param userID:	Is the userID from discord user as a String or int
+
+		Removes a textban of the given user.
+		Textbans are carryed out in main.on_message() by deleting send messages.
+		"""
 		if not self.tban.hasTextBan(ctx.author.id):
 			if self.tban.removeTextBan(userID):
 				logchannel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
 				user = self.bot.get_user(int(userID))
-				await self.helpf.log(f"User {ctx.author.mention} textunbaned {user.mention}",2)
+				await self.utils.log(f"User {ctx.author.mention} textunbaned {user.mention}",2)
 				await logchannel.send(f"User {ctx.author.mention} textunbaned {user.mention}")
 			else:
 				await ctx.send(content="ERROR: User has no textban.", delete_after=3600)
@@ -270,7 +286,14 @@ class Commanduser(commands.Cog, name='User Commands'):
 	@isDM()
 	@hasAnyRole("CEO","COO")
 	async def giveStarOfTheWeek(self, ctx, userID):
-		guild = self.helpf.getGuild()
+		"""
+		param ctx:	Discord Context object.
+		param userID:	Is the userID from discord user as a String or int
+
+		Gives the given user the 'star off the week' role when noone else has the role.
+		When someone has the role than it will be queued to the next Monday when noone gets the role.
+		"""
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		role = find(lambda role: role.name == "star of the week", guild.roles)
 		if role and userID.isdigit() and guild.get_member(int(userID)):
 			user = self.bot.get_user(int(userID))
@@ -279,16 +302,40 @@ class Commanduser(commands.Cog, name='User Commands'):
 				timeWhenNothingInQueue = self._nextWeekdayInUnixEpoch(0)
 				# When someone has already the role => Queue in subroutine to give role
 				timeString = self.sub.queueGiveRoleOnceAfter(int(userID), role.id, 604800, timeWhenNothingInQueue)
-				await self.helpf.log(f"User {ctx.author.name} {ctx.author.id} queued {user.name} {user.id} for 'star of the week' on the {timeString}.", 2)
+				await self.utils.log(f"User {ctx.author.name} {ctx.author.id} queued {user.name} {user.id} for 'star of the week' on the {timeString}.", 2)
 				await ctx.send(f"Member {user.name} will get 'star of the week' on the {timeString}.")
 
 			else:
 				# When no one has the role => Give user 'star of the week' immediately
-				await self.helpf.giveRoles(userID, [role.id])
-				await self.helpf.log(f"User {ctx.author.name} {ctx.author.id} gave {user.name} {user.id} 'star of the week' threw. +user star ", 2)
+				await self.utils.giveRoles(userID, [role.id])
+				await self.utils.log(f"User {ctx.author.name} {ctx.author.id} gave {user.name} {user.id} 'star of the week' threw. +user star ", 2)
 				await ctx.send(f"Member {user.name} got 'star of the week' now.")
 		else:
 			await ctx.send(f"Invalid input. Either userID is not from user of the guild {guild.name} or it is not a ID.")
+
+	@isDM()
+	@hasAnyRole("CEO", "COO")
+	async def giveStarOfTheWeekNow(self, ctx, userID):
+		"""
+		param ctx:	Discord Context object.
+		param userID:	Is the userID from discord user as a String or int
+
+		Gives the given user the 'star off the week' role when noone else has the role.
+		When someone has the role do nothing.
+		"""
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+		role = find(lambda role: role.name == "star of the week", guild.roles)
+		if role and userID.isdigit() and guild.get_member(int(userID)):
+			user = self.bot.get_user(int(userID))
+			if role.members:
+				# Print Error
+				await ctx.send(f"Someone already has the role 'star of the week'.")
+
+			else:
+				# When no one has the role => Give user 'star of the week' immediately
+				await self.utils.giveRoles(userID, [role.id])
+				await self.utils.log(f"User {ctx.author.name} {ctx.author.id} gave {user.name} {user.id} 'star of the week' threw. +user star ", 2)
+				await ctx.send(f"Member {user.name} got 'star of the week' now.")
 
 	def _nextWeekdayInUnixEpoch(self, toWeekday):
 		"""
@@ -347,9 +394,9 @@ class Commanduser(commands.Cog, name='User Commands'):
 
 		Creates a leaderboard and posts it with the emojis to manipulate it.
 		"""
-		await self.helpf.log(f"+top by {ctx.author}",1) #Notify Mods
+		await self.utils.log(f"+top by {ctx.author}",1) #Notify Mods
 		#Create leaderboard
-		text = f"{self.helpf.getLeaderboardPageBy(0,1)}{ctx.author.mention}"
+		text = f"{self.utils.getLeaderboardPageBy(0,1)}{ctx.author.mention}"
 		message = await ctx.send(text, delete_after=86400)
 		reactionsarr = ["⏫","⬅","➡","⏰","💌"]
 		for emoji in reactionsarr:
@@ -381,7 +428,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 			server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 			if server.get_member(ctx.author.id) != None:
 				if str(voice).isDigit() and str(text).isDigit() and str(textCount).isDigit() and str(code).isDigit():
-					if self.helpf.hashDataWithCode(int(voice), int(text), int (textCount), int(code))[0] == hash:
+					if self.utils.hashDataWithCode(int(voice), int(text), int (textCount), int(code))[0] == hash:
 						self.jh.setUserVoice(ctx.user.id, voice)
 						self.jh.setUserText(ctx.user.id, text)
 						self.jh.setUserTextCount(ctx.user.id, textCount)
@@ -408,5 +455,5 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await ctx.send(message)
 
 		
-def setup(bot, helpf, jh, xpf):
-	bot.add_cog(Commandmod(bot, helpf, jh, xpf))
+def setup(bot):
+	bot.add_cog(Commanduser(bot))

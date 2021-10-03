@@ -1,8 +1,8 @@
 import asyncio
 import discord
 from discord.ext import commands
-from .jsonhandel import Jsonhandel
-from .helpfunc import Helpfunc
+from datahandler.jsonhandel import Jsonhandel
+from helpfunctions.utils import Utils
 
 """
 Following functions are ment to use as decorators, when not using @commands.command

@@ -15,8 +15,8 @@ class Textban(object):
 		"""
 		super(Textban, self).__init__()
 		# Opens textban.json
-		self.binpath = str(os.path.dirname(__file__))[:-4]+"/bin/"
-		self.ban = json.load(open(self.binpath+"textban.json"))
+		self.datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
+		self.ban = json.load(open(self.datapath+"textban.json"))
 
 	def hasTextBan(self, userID):
 		"""
@@ -25,6 +25,18 @@ class Textban(object):
 		Checks if a user has an entry in textban.json.	
 		"""
 		return str(userID) in self.ban
+
+	@staticmethod
+	def staticHasTextBan(userID):
+		"""
+		param userID:	Is the userID from discord user as a String or int
+
+		Same as hasTextBan but is a static method.
+		Checks if a user has an entry in textban.json.	
+		"""
+		datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
+		ban = json.load(open(datapath+"textban.json"))
+		return str(userID) in ban
 
 	async def addTextBan(self, userID, time):
 		"""
@@ -86,6 +98,6 @@ class Textban(object):
 		"""
 		Saves current textban to file and rereads it.
 		"""
-		with open(self.binpath+"textban.json",'w') as f:
+		with open(self.datapath+"textban.json",'w') as f:
 			json.dump(self.ban, f ,indent = 6)
-		self.ban = json.load(open(self.binpath+"textban.json"))
+		self.ban = json.load(open(self.datapath+"textban.json"))
