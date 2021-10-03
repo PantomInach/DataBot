@@ -92,7 +92,10 @@ class Commanduser(commands.Cog, name='User Commands'):
 			await self.textunban(ctx, inputs[2])
 
 		elif lenght == 2 and inputs[0] == "star":
-			await self.giveStarOfTheWeek(ctx, inputs[1])
+			# First option queues the role when someone has the role
+			# await self.giveStarOfTheWeek(ctx, inputs[1])
+			# Second option gives role only when noone has the role
+			await self.giveStarOfTheWeekNow(ctx, inputs[1])
 
 		else:
 			await ctx.author.send(f"Command \"user {' '.join(inputs)}\" is not valid.")
@@ -264,6 +267,13 @@ class Commanduser(commands.Cog, name='User Commands'):
 	@isDM()
 	@hasAnyRole("CEO","COO")
 	async def textunban(self, ctx, userID):
+		"""
+		param ctx:	Discord Context object.
+		param userID:	Is the userID from discord user as a String or int
+
+		Removes a textban of the given user.
+		Textbans are carryed out in main.on_message() by deleting send messages.
+		"""
 		if not self.tban.hasTextBan(ctx.author.id):
 			if self.tban.removeTextBan(userID):
 				logchannel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
@@ -276,6 +286,13 @@ class Commanduser(commands.Cog, name='User Commands'):
 	@isDM()
 	@hasAnyRole("CEO","COO")
 	async def giveStarOfTheWeek(self, ctx, userID):
+		"""
+		param ctx:	Discord Context object.
+		param userID:	Is the userID from discord user as a String or int
+
+		Gives the given user the 'star off the week' role when noone else has the role.
+		When someone has the role than it will be queued to the next Monday when noone gets the role.
+		"""
 		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		role = find(lambda role: role.name == "star of the week", guild.roles)
 		if role and userID.isdigit() and guild.get_member(int(userID)):
@@ -295,6 +312,30 @@ class Commanduser(commands.Cog, name='User Commands'):
 				await ctx.send(f"Member {user.name} got 'star of the week' now.")
 		else:
 			await ctx.send(f"Invalid input. Either userID is not from user of the guild {guild.name} or it is not a ID.")
+
+	@isDM()
+	@hasAnyRole("CEO", "COO")
+	async def giveStarOfTheWeekNow(self, ctx, userID):
+		"""
+		param ctx:	Discord Context object.
+		param userID:	Is the userID from discord user as a String or int
+
+		Gives the given user the 'star off the week' role when noone else has the role.
+		When someone has the role do nothing.
+		"""
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+		role = find(lambda role: role.name == "star of the week", guild.roles)
+		if role and userID.isdigit() and guild.get_member(int(userID)):
+			user = self.bot.get_user(int(userID))
+			if role.members:
+				# Print Error
+				await ctx.send(f"Someone already has the role 'star of the week'.")
+
+			else:
+				# When no one has the role => Give user 'star of the week' immediately
+				await self.utils.giveRoles(userID, [role.id])
+				await self.utils.log(f"User {ctx.author.name} {ctx.author.id} gave {user.name} {user.id} 'star of the week' threw. +user star ", 2)
+				await ctx.send(f"Member {user.name} got 'star of the week' now.")
 
 	def _nextWeekdayInUnixEpoch(self, toWeekday):
 		"""

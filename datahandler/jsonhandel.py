@@ -28,7 +28,7 @@ class Jsonhandel(object):
 		"""
 		def decorator(self, *args, **kwargs):
 			self.config = json.load(open(self.datapath + "config.json"))
-			return func(self, *args, **kwargs)
+			return func(self,* args, **kwargs)
 		return decorator
 
 	@_reloadConfig
