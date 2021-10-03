@@ -34,7 +34,7 @@ class Commandlistener(commands.Cog):
 	async def on_ready(self):
 		#Sends mesage to mods, when bot is online
 	    print("Now Online")
-	    await self.utils.sendModsMessage(f"Bot is now online.\nVersion:\tWorkingDiscordBot v1.3.0.1-beta")
+	    await self.utils.sendModsMessage(f"Bot is now online.\nVersion:\tWorkingDiscordBot v1.3.1-beta")
 
 	# When a member joins a guilde
 	@commands.Cog.listener()
@@ -109,7 +109,7 @@ class Commandlistener(commands.Cog):
 		"""
 
 		# Ignore self.bot reactions
-		if self.bot.get_user(payload.user_id).self.bot:
+		if self.bot.get_user(payload.user_id).bot:
 			return
 
 		userID = payload.user_id
