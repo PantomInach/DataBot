@@ -252,7 +252,7 @@ class Jsonhandel(object):
 		"""
 		if self.isInData(userID):
 			del self.data[str(userID)]
-			self.saveConfig()
+			self.saveData()
 			return 1
 		return 0
 
@@ -279,6 +279,7 @@ class Jsonhandel(object):
 			print(f"\tUser {userID} gained {amount} TextXP")
 		else:
 			print(f"\tUser {userID} is on Cooldown. CurrentTime: {deltat}")
+		self.saveData()
 
 	@_reloadData
 	def addTextXP(self, userID, amount):
@@ -290,6 +291,7 @@ class Jsonhandel(object):
 		"""
 		cooldownCon = self.getFromConfig("textCooldown")
 		self.addTextMindCooldown(userID, amount, cooldownCon)
+		self.saveData()
 
 	@_reloadData
 	def addReactionXP(self, userID, amount):
@@ -300,6 +302,7 @@ class Jsonhandel(object):
 		Adds XP for user in userdata.json by the amount in amount. Only add if user is not on cooldown for Reactions.
 		"""
 		self.addTextMindCooldown(userID, amount, 10)
+		self.saveData()
 
 	@_reloadData
 	def updateLevel(self, userID, level):
@@ -311,6 +314,7 @@ class Jsonhandel(object):
 		"""
 		if self.isInData(userID):
 			self.data[str(userID)]["Level"] = level
+			self.saveData()
 
 	@_reloadData
 	def addAllUserVoice(self, userIDs):
@@ -322,7 +326,6 @@ class Jsonhandel(object):
 		"""
 		for userID in userIDs:
 			self.addUserVoice(userID)
-		self.saveData()
 
 	@_reloadData
 	def getUserText(self, userID):
@@ -397,6 +400,7 @@ class Jsonhandel(object):
 		"""
 		if self.isInData(userID):
 			self.data[str(userID)]["Cooldown"] = str(t)
+			self.saveData()
 
 	@_reloadData
 	def setUserVoice(self, userID, voice):
