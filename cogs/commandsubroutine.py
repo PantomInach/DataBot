@@ -157,8 +157,8 @@ class Subroutine(commands.Cog):
 
 		Gives user depending on the rules of addMembersOnlineVoiceXp voice xp.
 		"""
-		if not self.jh.getFromConfig("log"):
-			return
+		if self.jh.getFromConfig("log") == "False":
+			return 
 		self.addMembersOnlineVoiceXp(guild)
 		await self.levelAkk()
 		await self.updateRoles()
