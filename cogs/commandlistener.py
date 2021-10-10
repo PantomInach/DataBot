@@ -47,7 +47,7 @@ class Commandlistener(commands.Cog):
 		"""
 		channel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
-		await channel.send(f"Hey **{member.name}**, welcome to {guilde}")
+		await channel.send(f"Hey **{member.mention}**, welcome to {guilde}")
 
 	"""
 	@commands.Cog.listener()
@@ -72,7 +72,7 @@ class Commandlistener(commands.Cog):
 		voice = jh.getUserVoice(member.id)
 		text = jh.getUserText(member.id)
 		textCount = jh.getUserTextCount(member.id)
-		[hash, code] = utils.hashData(voice, text, textCount, member.id)
+		[hash, code] = self.utils.hashData(voice, text, textCount, member.id)
 		#Send user data
 		embed = discord.Embed(title=f"{member.nick}     ({member.name})", color=12008408)
 		embed.set_thumbnail(url=member.avatar_url)
@@ -393,22 +393,22 @@ class Commandlistener(commands.Cog):
 				await message.remove_reaction(payload.emoji, member)
 
 			elif str(payload.emoji) == "🎮" and self.utils.hasRole(userID, "gaming"):
-				await utils.removeRole(userID, "gaming")
+				await self.utils.removeRole(userID, "gaming")
 
 			elif str(payload.emoji) == "📚" and self.utils.hasRole(userID, "student"):
-				await utils.removeRole(userID, "student")
+				await self.utils.removeRole(userID, "student")
 
 			elif str(payload.emoji) == "👾" and self.utils.hasRole(userID, "dev-tech"):
-				await utils.removeRole(userID, "dev-tech")
+				await self.utils.removeRole(userID, "dev-tech")
 
 			elif str(payload.emoji) == "🏹" and self.utils.hasRole(userID, "single"):
-				await utils.removeRole(userID, "single")
+				await self.utils.removeRole(userID, "single")
 
 			elif str(payload.emoji) == "🤑" and self.utils.hasRole(userID, "gambling"):
-				await utils.removeRole(userID, "gambling")
+				await self.utils.removeRole(userID, "gambling")
 
 			elif str(payload.emoji) == "⚡" and self.utils.hasRole(userID, "bot-dev"):
-				await utils.removeRole(userID, "bot-dev")
+				await self.utils.removeRole(userID, "bot-dev")
 
 
 	def _getLeaderboardChange(self, message):
