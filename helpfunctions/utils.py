@@ -58,16 +58,16 @@ class Utils(object):
 		member = guilde.get_member(int(userID))
 		return len({x for x in member.roles if x.id in roles or str(x.id) in roles or x.name in roles}) >= 1
 
-	async def giveRole(self, userID, role):
+	async def giveRole(self, userID, roleName):
 		"""
 		param userID:	Is the userID from discord user as a String or int
-		param role:	Role to give. Needs to be the role's name or id.
+		param roleName:	Role to give. Needs to be the role's name or id.
 
 		Gives the member with userID the role roleName.
 		"""
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
-		role = find(lambda r: r.id == role or str(r.id) == role or r.name == role, guilde.roles)
+		role = find(lambda r: r.id == roleName or str(r.id) == roleName or r.name == roleName, guilde.roles)
 		if role:
 			await member.add_roles(role)
 			await self.log(f"User {member.name} aka {member.nick} got role {roleName}.",1)
