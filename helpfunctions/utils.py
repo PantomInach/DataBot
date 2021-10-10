@@ -109,7 +109,7 @@ class Utils(object):
 		else:
 			self.log(f"[ERROR] In giveRole:\t Role {roleName} not found")
 
-	async def removeRoles(self, removeRole, roleNames, reason = None):
+	async def removeRoles(self, userID, roleNames, reason = None):
 		"""
 		param userID:	Is the userID from discord user as a String or int
 		param roleNames:	List of roles to remove. Needs to be the role's name or id.
