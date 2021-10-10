@@ -102,7 +102,7 @@ class Utils(object):
 		"""
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = guilde.get_member(int(userID))
-		role = find(lambda r: r.id == role or str(r.id) == role or r.name == role, member.roles)
+		role = find(lambda r: r.id == roleName or str(r.id) == roleName or r.name == roleName, member.roles)
 		if role:
 			await member.remove_roles(role)
 			await self.log(f"User {member.name} aka {member.nick} got his role {roleName} removed.",1)
