@@ -203,7 +203,7 @@ class Subroutine(commands.Cog):
 				self.jh.addAllUserVoice([member.id for member in membersNotMutedOrBot])
 				# Extra XP
 				membersStreamOrVideo = [member for member in membersNotMutedOrBot if (member.voice.self_video or member.voice.self_stream)]
-				self.jh.addAllUserVoice([member.id for member in membersStreamOrVideo])
+				self.jh.addAllUserText([member.id for member in membersStreamOrVideo])
 
 	async def levelAkk(self):
 		"""

@@ -328,6 +328,18 @@ class Jsonhandel(object):
 			self.addUserVoice(userID)
 
 	@_reloadData
+	def addAllUserText(self, userIDs, amount = 1):
+		"""
+		param userIDs:	Is a list of userIDs from discord user as a String or int
+		param amount:	Defaulte 1. How much xp should be given
+
+		Increments the text xp of all users in userIDs by amount.
+		If user not in userdata.json, than a new user entry will be added.
+		"""
+		for userID in userIDs:
+			self.addUserText(userID, amount)
+
+	@_reloadData
 	def getUserText(self, userID):
 		"""
 		param userID:	Is the userID from discord user as a String or int
