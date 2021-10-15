@@ -353,7 +353,7 @@ class Commandlistener(commands.Cog):
 				self.jh.saveData()
 
 		# Sends BotOwner commands, which are triggering the bot
-		if a[0] == self.jh.getFromConfig("command_prefix"):
+		if len(a) > 0 and a[0] == self.jh.getFromConfig("command_prefix"):
 			channelName = "DM"
 			try:
 				channelName = message.channel.name
