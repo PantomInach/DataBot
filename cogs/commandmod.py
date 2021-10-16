@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from helpfunctions.decorators import isBotModCommand, isBotMod
+from helpfunctions.decorators import isBotModCommand
 from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
 from datahandler.jsonhandel import Jsonhandel

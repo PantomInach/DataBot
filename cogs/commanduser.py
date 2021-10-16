@@ -3,7 +3,7 @@ from discord.utils import find
 from discord.ext import commands
 
 from helpfunctions.inspiro import Inspiro
-from helpfunctions.decorators import isBotMod, isDM, isInChannelCommand
+from helpfunctions.decorators import isBotModCommand, isDMCommand, isInChannelCommand
 from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban
@@ -13,7 +13,6 @@ from datahandler.jsonhandel import Jsonhandel
 import datetime
 import time
 
-
 def hasAnyRole(*items):
 	"""
 	Type:	Decorator for functions with ctx object in args[1].
@@ -22,20 +21,15 @@ def hasAnyRole(*items):
 
 	Check if a user has any of the roles in items.
 
-	Only use for commands, which don't use @commands.command
+	Only use for commands, which USE @commands.command
 	commands.has_any_role() does not work in DM since a users can't have roles.
 	This on pulls the roles from the configured guilde and makes the same check as commands.has_any_role().
 
-	Function is not in decorators.py since the Bot or Helpfunction Object is needed.
+	Function is not in decorators.py since the Helpfunction Object is needed.
 	"""
-	def decorator(func):
-		def wrapper(*args, **kwargs):
-			# Wrapper for inputs in func
-			if Commanduser.utils.hasOneRole(args[1].author.id, [*items]):
-				return func(*args, **kwargs)
-			return passFunc()
-		return wrapper
-	return decorator
+	def predicate(ctx):
+		return Commandowner.utils.hasOneRole(ctx.author.id, [*items])
+	return commands.check(predicate)
 
 class Commanduser(commands.Cog, name='User Commands'):
 	"""
@@ -110,7 +104,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 	######################################################################
 	"""
 
-	@isBotMod()
+	@isBotModCommand()
 	async def getUserData(self, ctx, userID):
 		"""
 		Command: poll get <userID>
@@ -130,7 +124,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 			message = f"User was not in data. Created user: {user.mention}"  
 		await ctx.send(message)
 
-	@isBotMod()
+	@isBotModCommand()
 	async def setVoiceXP(self, ctx, userID, amount):
 		"""
 		Command: poll set voice <userID> <amount>
@@ -150,7 +144,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await self.utils.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} voiceXP to {amount}.",2)
 		await ctx.send(message)
 
-	@isBotMod()
+	@isBotModCommand()
 	async def setTextXP(self, ctx, userID, amount):
 		"""
 		Command: poll set text <userID> <amount>
@@ -170,7 +164,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await self.utils.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textXP to {amount}.",2)
 		await ctx.send(message)
 
-	@isBotMod()
+	@isBotModCommand()
 	async def setTextCount(self, ctx, userID, amount):
 		"""
 		Command: poll set tc <userID> <amount>
@@ -190,7 +184,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await self.utils.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textCount to {amount}.",2)
 		await ctx.send(message)
 
-	@isBotMod()
+	@isBotModCommand()
 	async def removeuser(self, ctx, userID):
 		"""
 		Command: poll rm <userID>
@@ -221,7 +215,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 	######################################################################
 	"""
 
-	@isDM()
+	@isDMCommand()
 	@hasAnyRole("CEO","COO")
 	async def textban(self, ctx, userID, time, reason):
 		"""
@@ -264,7 +258,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 			await ctx.send(content="ERROR: User has already a textban.", delete_after=3600)
 					
 
-	@isDM()
+	@isDMCommand()
 	@hasAnyRole("CEO","COO")
 	async def textunban(self, ctx, userID):
 		"""
@@ -283,7 +277,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 			else:
 				await ctx.send(content="ERROR: User has no textban.", delete_after=3600)
 
-	@isDM()
+	@isDMCommand()
 	@hasAnyRole("CEO","COO")
 	async def giveStarOfTheWeek(self, ctx, userID):
 		"""
@@ -313,7 +307,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		else:
 			await ctx.send(f"Invalid input. Either userID is not from user of the guild {guild.name} or it is not a ID.")
 
-	@isDM()
+	@isDMCommand()
 	@hasAnyRole("CEO", "COO")
 	async def giveStarOfTheWeekNow(self, ctx, userID):
 		"""

@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from helpfunctions.decorators import isDM, isInChannelOrDM, isNotInChannelOrDM
+from helpfunctions.decorators import isDMCommand, isInChannelOrDM, isNotInChannelOrDM
 from helpfunctions.utils import Utils
 from datahandler.poll import Poll
 from datahandler.jsonhandel import Jsonhandel
@@ -14,19 +14,15 @@ def hasAnyRole(*items):
 
 	Check if a user has any of the roles in items.
 
-	Only use for commands, which don't use @commands.command
+	Only use for commands, which USE @commands.command
 	commands.has_any_role() does not work in DM since a users can't have roles.
 	This on pulls the roles from the configured guilde and makes the same check as commands.has_any_role().
 
-	Function is not in decorators.py since the Bot or Helpfunction Object is needed.
+	Function is not in decorators.py since the Helpfunction Object is needed.
 	"""
-	def decorator(func):
-		def wrapper(*args, **kwargs):
-			if Commandpoll.utils.hasOneRole(args[1].author.id, [*items]):
-				return func(*args, **kwargs)
-			return passFunc()
-		return wrapper
-	return decorator
+	def predicate(ctx):
+		return Commandowner.utils.hasOneRole(ctx.author.id, [*items])
+	return commands.check(predicate)
 
 class Commandpoll(commands.Cog, name='Poll Commands'):
 	"""
@@ -85,7 +81,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		else:
 			await ctx.author.send(f"Command \"poll {' '.join(inputs)}\" is not valid.")
 
-	@isDM()
+	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
 	async def pollCreate(self, ctx, pollName):
 		"""
@@ -109,7 +105,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: The optionName is to long."
 		await ctx.send(message)
 
-	@isDM()
+	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
 	async def pollSend(self, ctx, pollID):
 		"""
@@ -126,7 +122,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: Poll does not exists. Check +polls for active polls."
 		await ctx.send(message)
 
-	@isDM()
+	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
 	async def optionAdd(self, ctx, pollID, optionName):
 		"""
@@ -149,7 +145,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: Poll does not exists. Check +polls for active polls."
 		await ctx.send(message)
 
-	@isDM()
+	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
 	async def polloptionRemove(self, ctx, pollID, optionName):
 		"""
@@ -184,7 +180,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "No active polls."
 		await ctx.send(message)
 
-	@isDM()
+	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_remove(self, ctx, pollID):
 		"""
@@ -246,7 +242,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			await ctx.author.send(message)
 		await ctx.message.delete()
 
-	@isDM()
+	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_close(self, ctx, pollID):
 		"""
