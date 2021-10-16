@@ -170,7 +170,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 				reloadedExtensions.append(ext)
 		await self.utils.log(f"Reloaded extensions: {', '.join(reloadedExtensions)}", 2)
 
-	@commands.group()
+	@commands.group(name = 'hahahah')
 	@isBotOwnerCommand()
 	@hasAnyRole("gaming")
 	async def testing(self, ctx):

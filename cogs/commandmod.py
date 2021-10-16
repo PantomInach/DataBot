@@ -26,31 +26,22 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 	######################################################################
 	"""
 
-	@commands.command(name='textwl')
+	@commands.group(name = 'textwl')
 	@isBotModCommand()
-	async def textwlCommandInterpretor(self, ctx, *inputs):
+	async def textwl(self, ctx):
 		"""
 		param ctx:	Discord Context object. Automatical passed.
-		param inputs:	Tuple of arguments of commands.
 
-		Interpretes send commands beginning with user and calls the right function.
+		Is the parent command for the 'textwl' command.
+		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
 		"""
-		lenght = len(inputs)
-		if lenght == 2 and inputs[0] == "add":
-			await self.addtextwhitelist(ctx, channelID = inputs[1])
+		if ctx.invoked_subcommand is None:
+			embed=discord.Embed(title = "You need to specify a subcommand. Possible subcommands: add, remove", color=0xa40000)
+			embed.set_author(name = "Invalid command")
+			embed.set_footer(text = "For more help run '+help textwl'")
+			await ctx.send(embed = embed, delete_after = 3600)
 
-		elif lenght == 2 and inputs[0] == "rm":
-			await self.removetextwhitelist(ctx, channelID = inputs[1])
-
-		elif lenght == 1 and inputs[0] == "add":
-			await self.addtextwhitelist(ctx)
-
-		elif lenght == 1 and inputs[0] == "rm":
-			await self.removetextwhitelist(ctx)
-		
-		else:
-			await ctx.author.send(f"Command \"textwl {' '.join(inputs)}\" is not valid.")
-
+	@textwl.command(name = 'add')
 	async def addtextwhitelist(self, ctx, channelID = None):
 		"""
 		param ctx:	Discord Context object.
@@ -76,6 +67,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 			await self.utils.log(f"{message} from user {ctx.author}",2)
 		await ctx.send(message)
 
+	@textwl.command(name = 'rm')
 	async def removetextwhitelist(self, ctx, channelID = None):
 		"""
 		param ctx:	Discord Context object.
@@ -103,25 +95,22 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 	######################################################################
 	"""
 
-	@commands.command(name='voicebl')
+	@commands.group(name='voicebl')
 	@isBotModCommand()
-	async def voiceblCommandInterpretor(self, ctx, *inputs):
+	async def voicebl(self, ctx):
 		"""
 		param ctx:	Discord Context object. Automatical passed.
-		param inputs:	Tuple of arguments of commands.
 
-		Interpretes send commands beginning with user and calls the right function.
+		Is the parent command for the 'voicebl' command.
+		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
 		"""
-		lenght = len(inputs)
-		if lenght == 2 and inputs[0] == "add":
-			await self.addblacklist(ctx, inputs[1])
+		if ctx.invoked_subcommand is None:
+			embed=discord.Embed(title = "You need to specify a subcommand. Possible subcommands: add, remove", color=0xa40000)
+			embed.set_author(name = "Invalid command")
+			embed.set_footer(text = "For more help run '+help voicebl'")
+			await ctx.send(embed = embed, delete_after = 3600)
 
-		elif lenght == 2 and inputs[0] == "rm":
-			await self.removeblacklist(ctx, inputs[1])
-
-		else:
-			await ctx.author.send(f"Command \"voicebl {' '.join(inputs)}\" is not valid.")
-
+	@voicebl.command(name = 'add')
 	async def addblacklist(self, ctx, channelID):
 		"""
 		param ctx:	Discord Context object.
@@ -144,6 +133,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 		await self.utils.log(f"{message} from user {ctx.author}",2)
 		await ctx.send(message)
 
+	@voicebl.command(name = 'rm')
 	async def removeblacklist(self, ctx, channelID = None):
 		"""
 		param ctx:	Discord Context object.

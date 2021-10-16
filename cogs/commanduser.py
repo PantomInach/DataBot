@@ -28,7 +28,7 @@ def hasAnyRole(*items):
 	Function is not in decorators.py since the Helpfunction Object is needed.
 	"""
 	def predicate(ctx):
-		return Commandowner.utils.hasOneRole(ctx.author.id, [*items])
+		return Commanduser.utils.hasOneRole(ctx.author.id, [*items])
 	return commands.check(predicate)
 
 class Commanduser(commands.Cog, name='User Commands'):
@@ -55,47 +55,20 @@ class Commanduser(commands.Cog, name='User Commands'):
 		# For hasAnyRole Decorator
 		Commanduser.utils = self.utils
 
-	@commands.command(name='user')
-	async def userCommandsInterpretor(self, ctx, *inputs):
+	@commands.group(name='user')
+	async def userParent(self, ctx):
 		"""
 		param ctx:	Discord Context object. Automatical passed.
-		param inputs:	Tuple of arguments of commands.
 
-		Interpretes send commands beginning with user and calls the right function.
+		Is the parent command for the 'user' command.
+		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
 		"""
-		lenght = len(inputs)
-		if lenght == 2 and inputs[0] == "get":
-			await self.getUserData(ctx, inputs[1])
-
-		elif lenght == 2 and inputs[0] == "rm":
-			await self.removeuser(ctx, inputs[1])
-
-		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "tc":
-			await self.setTextCount(ctx, inputs[2], inputs[3])
-
-		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "text":
-			await self.setTextXP(ctx, inputs[2], inputs[3])
-
-		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "voice":
-			await self.setVoiceXP(ctx, inputs[2], inputs[3])
-
-		elif lenght == 4 and inputs[0] == "tb" and inputs[1] == "give":
-			await self.textban(ctx, inputs[2], inputs[3], inputs[4])
-
-		elif lenght == 3 and inputs[0] == "tb" and inputs[1] == "rm":
-			await self.textunban(ctx, inputs[2])
-
-		elif lenght == 2 and inputs[0] == "star":
-			# First option queues the role when someone has the role
-			# await self.giveStarOfTheWeek(ctx, inputs[1])
-			# Second option gives role only when noone has the role
-			await self.giveStarOfTheWeekNow(ctx, inputs[1])
-
-		else:
-			await ctx.author.send(f"Command \"user {' '.join(inputs)}\" is not valid.")
-
-
-
+		if ctx.invoked_subcommand is None:
+			embed=discord.Embed(title = "You need to specify a subcommand. Possible subcommands: get, rm, set, tb, star", color=0xa40000)
+			embed.set_author(name = "Invalid command")
+			embed.set_footer(text = "For more help run '+help user'")
+			await ctx.send(embed = embed, delete_after = 3600)
+		
 	"""
 	######################################################################
 
@@ -104,6 +77,22 @@ class Commanduser(commands.Cog, name='User Commands'):
 	######################################################################
 	"""
 
+	@userParent.group(name = 'set')
+	@isBotModCommand()
+	async def userSetParent(self, ctx):
+		"""
+		param ctx:	Discord Context object. Automatical passed.
+
+		Is the parent command for the 'user set' command.
+		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
+		"""
+		if ctx.invoked_subcommand is None:
+			embed=discord.Embed(title = "You need to specify a subcommand. Possible subcommands: voice, text, tc", color=0xa40000)
+			embed.set_author(name = "Invalid command")
+			embed.set_footer(text = "For more help run '+help user set'")
+			await ctx.send(embed = embed, delete_after = 3600)
+
+	@userParent.command(name = 'get')
 	@isBotModCommand()
 	async def getUserData(self, ctx, userID):
 		"""
@@ -124,7 +113,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 			message = f"User was not in data. Created user: {user.mention}"  
 		await ctx.send(message)
 
-	@isBotModCommand()
+	@userSetParent.command(name = 'voice')
 	async def setVoiceXP(self, ctx, userID, amount):
 		"""
 		Command: poll set voice <userID> <amount>
@@ -144,7 +133,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await self.utils.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} voiceXP to {amount}.",2)
 		await ctx.send(message)
 
-	@isBotModCommand()
+	@userSetParent.command(name = 'text')
 	async def setTextXP(self, ctx, userID, amount):
 		"""
 		Command: poll set text <userID> <amount>
@@ -164,7 +153,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await self.utils.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textXP to {amount}.",2)
 		await ctx.send(message)
 
-	@isBotModCommand()
+	@userSetParent.command(name = 'tc')
 	async def setTextCount(self, ctx, userID, amount):
 		"""
 		Command: poll set tc <userID> <amount>
@@ -184,6 +173,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await self.utils.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textCount to {amount}.",2)
 		await ctx.send(message)
 
+	@userParent.command(name = 'rm')
 	@isBotModCommand()
 	async def removeuser(self, ctx, userID):
 		"""
@@ -215,8 +205,24 @@ class Commanduser(commands.Cog, name='User Commands'):
 	######################################################################
 	"""
 
+	@userParent.group(name = 'tb')
 	@isDMCommand()
 	@hasAnyRole("CEO","COO")
+	async def user_tb_parent(self, ctx):
+		"""
+		param ctx:	Discord Context object. Automatical passed.
+
+		Is the parent command for the 'user tb' command.
+		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
+		"""
+		if ctx.invoked_subcommand is None:
+			embed=discord.Embed(title = "You need to specify a subcommand. Possible subcommands: give, rm", color=0xa40000)
+			embed.set_author(name = "Invalid command")
+			embed.set_footer(text = "For more help run '+help user tb'")
+			await ctx.send(embed = embed, delete_after = 3600)
+
+
+	@user_tb_parent.command(name = 'give')
 	async def textban(self, ctx, userID, time, reason):
 		"""
 		param ctx:	Discord Context object.
@@ -257,9 +263,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 		else:
 			await ctx.send(content="ERROR: User has already a textban.", delete_after=3600)
 					
-
-	@isDMCommand()
-	@hasAnyRole("CEO","COO")
+	@user_tb_parent.command(name = 'rm')
 	async def textunban(self, ctx, userID):
 		"""
 		param ctx:	Discord Context object.
@@ -277,16 +281,19 @@ class Commanduser(commands.Cog, name='User Commands'):
 			else:
 				await ctx.send(content="ERROR: User has no textban.", delete_after=3600)
 
+
+	"""
+	# When give star of the week should be queued
 	@isDMCommand()
 	@hasAnyRole("CEO","COO")
 	async def giveStarOfTheWeek(self, ctx, userID):
-		"""
+		""
 		param ctx:	Discord Context object.
 		param userID:	Is the userID from discord user as a String or int
 
 		Gives the given user the 'star off the week' role when noone else has the role.
 		When someone has the role than it will be queued to the next Monday when noone gets the role.
-		"""
+		""
 		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		role = find(lambda role: role.name == "star of the week", guild.roles)
 		if role and userID.isdigit() and guild.get_member(int(userID)):
@@ -306,7 +313,9 @@ class Commanduser(commands.Cog, name='User Commands'):
 				await ctx.send(f"Member {user.name} got 'star of the week' now.")
 		else:
 			await ctx.send(f"Invalid input. Either userID is not from user of the guild {guild.name} or it is not a ID.")
+	"""
 
+	@userParent.command(name = 'star')
 	@isDMCommand()
 	@hasAnyRole("CEO", "COO")
 	async def giveStarOfTheWeekNow(self, ctx, userID):

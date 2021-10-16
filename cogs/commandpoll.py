@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from helpfunctions.decorators import isDMCommand, isInChannelOrDM, isNotInChannelOrDM
+from helpfunctions.decorators import isDMCommand, isInChannelOrDMCommand, isNotInChannelOrDMCommand
 from helpfunctions.utils import Utils
 from datahandler.poll import Poll
 from datahandler.jsonhandel import Jsonhandel
@@ -39,48 +39,21 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		self.utils = Utils(bot, jh = self.jh)
 		Commandpoll.utils = self.utils
 
-	@commands.command(name='poll')
-	async def pollCommandInterpretor(self, ctx, *inputs):
+	@commands.group(name = 'poll')
+	async def poll(self, ctx):
 		"""
 		param ctx:	Discord Context object. Automatical passed.
-		param inputs:	Tuple of arguments of commands.
 
-		Interpretes send commands beginning with user and calls the right function.
+		Is the parent command for the 'poll' command.
+		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
 		"""
-		lenght = len(inputs)
-		if lenght == 2 and inputs[0] == "close":
-			await self.poll_close(ctx, inputs[1])
+		if ctx.invoked_subcommand is None:
+			embed=discord.Embed(title = "You need to specify a subcommand. Possible subcommands: create, list, show, close, open ,publish, rm, op", color=0xa40000)
+			embed.set_author(name = "Invalid command")
+			embed.set_footer(text = "For more help run '+help poll'")
+			await ctx.send(embed = embed, delete_after = 3600)
 
-		elif lenght == 2 and inputs[0] == "create":
-			await self.pollCreate(ctx, inputs[1])
-
-		elif lenght == 1 and inputs[0] == "list":
-			await self.pollsList(ctx)
-
-		elif lenght == 2 and inputs[0] == "close":
-			await self.poll_close(ctx, inputs[1])
-
-		elif lenght == 2 and inputs[0] == "open":
-			await self.poll_open(ctx, inputs[1])
-
-		elif lenght == 2 and inputs[0] == "publish":
-			await self.poll_publish(ctx, inputs[1])
-
-		elif lenght == 2 and inputs[0] == "rm":
-			await self.poll_remove(ctx, inputs[1])
-
-		elif lenght == 2 and inputs[0] == "show":
-			await self.pollSend(ctx, inputs[1])
-
-		elif lenght == 4 and inputs[0] == "op" and inputs[1] == "add":
-			await self.optionAdd(ctx, *inputs[2:4])
-
-		elif lenght == 4 and inputs[0] == "op" and inputs[1] == "rm":
-			await self.polloptionRemove(ctx, *inputs[2:4])
-
-		else:
-			await ctx.author.send(f"Command \"poll {' '.join(inputs)}\" is not valid.")
-
+	@poll.command(name = 'create')
 	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
 	async def pollCreate(self, ctx, pollName):
@@ -105,9 +78,10 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: The optionName is to long."
 		await ctx.send(message)
 
+	@poll.command(name = 'show')
 	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
-	async def pollSend(self, ctx, pollID):
+	async def pollShow(self, ctx, pollID):
 		"""
 		param ctx:	Discord Context object.
 		param pollID:	Integer. ID of a poll in poll.json
@@ -122,8 +96,24 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: Poll does not exists. Check +polls for active polls."
 		await ctx.send(message)
 
+	@poll.group(name = 'op')
 	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
+	async def optioneParent(self, ctx):
+		"""
+		param ctx:	Discord Context object. Automatical passed.
+
+		Is the parent command for the 'poll op' command.
+		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
+		"""
+		if ctx.invoked_subcommand is None:
+			embed=discord.Embed(title = "You need to specify a subcommand. Possible subcommands: add, rm", color=0xa40000)
+			embed.set_author(name = "Invalid command")
+			embed.set_footer(text = "For more help run '+help poll op'")
+			await ctx.send(embed = embed, delete_after = 3600)
+
+
+	@optioneParent.command(name = 'add')
 	async def optionAdd(self, ctx, pollID, optionName):
 		"""
 		param ctx:	Discord Context object.
@@ -145,8 +135,8 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: Poll does not exists. Check +polls for active polls."
 		await ctx.send(message)
 
-	@isDMCommand()
-	@hasAnyRole("CEO","COO","chairman")
+
+	@optioneParent.command(name = 'rm')
 	async def polloptionRemove(self, ctx, pollID, optionName):
 		"""
 		param ctx:	Discord Context object.
@@ -165,7 +155,8 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: Poll does not exists. Check +polls for active polls."
 		await ctx.send(message)
 
-	@isInChannelOrDM("🚮spam")
+	@poll.command(name = 'list')
+	@isInChannelOrDMCommand("🚮spam")
 	@hasAnyRole("CEO","COO","chairman","associate")
 	async def pollsList(self, ctx):
 		"""
@@ -180,6 +171,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "No active polls."
 		await ctx.send(message)
 
+	@poll.command(name = 'rm')
 	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_remove(self, ctx, pollID):
@@ -209,8 +201,8 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = "ERROR: Poll does not exists. Check +polls for active polls."
 		await ctx.send(message)
 
-
-	@isNotInChannelOrDM("📂log","📢info","⏫level")
+	@poll.command(name = 'open')
+	@isNotInChannelOrDMCommand("📂log","📢info","⏫level")
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_open(self, ctx, pollID):
 		"""
@@ -242,6 +234,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			await ctx.author.send(message)
 		await ctx.message.delete()
 
+	@poll.command(name = 'close')
 	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_close(self, ctx, pollID):
@@ -263,7 +256,8 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		else:
 			await ctx.send("ERROR: Can't close Poll")	
 
-	@isNotInChannelOrDM("📂log","📢info","⏫level")
+	@poll.command(name = 'publish')
+	@isNotInChannelOrDMCommand("📂log","📢info","⏫level")
 	@hasAnyRole("CEO","COO","chairman")
 	async def poll_publish(self, ctx, pollID):
 		"""
