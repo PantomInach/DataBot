@@ -27,7 +27,7 @@ class Counter(object):
 		return str(counterID) in [x for x in self.counterData]
 
 	def addCounter(self, counterID, value):
-		if isInCounter(counterID):
+		if self.isInCounter(counterID):
 			self.counterData['counterAdd'].append([value, time.time()])
 			self.saveCounter()
 			return True

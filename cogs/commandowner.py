@@ -153,6 +153,9 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	@isBotOwnerCommand()
 	async def reloadExtensions(self, ctx, *extensions):
 		"""
+		Reloads cogs.
+		"""
+		"""
 		param ctx:	Discord Context object.
 		param *ext:	Names of extensions to be reloaded.
 
