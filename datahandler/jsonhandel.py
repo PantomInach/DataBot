@@ -167,6 +167,13 @@ class Jsonhandel(object):
 			return 1
 		return 0
 
+	def get_token(self):
+		"""
+		Gets the token from the config file
+		!!! WARNING !!! Leaking the token can lead to a takeover of the bot
+		"""
+		return self.config["token"]
+
 	"""
 	###########################################
 	Part: Data
