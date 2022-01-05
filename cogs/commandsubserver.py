@@ -76,7 +76,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		Commands:
 			Listing subserver:		sub list
 			Create subserver:		sub create [sub_name]
-			Create subserver invite:	sub inv create [sub_name]
+			Create subserver invite:	sub invite create [sub_name]
 			Inviting member:		sub inv [userID] [sub_name]
 			Joining subserver:		sub join [sub_inv_code]
 			Leaving subserver:		sub leave [sub_name]
@@ -171,7 +171,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 				})	
 
 		# Create Gateway channel
-		await guild.create_voice_channel(name = 'Sub-' + subserver_name + " (0/0/0)", category = sub_way_category, overwrites = {
+		await guild.create_voice_channel(name = subserver_name + " (0/0/0)", category = sub_way_category, overwrites = {
 				guild.me: discord.PermissionOverwrite(manage_channels = True, view_channel = True),
 				sub_way_role: discord.PermissionOverwrite(connect = True, view_channel = True),
 				guild.default_role: discord.PermissionOverwrite(connect = False, view_channel = False)		
@@ -179,7 +179,6 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 
 		# Give Bot the sub-rolles. Needed to delete them. Don't ask me why it needs them.
 		await guild.me.add_roles(sub_way_role, sub_role)
-		await ctx.send
 
 	@sub.command(name = 'rm', brief = 'Removes a subserver.')
 	@isDMCommand()
@@ -188,7 +187,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		sub_category = self.get_subserver_category_by_name(name)
 		sub_way_category = find(lambda c: c.name == 'Subserver Gateway', guild.categories)
-		sub_way_channel = find(lambda ch: ch.name.startswith("Sub-" + name), sub_way_category.voice_channels)
+		sub_way_channel = find(lambda ch: ch.name.startswith(name), sub_way_category.voice_channels)
 		if not (sub_category or sub_way_channel):
 			await ctx.send(f"ERROR No subserver with name {name} found.", delete_after = 3600)
 			return
@@ -318,6 +317,18 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 	@sub.command(name = 'way', brief = 'Change subserver.')
 	@isDMCommand()
 	async def subway(self, ctx, subserver_name):
+		"""
+		Use 'sub way [sub_name]' to enter a subserver, which you have joined.
+		When you already joined a subserver, than you will switch to the new one.
+		Has the same effect as joining a subway channel.
+
+		This command can only be used in the DM.
+		"""
+		"""
+		param subserver_name:	String
+
+		Removes sub-roles and gives sub-role from subersever-name 
+		"""
 		(sub_role, sub_way_role) = self.get_subserver_roles(subserver_name)
 		if not (sub_role and sub_way_role):
 			await ctx.send(f"ERROR No subserver with name {subserver_name}.")
@@ -397,7 +408,6 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		subserver = self.get_all_subserver_roles()
 		all_suberver_names = [sub.name.split("-")[1] for sub, _ in subserver]
-		print(all_suberver_names)
 		# Search for matching hash
 		i = 0
 		hashed_code = self.hash_invite_code(all_suberver_names[i])
@@ -433,7 +443,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		category = find(lambda c: after.channel in c.channels, guild.categories)
 		# Switch to subserver
-		if category and category.name == "Subserver Gateway" and after.channel and after.channel.name.startswith("Sub-"):
+		if category and category.name == "Subserver Gateway" and after.channel and after.channel in category.voice_channels:
 			# Get Subserver_name. 
 			subserver_name = self.get_subserver_name_from_channel(after.channel.name)
 			await self.change_subserver(member, to = subserver_name)
@@ -516,11 +526,6 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 				await member.add_roles(sub_role, reason = f"Member {member.name} switched subserver.")
 		return True
 
-	@commands.command(name = 'subtest')
-	@isBotOwnerCommand()
-	async def subtest(self, ctx):
-		await ctx.send(str(self.get_subserver_users_per_role()) + str(self.get_subserver_user_amount_info()))
-
 	async def leave_current_subserver_no_permanent(self, member):
 		"""
 		param member: Discord Member object
@@ -566,7 +571,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		category = find(lambda cat: cat.name == "Subserver Gateway", guild.categories)
 		info_dict = self.get_subserver_user_amount_info()
-		subservers = [channel for channel in category.voice_channels if channel.name.startswith("Sub-")]
+		subservers = [channel for channel in category.voice_channels if not channel.name.startswith("Main Server")]
 		for subserver in subservers:
 			subserver_name = self.get_subserver_name_from_channel(subserver.name)
 			current_info = self.get_subserver_info_from_subserver_name(subserver.name)
@@ -576,14 +581,8 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 				await self.utils.sendModsMessage(f"WARNING Subserver {subserver_name} has an invalid name. Updating of Suberver Gateway be suppresed for some subserver. Please bring the name into its correct format of \"Sub-[subserver_name] (0/0/0)\".")
 				return
 			new_info = info_dict[subserver_name]
-			print(current_info, new_info)
 			if new_info != current_info:
-				# Update info
-				print("pls change", subserver, "to:",'Sub-' + subserver_name + " " + str(new_info).replace(", ", "/"))
-				if self.bot.is_ws_ratelimited():
-					print("Rate limit")
-				await subserver.edit(name = 'Sub-' + subserver_name + " " + str(new_info).replace(", ", "/"))
-				print("Changed???", subserver, "to:",'Sub-' + subserver_name + " " + str(new_info).replace(", ", "/"))
+				await subserver.edit(name = subserver_name + " " + str(new_info).replace(", ", "/"))
 
 		# Update Main Server Gateway channel infos
 		main_gateway = find(lambda vc: vc.name.startswith("Main Server"), category.voice_channels)
@@ -599,11 +598,8 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		user_total = len([0 for member in guild.members if not member.bot])
 		new_info = (user_connected, user_online, user_total)
 		current_info = self.get_subserver_info_from_subserver_name(main_gateway.name)
-		print(current_info, new_info)
 		if new_info != current_info:
-			print("pls change", main_gateway, "to:", 'Main Server ' + str(new_info).replace(", ", "/"))
 			await main_gateway.edit(name = 'Main Server ' + str(new_info).replace(", ", "/"))
-			print("Changed???", main_gateway, "to:", 'Main Server ' + str(new_info).replace(", ", "/"))
 
 	def get_subserver_info_from_subserver_name(self, subserver_name):
 		"""
@@ -622,9 +618,9 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		param channel:	Discord Channel object
 
 		Returns subserver_name from channel.
-		Exp.: channel.name = "Sub-test(13 (34/254/278)" => "test(13"
+		Exp.: channel.name = "test(13 (34/254/278)" => "test(13"
 		"""
-		return "(".join(channel_name.split("(")[:-1]).replace(" ","")[4:]
+		return "(".join(channel_name.split("(")[:-1]).replace(" ","")
 
 	def hash_invite_code(self, subserver_name):
 		token = self.jh.get_token()
