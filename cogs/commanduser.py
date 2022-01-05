@@ -47,7 +47,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 		level
 		top
 		star
-		meme
 
 	More infos can be found via 'help [command]'.
 
@@ -588,21 +587,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 		else:
 			await ctx.message.delete()
 	"""
-
-	@commands.command(name='meme', brief = 'Internal joke command.')
-	async def memeResponse(self, ctx):
-		"""
-		Internal joke from the developer, because the server moderators have the prefix '+ ' for another bot and people forget the extra space, which than invokes this bot.
-		"""
-		"""
-		param ctx:	Discord Context object.
-
-		Rebellion againt some special person.
-		!!! Not for production !!!
-		"""
-		message = "Lieber User,\nder Command nach dem du suchst ist '+ meme'.\nAn die Person, die sich gedacht hat, es sei eine gute Idee das Prefix von Dankmemer Bot soll '+' sein, you suck.\nDer Bot hat gesprochen!"
-		await ctx.send(message)
-
 		
 def setup(bot):
 	bot.add_cog(Commanduser(bot))
