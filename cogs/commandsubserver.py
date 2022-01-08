@@ -109,7 +109,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		The subserver_name will be converted to lower case and the spaces will be removed.
 		When the name is than longer than 16 letters, a error will be thrown.
 		If name is already taken, you get an error message.
-		If the gateway category is not created yet, this command will do it and also adds a gateway to the main server.
+		If the gateway category is not created yet, this command will do it.
 
 		There will be a new gateway channel with the given name and a new category with a text cahnnel und an expanding voice channel.
 
@@ -121,7 +121,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 
 		Generates at first the two needed subserver roles.
 		Than creats the category for the subserver and fills it with its two channels.
-		We check if there is already a gateway category. If not we create one with the gateway to the main server.
+		We check if there is already a gateway category. If not we create one.
 		Finaly the gateway channel for the subserver will be created.
 
 		All channel have the required permissions.
@@ -165,10 +165,6 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 					guild.me: discord.PermissionOverwrite(manage_channels = True, view_channel = True),
 					guild.default_role: discord.PermissionOverwrite()
 				})
-			await guild.create_voice_channel(name = 'Main Server (0/0/0)', category = sub_way_category, overwrites = {
-					guild.me: discord.PermissionOverwrite(manage_channels = True, view_channel = True),
-					guild.default_role: discord.PermissionOverwrite()
-				})	
 
 		# Create Gateway channel
 		await guild.create_voice_channel(name = subserver_name + " (0/0/0)", category = sub_way_category, overwrites = {
@@ -448,11 +444,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 			subserver_name = self.get_subserver_name_from_channel(after.channel.name)
 			await self.change_subserver(member, to = subserver_name)
 			await member.move_to(None)
-		# Return to main server
-		if category and category.name == "Subserver Gateway" and after.channel and after.channel.name.startswith("Main Server"):	
-			await self.leave_current_subserver_no_permanent(member)
-			await member.move_to(None)
-		await self.update_subserver_info()
+			await self.update_subserver_info()
 
 	def get_subserver_roles(self, sub_name):
 		"""
@@ -571,7 +563,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		category = find(lambda cat: cat.name == "Subserver Gateway", guild.categories)
 		info_dict = self.get_subserver_user_amount_info()
-		subservers = [channel for channel in category.voice_channels if not channel.name.startswith("Main Server")]
+		subservers = [channel for channel in category.voice_channels]
 		for subserver in subservers:
 			subserver_name = self.get_subserver_name_from_channel(subserver.name)
 			current_info = self.get_subserver_info_from_subserver_name(subserver.name)
@@ -583,23 +575,6 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 			new_info = info_dict[subserver_name]
 			if new_info != current_info:
 				await subserver.edit(name = subserver_name + " " + str(new_info).replace(", ", "/"))
-
-		# Update Main Server Gateway channel infos
-		main_gateway = find(lambda vc: vc.name.startswith("Main Server"), category.voice_channels)
-		if not main_gateway:
-			await self.utils.sendModsMessage(f"WARNING The main gateway channel is missing.")
-			return
-		not_subserver_categories = [cat for cat in guild.categories if not cat.name.startswith("Sub-")]
-		voice_channels = [vc for vc_list in [cat.voice_channels for cat in not_subserver_categories] for vc in vc_list]
-		user_connected = sum([len(vc.members) for vc in voice_channels])
-		# User online are users with no "sub"-role
-		user_online = len([member for member in guild.members if len([role for role in member.roles if role.name.startswith("sub-")]) == 0 and not member.bot])
-		# User total are all members
-		user_total = len([0 for member in guild.members if not member.bot])
-		new_info = (user_connected, user_online, user_total)
-		current_info = self.get_subserver_info_from_subserver_name(main_gateway.name)
-		if new_info != current_info:
-			await main_gateway.edit(name = 'Main Server ' + str(new_info).replace(", ", "/"))
 
 	def get_subserver_info_from_subserver_name(self, subserver_name):
 		"""
