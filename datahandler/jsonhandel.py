@@ -92,6 +92,19 @@ class Jsonhandel(object):
 		"""
 		return self.config["rolesXPNeed"]
 
+	def get_subserver_needed_roles(self):
+		"""
+		Gets every role needed for a member to use a subserver
+		"""
+		return self.config["needForSubServer"]
+
+	def get_guild(self):
+		"""
+		Gets the guild id as an integer
+		"""
+		return int(self.config["guilde"])
+
+
 	"""
 	##########
 	channel Black and White list

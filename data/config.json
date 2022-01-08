@@ -18,5 +18,6 @@
             "0"
       ],
       "roles": [],
-      "rolesXPNeed": []
+      "rolesXPNeed": [],
+      "needForSubServer": []
 }

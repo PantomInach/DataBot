@@ -26,7 +26,7 @@ class Commandlistener(commands.Cog):
 		print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
 		traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 		errorMessage = traceback.format_exception(type(error), error, error.__traceback__)
-		self.utils.logToFile(f"Ignoring exception in command {ctx.command}\n" + ("\n".join(errorMessage)), withDate = True)
+		Utils.logToFile(f"Ignoring exception in command {ctx.command}\n" + ("\n".join(errorMessage)), withDate = True)
 		embed=discord.Embed(title=f"Ignoring exception in command {ctx.command}", description="\n".join(errorMessage).replace("**","\\*\\*"), color=0xef2929)
 		await self.utils.sendModsMessage("", embed = embed)
 
