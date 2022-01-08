@@ -72,7 +72,7 @@ class Utils(object):
 			await member.add_roles(role)
 			await self.log(f"User {member.name} aka {member.nick} got role {roleName}.",1)
 		else:
-			self.log(f"[ERROR] In giveRole:\t Role {roleName} not found")
+			await self.log(f"[ERROR] In giveRole:\t Role {roleName} not found", 1)
 
 	async def giveRoles(self, userID, roleNames):
 		"""
@@ -107,7 +107,7 @@ class Utils(object):
 			await member.remove_roles(role)
 			await self.log(f"User {member.name} aka {member.nick} got his role {roleName} removed.",1)
 		else:
-			self.log(f"[ERROR] In giveRole:\t Role {roleName} not found")
+			await self.log(f"[ERROR] In giveRole:\t Role {roleName} not found",1)
 
 	async def removeRoles(self, userID, roleNames, reason = None):
 		"""
@@ -276,10 +276,11 @@ class Utils(object):
 		# Send message
 		await self.sendMessageToPrivilage(message, level)
 		# Log to log.
-		self.logToFile(message)
+		Utils.logToFile(message)
 		print(message)
 
-	def logToFile(self, message, withDate = False):
+	@staticmethod
+	def logToFile(message, withDate = False):
 		"""
 		param message:	String to write to log.txt.
 
