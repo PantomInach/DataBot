@@ -109,7 +109,7 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		with open(datapath+"dataProtection.txt","r") as f:
 			string = f.read()
 		for member in guilde.members:
-			await self.utils.removeRoles(member.id, ["chairman", "associate", "employee", "rookie"])
+			await self.utils.removeRoles(member.id, ["chairman", "associate", "employee", "✅"])
 			print(f"Progress: {i}/{lenght}")
 			i = i+1
 		message = await ctx.send(string)

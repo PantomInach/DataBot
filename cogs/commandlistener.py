@@ -184,11 +184,11 @@ class Commandlistener(commands.Cog):
 		# State 5 =^= Note on data processing
 		elif state == 5:
 			# Give role for using server
-			if not self.utils.hasRole(userID, "rookie"):
-				await self.utils.giveRole(userID, "rookie")
+			if not self.utils.hasRole(userID, "✅"):
+				await self.utils.giveRole(userID, "✅")
 
 		# State 6 =^= User interest groups
-		elif state == 6 and (self.utils.hasRole(userID, "rookie") or self.utils.hasRole(userID, "etwasse")):
+		elif state == 6 and (self.utils.hasRole(userID, "✅")):
 			# User needs to accept Note on data processing before using this feature
 			# Gives user role depending on what they react on
 			if str(payload.emoji) == "🎮" and not self.utils.hasRole(userID, "gaming"):
@@ -213,7 +213,7 @@ class Commandlistener(commands.Cog):
 				await message.remove_reaction(payload.emoji, payload.member)
 
 		# When user can not get roles
-		elif state == 6 and not self.utils.hasRole(userID, "rookie"):
+		elif state == 6 and not self.utils.hasRole(userID, "✅"):
 			# Removes user reaction
 			await message.remove_reaction(payload.emoji, payload.member)
 
@@ -384,12 +384,12 @@ class Commandlistener(commands.Cog):
 		[state, page] = Utils.getMessageState(message)
 
 		# If member revokes his accetptans of the Note on data processing
-		if state == 5 and (self.utils.hasRole(userID, "rookie") or self.utils.hasRole(userID, "etwasse")):
-			await self.utils.removeRoles(userID, ["chairman", "associate", "employee", "rookie", "etwasse"])
+		if state == 5 and (self.utils.hasRole(userID, "✅")):
+			await self.utils.removeRoles(userID, ["chairman", "associate", "employee", "✅"])
 
 		# When member revokes his interest in interest groups
 		elif state == 6:
-			if not self.utils.hasRole(userID, "rookie") and not self.utils.hasRole(userID, "etwasse"):
+			if not self.utils.hasRole(userID, "✅"):
 				await message.remove_reaction(payload.emoji, member)
 
 			elif str(payload.emoji) == "🎮" and self.utils.hasRole(userID, "gaming"):

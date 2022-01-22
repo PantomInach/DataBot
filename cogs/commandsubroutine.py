@@ -167,13 +167,13 @@ class Subroutine(commands.Cog):
 	async def updateRoles(self):
 		"""
 		Gives members role in rolesList if they have the level in roleXPNeedList.
-		Also members needs to have "etwasse" or "rookie". Another SubServer (not yet implemented) are also ok.
+		Also members needs to have "✅". Another SubServer (not yet implemented) are also ok.
 		"""
 		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		membersList = guilde.members
 		for member in membersList:
 			if self.jh.isInData(member.id):
-				if self.utils.hasOneRole(member.id, {"etwasse", "rookie"}):
+				if self.utils.hasOneRole(member.id, {"✅"}):
 					# Give all roles user is qualified for even if he already has some roles.
 					userLevel = self.jh.getUserLevel(member.id)
 					rolesList = self.jh.getRoles()
