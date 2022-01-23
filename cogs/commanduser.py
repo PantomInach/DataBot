@@ -329,35 +329,38 @@ class Commanduser(commands.Cog, name='User Commands'):
 		Textbans a user by adding them to textban.json.
 		Textbans are carryed out in main.on_message() by deleting send messages.
 		"""
-		if not self.tban.hasTextBan(userID):
-			bantime = 0
-			# Convert String time to float.
-			try:
-				bantime = float(time)
-			except ValueError:
-				bantime = -1
-			if bantime >= 0.1:
-				# Get member
-				user = self.bot.get_user(int(userID))
-				guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
-				member = guilde.get_member(int(userID))
-				if user != None:
-					logchannel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
-					# Send messages
-					await self.utils.log(f"User {ctx.author.mention} textbaned {user.mention} for {time} h. Reason:\n{reason}",2)
-					await logchannel.send(f"{user.mention} was textbaned for {time} h.\n**Reason**: {reason}")
-					await user.send(content=f"You received a textban for {time} h.\n**Reason**: {reason}")
-					await self.utils.sendServerModMessage(f"{member.nick} ({user.name}) was textbaned by {guilde.get_member(int(ctx.author.id)).nick} ({ctx.author.name}) for {time} h.\n**Reason**: {reason}")
-					# Textban user and wait till it is over.
-					await self.tban.addTextBan(userID, int(bantime*3600.0))
-					#Textban over
-					await user.send("Your Textban is over. Pay more attention to your behavior in the future.")
+		if not self.tban.hasTextBan(ctx.author.id):
+			if not self.tban.hasTextBan(userID):
+				bantime = 0
+				# Convert String time to float.
+				try:
+					bantime = float(time)
+				except ValueError:
+					bantime = -1
+				if bantime >= 0.1:
+					# Get member
+					user = self.bot.get_user(int(userID))
+					guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+					member = guilde.get_member(int(userID))
+					if user != None:
+						logchannel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
+						# Send messages
+						await self.utils.log(f"User {ctx.author.mention} textbaned {user.mention} for {time} h. Reason:\n{reason}",2)
+						await logchannel.send(f"{user.mention} was textbaned for {time} h.\n**Reason**: {reason}")
+						await user.send(content=f"You received a textban for {time} h.\n**Reason**: {reason}")
+						await self.utils.sendServerModMessage(f"{member.nick} ({user.name}) was textbaned by {guilde.get_member(int(ctx.author.id)).nick} ({ctx.author.name}) for {time} h.\n**Reason**: {reason}")
+						# Textban user and wait till it is over.
+						await self.tban.addTextBan(userID, int(bantime*3600.0))
+						#Textban over
+						await user.send("Your Textban is over. Pay more attention to your behavior in the future.")
+					else:
+						await ctx.send(content="ERROR: User does not exist.", delete_after=3600)
 				else:
-					await ctx.send(content="ERROR: User does not exist.", delete_after=3600)
+					await ctx.send(content="ERROR: time is not valid.", delete_after=3600)
 			else:
-				await ctx.send(content="ERROR: time is not valid.", delete_after=3600)
+				await ctx.send(content="ERROR: User has already a textban.", delete_after=3600)
 		else:
-			await ctx.send(content="ERROR: User has already a textban.", delete_after=3600)
+			await ctx.send(context="ERROR: You aren't allowed to textban users when you have a textban.", delete_after=3600)
 					
 	@user_tb_parent.command(name = 'rm', brief = 'Remove a textban from a user.')
 	async def textunban(self, ctx, userID):
