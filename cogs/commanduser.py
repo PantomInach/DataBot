@@ -485,7 +485,8 @@ class Commanduser(commands.Cog, name='User Commands'):
 	async def getLevel(self, ctx, *inputs):
 		"""
 		Gives the user a level card via the command 'level'.
-		This gives a short overview over your stats on the guilde.
+		This gives a short overview over the user's stats on the guilde.
+		By adding a mention or userID after the command the user can also view the levelcard of other users.
 
 		Can only be used in "⏫level" channel.
 		"""
