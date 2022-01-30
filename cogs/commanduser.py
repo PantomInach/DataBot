@@ -485,8 +485,8 @@ class Commanduser(commands.Cog, name='User Commands'):
 	async def getLevel(self, ctx, *inputs):
 		"""
 		Gives the user a level card via the command 'level'.
-		This gives a short overview over the user's stats on the guilde.
-		By adding a mention or userID after the command the user can also view the levelcard of other users.
+		This gives a short overview over the member's stats on the guilde.
+		By adding a mention or memberID after the command the user can also view the levelcard of other users.
 
 		Can only be used in "⏫level" channel.
 		"""
@@ -495,17 +495,16 @@ class Commanduser(commands.Cog, name='User Commands'):
 
 		Creates a embeded level card of user.
 		"""
-		if inputs:
-			userID = str(inputs[0]).replace('<', '').replace('>', '').replace('@','').replace('!','')
-			if userID.isdigit():
-				userID = int(userID)
-			else:
-				return
-		else:
+		if not inputs:
 			userID = ctx.author.id
+		else:
+			userID = str(inputs[0]).replace('<', '').replace('>', '').replace('@','').replace('!','')
+			if not userID.isdigit():
+				return
+			userID = int(userID)
 		server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = server.get_member(int(userID))
-		if member == None:
+		if not member:
 			return
 		self.jh.addNewDataEntry(userID)
 		#Create Embeded
@@ -522,10 +521,10 @@ class Commanduser(commands.Cog, name='User Commands'):
 		embed.add_field(name="EXPERIENCE", value=f"{str(int(voiceXP)+int(textXP))}/{nextLevel}",inline=True)
 		embed.add_field(name="LEVEL", value=f"{level}", inline=True)
 		#Send Embeded
-		if inputs and userID != ctx.author.id:
-			await ctx.send(embed=embed, content=ctx.author.mention, delete_after=86400)
-		else:
-			await ctx.send(embed=embed, delete_after=86400)
+		content = ""
+		if userID != ctx.author.id:
+			content = ctx.author.mention
+		await ctx.send(embed=embed, content=content, delete_after=86400)
 		await ctx.message.delete()
 
 	@commands.command(name='top',brief='Sends an interactive rank list.')
