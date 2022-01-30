@@ -495,9 +495,8 @@ class Commanduser(commands.Cog, name='User Commands'):
 
 		Creates a embeded level card of user.
 		"""
-		if not inputs:
-			userID = ctx.author.id
-		else:
+		userID = ctx.author.id
+		if inputs:
 			userID = str(inputs[0]).replace('<', '').replace('>', '').replace('@','').replace('!','')
 			if not userID.isdigit():
 				return
