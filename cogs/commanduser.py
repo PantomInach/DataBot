@@ -482,10 +482,11 @@ class Commanduser(commands.Cog, name='User Commands'):
 
 	@commands.command(name='level', pass_context=True, brief='Returns the level of a player.')
 	@isInChannelCommand("⏫level")
-	async def getLevel(self, ctx):
+	async def getLevel(self, ctx, *inputs):
 		"""
 		Gives the user a level card via the command 'level'.
-		This gives a short overview over your stats on the guilde.
+		This gives a short overview over the member's stats on the guilde.
+		By adding a mention or memberID after the command the user can also view the levelcard of other users.
 
 		Can only be used in "⏫level" channel.
 		"""
@@ -495,24 +496,34 @@ class Commanduser(commands.Cog, name='User Commands'):
 		Creates a embeded level card of user.
 		"""
 		userID = ctx.author.id
+		if inputs:
+			userID = str(inputs[0]).replace('<', '').replace('>', '').replace('@','').replace('!','')
+			if not userID.isdigit():
+				return
+			userID = int(userID)
 		server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
 		member = server.get_member(int(userID))
+		if not member:
+			return
 		self.jh.addNewDataEntry(userID)
 		#Create Embeded
-		avatar_url = ctx.author.avatar_url
+		avatar_url = member.avatar_url
 		level = self.jh.getUserLevel(userID)
 		voiceXP = self.jh.getUserVoice(userID)
 		textXP = self.jh.getUserText(userID)
 		textCount = self.jh.getUserTextCount(userID)
 		nextLevel = self.xpf.xpNeed(voiceXP,textXP)
-		embed = discord.Embed(title=f"{member.nick}     ({ctx.author.name})", color=12008408)
+		embed = discord.Embed(title=f"{member.nick}     ({member.name})", color=12008408)
 		embed.set_thumbnail(url=avatar_url)
 		embed.add_field(name="HOURS", value=f"{round(int(voiceXP)/30.0,1)}", inline=True)
 		embed.add_field(name="MESSAGES", value=f"{str(textCount)}", inline=True)
 		embed.add_field(name="EXPERIENCE", value=f"{str(int(voiceXP)+int(textXP))}/{nextLevel}",inline=True)
 		embed.add_field(name="LEVEL", value=f"{level}", inline=True)
 		#Send Embeded
-		await ctx.send(embed=embed, delete_after=86400)
+		content = ""
+		if userID != ctx.author.id:
+			content = ctx.author.mention
+		await ctx.send(embed=embed, content=content, delete_after=86400)
 		await ctx.message.delete()
 
 	@commands.command(name='top',brief='Sends an interactive rank list.')
