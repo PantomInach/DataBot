@@ -381,7 +381,7 @@ class Poll(object):
 		"""
 		if self.isAPollID(pollID):
 			return self.pollData[str(pollID)]["messageID"]
-		return -1
+		return None
 
 	def getDate(self, pollID):
 		"""
