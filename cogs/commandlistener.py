@@ -224,7 +224,7 @@ class Commandlistener(commands.Cog):
 			whiteList = self.jh.config["serverTextWhitelist"]
 			if self.jh.isInWhitelist(payload.channel_id):
 				message = await channel.fetch_message(payload.message_id)
-				if not (message.author.self.bot or payload.member.bot) and self.jh.getFromConfig("log")=="True":
+				if not (message.author.bot or payload.member.bot) and self.jh.getFromConfig("log")=="True":
 					self.jh.addReactionXP(payload.user_id, self.xpf.randomRange(1,5))
 					self.jh.saveData()
 
