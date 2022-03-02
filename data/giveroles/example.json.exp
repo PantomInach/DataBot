@@ -1,0 +1,9 @@
+{
+	"text": "Text off board",
+	"channelid": channelid of message,
+	"messageid": messageid of board,
+	"reactions":{
+		"Emoji":([Roles, to, give], [Roles, to, remove]),
+		"Emoji2":([Roles, to, give], [Roles, to, remove])
+	}
+}
