@@ -425,7 +425,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 				await self.utils.log(f"User {ctx.author.name} {ctx.author.id} gave {user.name} {user.id} 'star of the week' threw. +user star ", 2)
 				await ctx.send(f"Member {user.name} got 'star of the week' now.")
 		else:
-			await ctx.send(f"Invalid input. Either userID is not a user on the guild {guild.name} or it is not a ID.")
+			await ctx.send(f"Invalid input. Either userID is not an user on the guild {guild.name} or it is not a ID.")
 	"""
 
 	@userParent.command(name = 'star', brief = 'Gives user \'star of the week\'.')
