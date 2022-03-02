@@ -46,7 +46,7 @@ class Commandmod(commands.Cog, name='Bot Mod Commands'):
 		Group of text whitelist commands.
 
 		This command group is for managing the text whitelist.
-		When a message is sent to a whitelisted text channel, the bot can see the message and the author of this message will get XP.
+		When a message is sent to a whitelisted text channel and the bot can see the message, the author of this message will get XP.
 
 		Use \'textwl add [channelID]\' or use \'textwl add\' in a channel to add it to the whitelist.
 		Use \'textwl rm [channelID]\' or use \'textwl rm\' in a channel to remove it from the whitelist.
