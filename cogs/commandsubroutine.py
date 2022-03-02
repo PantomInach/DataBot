@@ -111,7 +111,7 @@ class Subroutine(commands.Cog):
 
 		Removes the role for all users in the guild.
 		First scans sub.json for 'removeRole' events. 
-		Deferments if they should be carried out and carries them out.
+		Determines if they should be carried out and carries them out.
 		"""
 		for toRemove in self.sub.getRoleRemoveIDs():
 			if not toRemove.isdigit():
@@ -135,7 +135,7 @@ class Subroutine(commands.Cog):
 
 		Gives member a role if conditions are right.
 		Scans sub.json for timing, userID and roleID.
-		Deferments if they should be carried out and carries them out.
+		Determines if they should be carried out and carries them out.
 		"""
 		entrysToDelet = []
 		for toGiveOnce in self.sub.getGiveRoleOnceIDs():
