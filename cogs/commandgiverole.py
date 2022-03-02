@@ -140,16 +140,17 @@ class Commandgiverole(commands.Cog):
 		if not table_content:
 			await ctx.author.send(f"There is no table with the name {table_name}. See 'table list' to see all tables.", delete_after = 3600)
 			return
-		channel_id = int(table_content["channelid"])
-		message_id = int(table_content["messageid"])
-		message = await self.get_message(ctx, channel_id, message_id)
+		message = await self.get_message(ctx, table_content["channelid"], table_content["messageid"])
+		if message is None:
+			return
+		"""
+		# Unutalised option to delet roles on removing a table.
 		roles_to_remove = [role for (give, remove) in table_content["reactions"].values() for role in remove]
 		# Also sorts out users, which discord.Reactions.users() can return.
 		remove_from_member = [member for reaction in message.reactions for member in await reaction.users().flatten() if self.guild.get_member(member.id)] 
 		for member in remove_from_member:
 			await self.utils.removeRoles(member.id, roles_to_remove)
-		if not message:
-			return
+		"""
 		await message.delete()
 
 
@@ -172,22 +173,20 @@ class Commandgiverole(commands.Cog):
 		"""
 		table_content = self.get_table_content(table_name)
 		if not table_content:
-			await ctx.author.send(f"There is no table with the name {table_name}. See 'table list' to see all tables.", delete_after = 3600)
+			await ctx.author.send(f"There is no table with the name `{table_name}`. See 'table list' to see all tables.", delete_after = 3600)
 			return
 		check_res = self.check_content_table(table_content)
 		if not check_res[0]:
-			await ctx.author.send(f"There is a problem with the config of the table {table_name}. Please check the '{check_res[1]}' roles if they are correct.", delete_after = 3600)
+			await ctx.author.send(f"There is a problem with the config of the table `{table_name}`. Please check the '{check_res[1]}' roles if they are correct.", delete_after = 3600)
 			return
-		channel_id = int(table_content["channelid"])
-		message_id = int(table_content["messageid"])
-		message = await self.get_message(ctx, channel_id, message_id)
+		message = await self.get_message(ctx, table_content["channelid"], table_content["messageid"])
 		if not message:
 			return
 		# Test if message is from itself. When fails => message can not be a table.
 		# No further test is implemented since there are no identifier for a table and the message/channel id could be modified by the owner.
 		# The owner is trusted to specify the correct message/channel id or not to change them.  
 		if message.author != self.bot.user:
-			await ctx.author.send(f"ERROR: The message with id {message_id} in channel with id {channel_id} is not from the bot itself. Please check the config file for table {table_name}.")
+			await ctx.author.send(f"ERROR: The message with id `{message_id}` in channel with id `{channel_id}` is not from the bot itself. Please check the config file for table `{table_name}`.")
 			return
 		# Clear all removed reactions
 		reactions_to_remove = [reaction for reaction in message.reactions if reaction.emoji.name not in table_content["reactions"].keys()]
@@ -250,14 +249,15 @@ class Commandgiverole(commands.Cog):
 		If not found, the ctx.author gets an error message.
 		Otherwise returns a Discord message object.
 		"""
+		table_name = ctx.args[-1]
 		channel = self.guild.get_channel(channel_id)
 		if not channel:
-			await ctx.author.send(f"ERROR: Channel {channel_id} is not found. The configuration of table {table_name} is wrong. Please correct the table by hand in the 'giveroles' folder.")
+			await ctx.author.send(f"ERROR: Channel `{channel_id}` is not found. The configuration of table `{table_name}` is wrong. Please correct the table by hand in the 'giveroles' folder.")
 			return
 		try:
 			message = await channel.fetch_message(message_id)
 		except discord.NotFound as e:
-			await ctx.author.send(f"ERROR: Message {message_id} is not found. The configuration of table {table_name} is wrong. Please correct the table by hand in the 'giveroles' folder.")
+			await ctx.author.send(f"ERROR: Message `{message_id}` is not found. The configuration of table `{table_name}` is wrong. Please correct the table by hand in the 'giveroles' folder.")
 			return
 		return message
 
