@@ -5,15 +5,15 @@ from datahandler.jsonhandel import Jsonhandel
 from helpfunctions.utils import Utils
 
 """
-Following functions are ment to use as decorators, when not using @commands.command
+Following functions are ment to be used as decorators, when not using @commands.command
 """
 
 def isBotOwner():
 	"""
 	Type:	Decorator for functions with ctx object in args[1].
 
-	Checks if a user has a Bot privilage level of 2 or higher.
-	Than executes the function.
+	Checks if a user has a Bot privilege level of 2 or higher.
+	Executes the function afterwards.
 	"""
 	def decorator(func):
 		def wrapper(*args, **kwargs):
@@ -29,8 +29,8 @@ def isBotMod():
 	"""
 	Type:	Decorator for functions with ctx object in args[1].
 
-	Checks if a user has a Bot privilage level of 1 or higher.
-	Than executes the function.
+	Checks if a user has a bot privilege level of 1 or higher.
+	Executes the function afterwards.
 	"""
 	def decorator(func):
 		def wrapper(*args, **kwargs):
@@ -46,8 +46,8 @@ def isDM():
 	"""
 	Type:	Decorator for functions with ctx object in args[1].
 
-	Checks if a message is send in a private channel.
-	Than executes the function.
+	Checks if a message is being sent in a private channel.
+	Executes the function afterwards.
 	"""
 	def decorator(func):
 		def wrapper(*args, **kwargs):
@@ -62,10 +62,10 @@ def isInChannel(*items):
 	"""
 	Type:	Decorator for functions with ctx object in args[1].
 
-	param items:	Tuple of Strings and/or integers wit Discord Channel ids or names.
+	param items:	Tuple of strings and/or integers wit Discord channel IDs or names.
 
-	Checks if a message is send in a channel of *items.
-	Than executes the function.
+	Checks if a message is being sent in a channel of *items.
+	Executes the function afterwards.
 	"""
 	def decorator(func):
 		def wrapper(*args, **kwargs):
@@ -81,10 +81,10 @@ def isInChannelOrDM(*items):
 	"""
 	Type:	Decorator for functions with ctx object in args[1].
 
-	param items:	Tuple of Strings and/or integers wit Discord Channel ids or names.
+	param items:	Tuple of strings and/or integers wit Discord channel IDs or names.
 
-	Checks if a message is send in a channel of *items or in a private channel.
-	Than executes the function.
+	Checks if a message is being sent in a channel of *items or in a private channel.
+	Executes the function afterwards.
 	"""
 	def decorator(func):
 		def wrapper(*args, **kwargs):
@@ -100,10 +100,10 @@ def isNotInChannel(*items):
 	"""
 	Type:	Decorator for functions with ctx object in args[1].
 
-	param items:	Tuple of Strings and/or integers wit Discord Channel ids or names.
+	param items:	Tuple of strings and/or integers wit Discord channel IDs or names.
 
-	Checks if a message is not send in a channel of *items.
-	Than executes the function.
+	Checks if a message is not being sent in a channel of *items.
+	Executes the function afterwards.
 	"""
 	def decorator(func):
 		def wrapper(*args, **kwargs):
@@ -119,10 +119,10 @@ def isNotInChannelOrDM(*items):
 	"""
 	Type:	Decorator for functions with ctx object in args[1].
 
-	param items:	Tuple of Strings and/or integers wit Discord Channel ids or names.
+	param items:	Tuple of strings and/or integers wit Discord channel IDs or names.
 
-	Checks if a message is not send in a channel of *items or in a private channel.
-	Than executes the function.
+	Checks if a message is not being sent in a channel of *items or in a private channel.
+	Executes the function afterwards.
 	"""
 	def decorator(func):
 		def wrapper(*args, **kwargs):
@@ -141,7 +141,7 @@ async def sendCTX(ctx, message):
 	param message:	String.
 
 	Sends message to channel of ctx's origin.
-	Helpfunction for Decorators for error messages.
+	Helpfunction for decorators for error messages.
 	"""
 	await ctx.send(message)
 
@@ -151,13 +151,13 @@ async def sendAuthor(ctx, message):
 	param message:	String.
 
 	Sends message to author of ctx.
-	Helpfunction for Decorators for error messages.
+	Helpfunction for decorators for error messages.
 	"""
 	await ctx.author.send(message)
 
 async def passFunc():
 	"""
-	Helpfunction to not execute function in failed checks of Decorators.
+	Helpfunction to not execute function in failed checks of decorators.
 	"""
 	await asyncio.sleep(0)
 
@@ -169,14 +169,14 @@ async def passFunc():
 
 
 """
-Following functions are ment to use as decorators, when using @commands.command
+Following functions are meant to use as decorators, when using @commands.command
 """
 
 def isBotModCommand():
 	"""
-	Type:	Decorator of @commands.command Bot functions.
+	Type:	Decorator of @commands.command bot functions.
 
-	Checks if a user has a Bot privilage level of 2 or higher.
+	Checks if a user has a Bot privilege level of 2 or higher.
 	"""
 	def predicate(ctx):
 		jh = Jsonhandel()
@@ -185,9 +185,9 @@ def isBotModCommand():
 
 def isBotOwnerCommand():
 	"""
-	Type:	Decorator of @commands.command Bot functions.
+	Type:	Decorator of @commands.command bot functions.
 
-	Checks if a user has a Bot privilage level of 1 or higher.
+	Checks if a user has a Bot privilege level of 1 or higher.
 	"""
 	def predicate(ctx):
 		jh = Jsonhandel()
@@ -196,9 +196,9 @@ def isBotOwnerCommand():
 
 def isDMCommand():
 	"""
-	Type:	Decorator of @commands.command Bot functions.
+	Type:	Decorator of @commands.command bot functions.
 
-	Checks if a message is send in a private channel.
+	Checks if a message is being sent in a private channel.
 	"""
 	def predicate(ctx):
 		return isinstance(ctx.channel, discord.channel.DMChannel)
@@ -206,9 +206,9 @@ def isDMCommand():
 
 def isInChannelCommand(*items):
 	"""
-	Type:	Decorator of @commands.command Bot functions.
+	Type:	Decorator of @commands.command bot functions.
 
-	Checks if a message is send in a channel of *items.
+	Checks if a message is being sent in a channel of *items.
 	"""
 	def predicate(ctx):
 		if isinstance(ctx.channel, discord.channel.DMChannel):
@@ -218,9 +218,9 @@ def isInChannelCommand(*items):
 
 def isInChannelOrDMCommand(*items):
 	"""
-	Type:	Decorator of @commands.command Bot functions.
+	Type:	Decorator of @commands.command bot functions.
 
-	Checks if a message is send in a channel of *items or in a private channel.
+	Checks if a message is being sent in a channel of *items or in a private channel.
 	"""
 	def predicate(ctx):
 		return isinstance(ctx.channel, discord.channel.DMChannel) or ctx.channel.id in items or ctx.channel.name in items
@@ -228,7 +228,7 @@ def isInChannelOrDMCommand(*items):
 
 def isNotInChannelCommand(*items):
 	"""
-	Type:	Decorator of @commands.command Bot functions.
+	Type:	Decorator of @commands.command bot functions.
 
 	Checks if a message is not send in a channel of *items.
 	"""
@@ -238,9 +238,9 @@ def isNotInChannelCommand(*items):
 
 def isNotInChannelOrDMCommand(*items):
 	"""
-	Type:	Decorator of @commands.command Bot functions.
+	Type:	Decorator of @commands.command bot functions.
 
-	Checks if a message is not send in a channel of *items or in a private channel.
+	Checks if a message is not being sent in a channel of *items or in a private channel.
 	"""
 	def predicate(ctx):
 		return not (isinstance(ctx.channel, discord.channel.DMChannel) or ctx.channel.id in items or ctx.channel.name in items)

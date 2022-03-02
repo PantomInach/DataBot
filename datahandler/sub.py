@@ -15,7 +15,7 @@ class Sub(object):
 			"removeRole":{
 				"ID of role to remove": [
 					offset as float,
-					intervall as int,
+					interval as int,
 				]
 			},
 
@@ -29,7 +29,7 @@ class Sub(object):
 
 	Example for remove role:
 		Offset is 2021.01.04 CEST == 1609711200.0. Can be determaint through 'time.mktime(time.strptime("2021 Jan 4 CEST","%Y %b %d %Z"))'.
-		Intervall is 1 Week == 604800
+		interval is 1 Week == 604800
 		So every Monday the role will be removed.
 	"""
 
@@ -66,16 +66,16 @@ class Sub(object):
 	@_reloadSubjson
 	def getRoleRemoveIDs(self):
 		"""
-		Returns all keys, which are the role ids, from removeRole.
+		Returns all keys, which are the role IDs, from removeRole.
 		"""
 		return self.subjson["removeRole"].keys()
 
 	@_reloadSubjson
 	def getContantOfRoleRemoveID(self, id):
 		"""
-		param id:	Id of role to remove.
+		param id:	ID of role to remove.
 
-		Gets the offset and intervall of a removeRole entry from sub.json.
+		Gets the offset and interval of a removeRole entry from sub.json.
 		If not found -> return [0,0]
 		"""
 		if id not in self.subjson["removeRole"]:
@@ -85,8 +85,8 @@ class Sub(object):
 	def addGiveRoleOnce(self, timeWhenGiveRole, userID, roleID):
 		"""
 		param timeWhenGiveRole:	Unix Epoch time as float when role will be given.
-		param userID:	Is the userID from discord user as int.
-		param roleID:	The id of a role on the discord guilde as int.
+		param userID:	Is the user ID from discord user as int.
+		param roleID:	The ID of a role on the discord guild as int.
 
 		Makes a entry in sub.json to give a role in specified time window.
 		Entries will have the lowest key possible.
@@ -102,15 +102,15 @@ class Sub(object):
 
 	def queueGiveRoleOnceAfter(self, userID, roleID, after, timeWhenNothingInQueue):
 		"""
-		param userID:	Is the userID from discord user as int
-		param roleID:	The id of a role on the discord guilde as int.
+		param userID:	Is the user ID from discord user as int
+		param roleID:	The ID of a role on the discord guild as int.
 		param after:	Float how long should be waited.
 		param timeWhenNothingInQueue:	Time in float when will be queued if queue is empty.
 
-		Queues a new give role after an existing giveRoleOnce entry, which matches the roleid.
+		Queues a new give role after an existing giveRoleOnce entry, which matches the roleID.
 		Always the last entry by offfset will be queued after.
 
-		When entry does not exist, than a new entry will be added with the intervallDefaulte.
+		When entry does not exist, a new entry will be added with the intervalDefaulte.
 		"""
 		excetutionTime = timeWhenNothingInQueue
 		timesWithRole = [entry[0] for entry in self.subjson["giveRoleOnce"].values() if entry[2] == roleID]
@@ -125,16 +125,16 @@ class Sub(object):
 	@_reloadSubjson
 	def getGiveRoleOnceIDs(self):
 		"""
-		Returns all keys, which are the role ids, from giveRoleOnce.
+		Returns all keys, which are the role IDs, from giveRoleOnce.
 		"""
 		return self.subjson["giveRoleOnce"].keys()
 
 	@_reloadSubjson
 	def getContantOfGiveRoleOnceID(self, id):
 		"""
-		param id:	Id of role to give.
+		param id:	ID of role to give.
 
-		Gets the offset and intervall of a removeRole entry from sub.json.
+		Gets the offset and interval of a removeRole entry from sub.json.
 		If not found -> return [0,0,0]
 		"""
 		if id not in self.subjson["giveRoleOnce"]:
@@ -144,9 +144,9 @@ class Sub(object):
 	@_reloadSubjson
 	def deleteGiveRoleOnce(self, ids):
 		"""
-		param ids:	List of ids which should be removed from sub.json giveRoleOnce
+		param ids:	List of IDs which should be removed from sub.json giveRoleOnce
 
-		Removes all giveRoleOnce specified by the given ids if they are in sub.json giveRoleOnce.
+		Removes all giveRoleOnce specified by the given IDs if they are in sub.json giveRoleOnce.
 		"""
 		for id in ids:
 			if id in self.subjson["giveRoleOnce"]:

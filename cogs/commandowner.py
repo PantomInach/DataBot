@@ -16,13 +16,13 @@ def hasAnyRole(*items):
 	"""
 	Type:	Decorator for functions with ctx object in args[1].
 
-	param items:	Tuple of Strings and/or integers wit Discord Channel ids or names.
+	param items:	Tuple of Strings and/or integers wit Discord Channel IDs or names.
 
 	Check if a user has any of the roles in items.
 
 	Only use for commands, which USE @commands.command
-	commands.has_any_role() does not work in DM since a users can't have roles.
-	This on pulls the roles from the configured guilde and makes the same check as commands.has_any_role().
+	commands.has_any_role() does not work in DM since a user can't have roles.
+	This one pulls the roles from the configured guild and makes the same check as commands.has_any_role().
 
 	Function is not in decorators.py since the Helpfunction Object is needed.
 	"""
@@ -32,7 +32,7 @@ def hasAnyRole(*items):
 
 class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	"""
-	You need privilage level 2 to use these commands.
+	You require privilege level 2 to use these commands.
 	Only for development and Bot Owner.
 	"""
 	def __init__(self, bot):
@@ -45,10 +45,10 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 
 		Commandowner.utils = self.utils
 
-	@commands.command(name='test', pass_context=True, brief='Testing command for programmer.', description='You need privilege level Owner to use this command. Only the programmer knows what happens here.')
+	@commands.command(name='test', pass_context=True, brief='Testing command for programmer.', description='You require privilege level Owner to use this command. Only the programmer knows what happens here.')
 	@isBotOwnerCommand()
 	async def test(self, ctx, inputs):
-		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		category = find(lambda cat: cat.name == "Subserver Gateway", guild.categories)
 		main_gateway = find(lambda vc: vc.name.startswith("Main Server"), category.voice_channels)
 		print(main_gateway)
@@ -60,31 +60,31 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		await ctx.send("pong pong")
 
 	#Starts to log the users in voice channels
-	@commands.command(name='startlog', brief='Starts to log the users on the configured server.', description='You need privilege level 2 to use this command. Gets the connected users of the configured server und increments every minute their voice XP.')
+	@commands.command(name='startlog', brief='Starts to log the users on the configured server.', description='You require privilege level 2 to use this command. Gets the connected users of the configured server and increments every second minute their voice XP.')
 	@isBotOwnerCommand()
 	async def startlog(self, ctx):
 		if self.jh.getFromConfig("log") == "False":
 			self.jh.config["log"] = "True"
 			self.jh.saveConfig()
-			guildeID = int(self.jh.getFromConfig("guilde"))
-			guildeName = str(self.bot.get_guild(guildeID))
-			await self.utils.log(f"Start to log users from Server:\n\t{guildeName}",2)
+			guildID = int(self.jh.getFromConfig("guild"))
+			guildName = str(self.bot.get_guild(guildID))
+			await self.utils.log(f"Start to log users from Server:\n\t{guildName}",2)
 		else:
 			await ctx.send(f"Bot is logging. Logging state: True")
 
-	@commands.command(name='stoplog', brief='Stops to log the users on configured server.', description='You need privilege level 2 to use this command. When the bot logs the connective users on the configured server, this command stops the logging process.')
+	@commands.command(name='stoplog', brief='Stops to log the users on configured server.', description='You require privilege level 2 to use this command. When the bot logs the connective users on the configured server, this command stops the logging process.')
 	@isBotOwnerCommand()
 	async def stoplog(self, ctx):
 		if self.jh.getFromConfig("log")=="True":
-			guildeID = int(self.jh.getFromConfig("guilde"))
-			guildeName = str(self.bot.get_guild(guildeID))
+			guildID = int(self.jh.getFromConfig("guild"))
+			guildName = str(self.bot.get_guild(guildID))
 			self.jh.config["log"] = "False"
 			self.jh.saveConfig()
-			await self.utils.log(f"Stopped to log users from Server:\n\t{guildeName}",2)
+			await self.utils.log(f"Stopped to log users from Server:\n\t{guildName}",2)
 		else:
 			await ctx.send(f"Bot is NOT logging. Logging state: False")
 
-	@commands.command(name='stopbot', brief='Shuts down the bot.', description='You need privilege level 2 to use this command. This command shuts the bot down.')
+	@commands.command(name='stopbot', brief='Shuts down the bot.', description='You require privilege level 2 to use this command. This command shuts the bot down.')
 	@isBotOwnerCommand()
 	async def stopbot(self, ctx):
 		await self.utils.log("[Shut down] Beginning shutdown...",2)
@@ -103,12 +103,12 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	async def sendDPD(self, ctx):
 		datapath = str(os.path.dirname(__file__))[:-4]+"/data/"
 		string = ""
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
-		lenght = len(guilde.members)
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+		lenght = len(guild.members)
 		i = 0
 		with open(datapath+"dataProtection.txt","r") as f:
 			string = f.read()
-		for member in guilde.members:
+		for member in guild.members:
 			await self.utils.removeRoles(member.id, ["chairman", "associate", "employee", "✅"])
 			print(f"Progress: {i}/{lenght}")
 			i = i+1
@@ -119,10 +119,10 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 	@isBotOwnerCommand()
 	async def sendGiveRoles(self, ctx):
 		text = "**Choose your interest group**\n```You will be given roles based on your interest that grant you access to optional voice- and textchannels.\nInterest:                      Rolename:\n🎮 gaming                      gaming\n📚 study-channel               student\n👾 development-technology      dev-tech\n🏹 single-exchange             single\n🤑 gambling-channel            gambling\n⚡ bot-development             bot-dev```"
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
-		lenght = len(guilde.members)
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+		lenght = len(guild.members)
 		i = 1
-		for member in guilde.members:
+		for member in guild.members:
 			await self.utils.removeRoles(member.id, ["gaming", "student", "dev-tech", "single", "gambling", "bot-dev"])
 			print(f"Progress: {i}/{lenght}")
 			i = i+1

@@ -20,7 +20,7 @@ class Textban(object):
 
 	def hasTextBan(self, userID):
 		"""
-		param userID:	Is the userID from discord user as a String or int
+		param userID:	Is the user ID from discord user as a string or int
 
 		Checks if a user has an entry in textban.json.	
 		"""
@@ -29,7 +29,7 @@ class Textban(object):
 	@staticmethod
 	def staticHasTextBan(userID):
 		"""
-		param userID:	Is the userID from discord user as a String or int
+		param userID:	Is the user ID from discord user as a string or int
 
 		Same as hasTextBan but is a static method.
 		Checks if a user has an entry in textban.json.	
@@ -40,11 +40,11 @@ class Textban(object):
 
 	async def addTextBan(self, userID, time):
 		"""
-		param userID:	Is the userID from discord user as a String or int
-		param time:		Who long the user should be banned. Format: String or int.
+		param userID:	Is the user ID from discord user as a string or int
+		param time:		Who long the user should be banned. Format: string or int.
 
 		Adds a textban for a user and delets it after the amount of time.
-		Textbans are carryed out in main.on_message() by deleting send messages.
+		Textbans are carried out in main.on_message() by deleting sent messages.
 		"""
 		if str(time).isdigit():
 			#if self.hasTextBan(userID) and self.ban[str(userID)][1]:
@@ -66,9 +66,9 @@ class Textban(object):
 
 	def removeTextBan(self, userID):
 		"""
-		param userID:	Is the userID from discord user as a String or int
+		param userID:	Is the user ID from discord user as a string or int
 
-		Removes a user from textban.json, so the user is no more textbanned.
+		Removes a user from textban.json, so the user isn't textbanned anymore.
 		"""
 		if self.hasTextBan(userID):
 			del self.ban[str(userID)]
@@ -87,7 +87,7 @@ class Textban(object):
 
 	def clearInvalidTextban(self):
 		"""
-		Clear all textbans ffrom textban.json, which are run out but did not get cleared.
+		Clear all textbans from textban.json, which are run out but did not get cleared.
 		"""
 		for userID in self.ban:
 			if t.time() - int(self.ban[userID][1]) >= int(self.ban[userID][0]):
