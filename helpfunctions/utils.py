@@ -218,7 +218,7 @@ class Utils(object):
 		elif textBeginn == "**Cho":
 			return(6,0)
 
-		# Normal message are not implemented yet.
+		# Normal message or not implemented yet.
 		else:
 			return (0,0)
 
@@ -229,7 +229,7 @@ class Utils(object):
 	async def sendServerModMessage(self, string, embed = None):
 		"""
 		param string:	String which is send.
-		Sends all COOs on the guild string. 
+		Sends all Mods on the guild string. 
 		!!! Not modular and sends it to COO !!!
 		"""
 		server = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
