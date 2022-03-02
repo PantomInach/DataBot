@@ -19,7 +19,7 @@ class Xpfunk(object):
 		
 	def textXP(self, message):
 		"""
-		param message:	String which length determinants who much XP is given
+		param message:	String which length determines how much XP will be given
 		"""
 		if len(message)>=150:
 			return random.randint(20,40)
