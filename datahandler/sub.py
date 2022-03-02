@@ -58,7 +58,7 @@ class Sub(object):
 
 	def saveSubjson(self):
 		"""
-		Saves sub.json to sub.json.
+		Saves subjson to sub.json.
 		"""
 		with open(self.subpath+"sub.json",'w') as f:
 			json.dump(self.subjson, f, indent = 6)
