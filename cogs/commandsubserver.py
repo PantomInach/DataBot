@@ -151,7 +151,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		"""
 		subserver_name = subserver_name.lower().replace(" ","")
 		if len(subserver_name) > 16:
-			await ctx.send(f"ERROR! Subserver name must have 16 or less characters. The given name {subserver_name} has {len(subserver_name)}.")
+			await ctx.send(f"ERROR: Subserver name must have 16 or less characters. The given name {subserver_name} has {len(subserver_name)}.")
 			return
 
 		guild = self.guild
@@ -206,7 +206,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		sub_way_category = find(lambda c: c.name == 'Subserver Gateway', guild.categories)
 		sub_way_channel = find(lambda ch: ch.name.startswith(name), sub_way_category.voice_channels)
 		if not (sub_category or sub_way_channel):
-			await ctx.send(f"ERROR! No subserver with name {name} found.", delete_after = 3600)
+			await ctx.send(f"ERROR: No subserver with name {name} found.", delete_after = 3600)
 			return
 		if sub_category:
 			for ch in sub_category.channels:
@@ -216,13 +216,13 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		if sub_way_channel:
 			await sub_way_channel.delete()
 		else:
-			await ctx.send(f"WARNING! No subway channel found.", delete_after = 3600)
+			await ctx.send(f"WARNING: No subway channel found.", delete_after = 3600)
 
 		for role in self.get_subserver_roles(name):
 			if role:
 				await role.delete()
 			else:
-				await ctx.send(f"WARNING! No subway role found.", delete_after = 3600)
+				await ctx.send(f"WARNING: No subway role found.", delete_after = 3600)
 
 	@sub.command(name = 'list', brief = 'List all subserver.')
 	@isDMCommand()
