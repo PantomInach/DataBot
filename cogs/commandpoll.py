@@ -343,8 +343,12 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		if messageID and channelID:
 			# poll has been sent somewhere => delete old one
 			channel = self.bot.get_channel(int(channelID))
-			messageToDelet = await channel.fetch_message(int(messageID))
-			await messageToDelet.delete()
+			if channel:
+				try:
+					messageToDelet = await channel.fetch_message(int(messageID))
+					await messageToDelet.delete()
+				except discord.NotFound as e:
+					pass
 		# Poll is open => send it
 		if self.poll.getStatus(pollID) == "OPEN":
 			# Send poll
@@ -380,16 +384,24 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		Sets status of poll to CLOSED and removes reactions from poll, so nobody can vote anymore.
 		"""
 		[messageID, channelID] = self.poll.getMessageID(pollID)
-		if self.poll.pollClose(pollID) and messageID and channelID:
-			channel = self.bot.get_channel(int(channelID))
+		closed = self.poll.pollClose(pollID)
+		if closed:
+			await self.utils.log(f"User {ctx.author.name} cloesed poll: \"{self.poll.getName(pollID)}\"",1)
+		if not (closed and messageID and channelID):
+			await ctx.send("ERROR POLL STATUS: Can't close Poll.")
+			return
+		# Edit message
+		channel = self.bot.get_channel(int(channelID))
+		if not channel:
+			return
+		try:
 			message = await channel.fetch_message(int(messageID))
-			if message != None:
-				await message.clear_reactions()
-				await message.edit(content=f"{self.poll.pollString(pollID)}")
-				# self.poll.setMessageID(pollID, '', '')
-				await self.utils.log(f"User {ctx.author.name} cloesed poll: \"{self.poll.getName(pollID)}\"",1)
-		else:
-			await ctx.send("ERROR: Can't close Poll")	
+			await message.clear_reactions()
+			await message.edit(content=f"{self.poll.pollString(pollID)}")
+			# self.poll.setMessageID(pollID, '', '')
+		except discord.NotFound as e:
+			return
+			
 
 	@poll.command(name = 'publish', brief = 'Publishes a poll.')
 	@isNotInChannelOrDMCommand("📂log","📢info","⏫level")
@@ -410,22 +422,28 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 
 		Sets status of poll to published and removes reactions from poll, so nobody can vote anymore.
 		"""
-		if self.poll.pollPublish(pollID):
-			# Delete OPEN poll to resend as published
-			[messageID, channelID] = self.poll.getMessageID(pollID)
-			channel = self.bot.get_channel(int(channelID))
+		await ctx.message.delete()
+		published = self.poll.pollPublish(pollID)
+		if not published:
+			await ctx.send(content="ERROR: Poll does not exist or poll is not OPEN.", delete_after=7200)
+			return
+		# Delete OPEN poll to resend as published
+		[messageID, channelID] = self.poll.getMessageID(pollID)
+		channel = self.bot.get_channel(int(channelID))
+		if not channel:
+			return
+		try:
 			message = await channel.fetch_message(int(messageID))
 			await message.delete()
-			# Send published poll
-			text = self.poll.pollStringSortBy(pollID, 1)
-			message = await ctx.send(content=text)
-			self.poll.setMessageID(pollID, '', '')
-			# Give voters XP
-			for vote in self.poll.getVotes(pollID):
-				self.jh.addReactionXP(vote[0], 25)
-		else:
-			await ctx.send(content="ERROR: Poll does not exist or poll is not OPEN.", delete_after=7200)
-		await ctx.message.delete()
+		except discord.NotFound as e:
+			pass
+		# Send published poll
+		text = self.poll.pollStringSortBy(pollID, 1)
+		message = await ctx.send(content=text)
+		self.poll.setMessageID(pollID, '', '')
+		# Give voters XP
+		for vote in self.poll.getVotes(pollID):
+			self.jh.addReactionXP(vote[0], 25)		
 
 	@commands.Cog.listener()
 	async def on_raw_reaction_add(self, payload):
