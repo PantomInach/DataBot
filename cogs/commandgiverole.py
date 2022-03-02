@@ -212,6 +212,7 @@ class Commandgiverole(commands.Cog):
 		if not table_content:
 			return 
 		roles_to_give = table_content["reactions"][payload.emoji.name][0]
+		print(roles_to_give, table_content["text"])
 		await self.utils.giveRoles(payload.member.id, roles_to_give)
 
 	@commands.Cog.listener()
@@ -234,7 +235,9 @@ class Commandgiverole(commands.Cog):
 		table_content = None
 		for table_name, _ in self.list_table():
 			table_temp = self.get_table_content(table_name)
-			if str(channel_id) == str(channel_id) and str(message_id) == str(message_id):
+			table_mid = table_temp["messageid"]
+			table_cid = table_temp["channelid"]
+			if str(channel_id) == str(table_cid) and str(message_id) == str(table_mid):
 				table_content = table_temp
 				break
 		return table_content
