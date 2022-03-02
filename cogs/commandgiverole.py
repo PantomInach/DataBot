@@ -25,8 +25,8 @@ class Commandgiverole(commands.Cog):
 				"channelid": channelid of message,
 				"messageid": messageid of table,
 				"reactions":{
-					"Emoji":([Roles, to, give], [Roles, to, remove]),
-					"Emoji2":([Roles, to, give], [Roles, to, remove])
+					"Emoji":[[Roles, to, give], [Roles, to, remove]],
+					"Emoji2":[[Roles, to, give], [Roles, to, remove]]
 				}
 			} 
 		The roles can be the name, id or str(id) of a role.
