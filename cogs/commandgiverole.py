@@ -40,8 +40,8 @@ class Commandgiverole(commands.Cog):
 
 	When you have configured your table, you can post it to the current channel by executing 'table post [table name]'.
 	To get all tables, use 'table list'.
-	If you want to change a table, because you want to add/remove a role or change the text, modify the corresponding .json and run 'table update [table name]'.
-	It is also possible to remove your table complete via 'table rm [table name]'. !!! BE CAREFULLY WHEN USING THIS COMMAND. This action can not be reverted.  
+	If you want to change a table, because you want to add/remove a role or change the text, modify the corresponding .json and run 'rlext' and 'table update [table name]'.
+	It is also possible to remove your table message via 'table rm [table name]'. !!! BE CAREFULLY WHEN USING THIS COMMAND. This action can not be reverted.  
 	"""
 
 	def __init__(self,bot):
@@ -325,10 +325,6 @@ class Commandgiverole(commands.Cog):
 			return (False, "ROLES")
 		# Test passed.
 		return (True, None)
-
-
-
-
 
 def setup(bot):
 	bot.add_cog(Commandgiverole(bot))
