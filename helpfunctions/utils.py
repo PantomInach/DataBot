@@ -177,7 +177,7 @@ class Utils(object):
 		"""
 		param message:	String of a message in Discord.
 
-		Determinants in which state the message is. Used to identify Bot features such as leaderbord or polls.
+		Determines in which state the message is. Used to identify Bot features such as leaderbord or polls.
 
 		State (0,0): Normal Message
 		State (1,x): Leaderboard sorted by XP on page x
