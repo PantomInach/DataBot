@@ -234,7 +234,7 @@ class Commandlistener(commands.Cog):
 	async def on_voice_state_update(self, member, before, after):
 		"""
 		Handles user interactions when a user changes his voice state.
-		A voice change is when a members change/join a channel, mute/unmute himself, deafen/undeafen themselves.
+		A voice change is when a member changes/joins a channel, mutes/unmutes themselves, deafens/undeafens themselves.
 
 		param member:	User on guild
 		param before:	Gives the voice state before the change
