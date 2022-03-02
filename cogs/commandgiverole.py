@@ -254,8 +254,9 @@ class Commandgiverole(commands.Cog):
 		if not channel:
 			await ctx.author.send(f"ERROR: Channel {channel_id} is not found. The configuration of table {table_name} is wrong. Please correct the table by hand in the 'giveroles' folder.")
 			return
-		message = await channel.fetch_message(message_id)
-		if not message:
+		try:
+			message = await channel.fetch_message(message_id)
+		except discord.NotFound as e:
 			await ctx.author.send(f"ERROR: Message {message_id} is not found. The configuration of table {table_name} is wrong. Please correct the table by hand in the 'giveroles' folder.")
 			return
 		return message
