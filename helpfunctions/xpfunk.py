@@ -11,7 +11,7 @@ class Xpfunk(object):
 		"""
 		param jh:	Jsonhandel object passed when created.
 
-		Creats object.
+		Creates object.
 		"""
 		super(Xpfunk, self).__init__()
 		# Read only
@@ -19,7 +19,7 @@ class Xpfunk(object):
 		
 	def textXP(self, message):
 		"""
-		param message:	String which length determinants who much xp is given
+		param message:	String which length determinants who much XP is given
 		"""
 		if len(message)>=150:
 			return random.randint(20,40)
@@ -39,21 +39,21 @@ class Xpfunk(object):
 		param voice:	int
 		param text:		int
 
-		Gives member xp by voice and text.
+		Gives member XP by voice and text.
 		"""
 		return voice + text
 
 	def levelRoleList(self, userID):
 		"""
-		param userID:	Is the userID from discord user as a String
+		param userID:	Is the user ID from discord user as a string
 
-		Returns all roles which user needs to have depending on his XP on the guilde.
+		Returns all roles which user needs to have depending on his XP on the guild.
 		"""
 		roles = self.jh.getRoles()
 		rolesXPNeed = self.jh.getRolesXPNeed()
 		roleList = []
 		userLevel = int(self.jh.getUserLevel(userID))
-		# Goes threw all roles XP limits in the config file.
+		# Goes through all roles XP limits in the config file.
 		for i in range(len(roles)):
 			if userLevel >= rolesXPNeed(i):
 				# Addes role
@@ -67,7 +67,7 @@ class Xpfunk(object):
 		param voice:	int
 		param text:		int
 
-		Gives the level depending on the given voice and text XP.
+		Gives the level depending on given voice and text XP.
 		"""
 		level = 0
 		xp = int(voice)+int(text)

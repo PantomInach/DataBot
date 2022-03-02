@@ -10,13 +10,13 @@ def hasAnyRole(*items):
 	"""
 	Type:	Decorator for functions with ctx object in args[1].
 
-	param items:	Tuple of Strings and/or integers wit Discord Channel ids or names.
+	param items:	Tuple of Strings and/or integers wit Discord Channel IDs or names.
 
 	Check if a user has any of the roles in items.
 
 	Only use for commands, which USE @commands.command
-	commands.has_any_role() does not work in DM since a users can't have roles.
-	This on pulls the roles from the configured guilde and makes the same check as commands.has_any_role().
+	commands.has_any_role() does not work in DM since a user can't have roles.
+	This one pulls the roles from the configured guild and makes the same check as commands.has_any_role().
 
 	Function is not in decorators.py since the Helpfunction Object is needed.
 	"""
@@ -29,31 +29,32 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	This bot has the option to host polls. Here is how to do it:
 
 	1) Create a poll:
-		You can create a poll by 'poll create [poll name]'.
-		The poll name musst be smaller than 71 characters and will be the title of the poll.
-		You will get a overview of the poll back. This also includes the poll id, which will be important to configure the poll.
+		You can create a poll by typing 'poll create [poll name]'.
+		The poll name must be smaller than 71 characters and will be the title of the poll.
+		You will get an overview of the poll back. This also includes the poll ID, which will be important to configure the poll.
 	1.1) List poll:
-		With 'poll list' you will get a overview of every poll the bot knows about.
+		By typing 'poll list' you will get an overview of every poll the bot knows about.
 	2) Add options:
-		Use 'poll op add [poll id] [option name]' to add a option to your poll.
-		The option name musst be smaller than 113 characters and will be displayed in the poll.
+		Use 'poll op add [poll ID] [option name]' to add an option to your poll.
+		The option name must be smaller than 113 characters and will be displayed in the poll.
 	2.1) Remove option:
-		If you want to remove a option than it will be possible with 'poll op rm [poll id] [option name]'.
+		By typing 'poll op rm [poll ID] [option name]' you can delete a poll option.
 	3) View your poll:
-		To check if every thing is all right with your poll you can use 'poll show [poll id]'.
-		This will give you the poll like it will be posted.
+		You can use 'poll show [poll ID]' to se an overview of all information stored in your poll.
+		This shows you the poll message like it will be posted.
 	4) Open your poll:
-		Now that your are ready with your poll, you can use 'poll open [poll id]' to make it available to vote for in the channel you wrote the command.
-		The member votes will the updated live in the poll, but every thing is anonymous.
-		You can only open your poll if in the overview stands that your poll is closed.
+		When you are done with your poll, you can type 'poll open [poll ID]' in the channel of your choosing to make it available to vote there.
+		The amount of votes per poll option will be updated live in the poll, but names of voters won't be shown and stay anonymous to other members.
+		You can only open your poll if the overview reads that your poll is closed.
 	5) Edit your poll:
-		Maybe you spot a typo or want to change the poll. Than use the command 'poll close [poll id]' to close the poll.
-		This resultes in RESETING your poll. So proceed with caution. Also the poll will be deleted from the channel.
-		Now you can use 'poll op add [poll id] [option name]' and 'poll op rm [poll id] [option name]' to modify it.
-		Just use 'poll open [poll id]' to reopen it.
+		Maybe you spot a typo or want to change the poll. Use the command 'poll close [poll ID]' to close the poll.
+		After, you can use 'poll op add [poll ID] [option name]' and 'poll op rm [poll ID] [option name]' to modify it.
+		Just use 'poll open [poll ID]' to reopen it or 'poll rm [poll ID]' to delete the poll.
 	6) Publish your poll:
-		Times up. You want to publish the resultes. So you need to use 'poll publish [poll id]'.
-		This will post the finished poll in the channel.
+		Time's up. If you want to publish the results, you can use 'poll publish [poll ID]' in the channel of your choosing.
+	7) Delete your poll:
+		If you want your poll to be deleted type 'poll rm [poll ID]'. 
+		A request will be automatically send to one of the COOs to delete it for you.
 	"""
 	"""
 	These Commands define interactions with polls.
@@ -87,9 +88,9 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		6) Publish poll:	'poll publish [poll id]'
 		7) Remove poll:		'poll rm [poll id]'
 
-		For a more indept explanation for using the poll command use 'help Poll Commands'.
+		For a more indepth explanation for using the poll command, use 'help Poll Commands'.
 
-		List of all commands with poll:
+		List of all poll commands:
 			poll create [poll id]
 			poll list
 			poll op add [poll id] [option name] 
@@ -100,18 +101,18 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			poll publish [poll id]
 			poll rm [poll id]
 
-		More infos can be found via 'help poll [command]'.
+		More info can be found via 'help poll [command]'.
 
 		The list of commands below you can execute in this channel.
 		"""
 		"""
-		param ctx:	Discord Context object. Automatical passed.
+		param ctx:	Discord Context object. Automatically passed.
 
-		Is the parent command for the 'poll' command.
+		It is the parent command for the 'poll' command.
 		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
 		"""
 		if ctx.invoked_subcommand is None:
-			embed=discord.Embed(title = "You need to specify a subcommand. Possible subcommands: create, list, show, close, open ,publish, rm, op", color=0xa40000)
+			embed=discord.Embed(title = "You need to specify a subcommand. Possible subcommands: create, list, show, close, open, publish, rm, op", color=0xa40000)
 			embed.set_author(name = "Invalid command")
 			embed.set_footer(text = "For more help run '+help poll'")
 			await ctx.send(embed = embed, delete_after = 3600)
@@ -121,11 +122,11 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@hasAnyRole("CEO","COO","chairman")
 	async def pollCreate(self, ctx, pollName):
 		"""
-		You can create a poll by 'poll create [poll name]'.
-		The poll name musst be smaller than 71 characters and will be the title of the poll.
-		You will get a overview of the poll back. This also includes the poll id, which will be important to configure the poll.
+		You can create a poll by typing 'poll create [poll name]'.
+		The poll name must be smaller than 71 characters and will be the title of the poll.
+		You will get an overview of the poll back. This also includes the poll ID, which will be important to configure the poll.
 
-		Can only be used in the DM with the bot and only by users with one of the roles 'CEO', 'COO' or 'chairman'. 
+		Can only be used in the bot-DM and only by members with one of the roles 'CEO', 'COO' or 'chairman'.
 		"""
 		"""
 		param ctx:	Discord Context object.
@@ -134,7 +135,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		Creates a poll with the given name.
 		Poll will have the lowest possible ID.
 
-		Sends a overwiew of the poll.
+		Sends an overview of the poll.
 		"""
 		message = ""
 		if len(pollName) <= 71:
@@ -145,19 +146,19 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			message = f"```md\n{pollID}\t{pollName}\t{datum}\t{status}\t{sumVotes}\n```\n"
 			await self.utils.log(f"User {ctx.author} created the poll {pollName} with ID: {pollID}.",1)
 		else:
-			message = "ERROR: The optionName is to long."
+			message = "ERROR: The poll option name is too long."
 		await ctx.send(message)
 
-	@poll.command(name = 'show', brief = 'Shows a poll.')
+	@poll.command(name = 'show', brief = 'Shows an overview of the poll.')
 	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
 	async def pollShow(self, ctx, pollID):
 		"""
-		To check if every thing is all right with your poll you can use 'poll show [poll id]'.
-		This will give you the poll like it will be posted.
-		Poll id can be look up with 'poll list'.
+		You can use 'poll show [poll ID]' to se an overview of all information stored in your poll.
+		This shows you the poll message like it will be posted.
+		Poll ID can be looked up with 'poll list'.
 
-		Can only be used in the DM with the bot and only by users with one of the roles 'CEO', 'COO' or 'chairman'. 
+		Can only be used in the bot-DM and only by members with one of the roles 'CEO', 'COO' or 'chairman'.
 		"""
 		"""
 		param ctx:	Discord Context object.
@@ -170,26 +171,26 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		if self.poll.isAPollID(pollID):
 			message = self.poll.pollString(pollID)
 		else:
-			message = "ERROR: Poll does not exists. Check +polls for active polls."
+			message = "ERROR: Poll does not exist. Check +polls for active polls."
 		await ctx.send(message)
 
-	@poll.group(name = 'op', briefe = 'Manipulate options of a poll.')
+	@poll.group(name = 'op', brief = 'Manipulate options of a poll.')
 	@isDMCommand()
 	@hasAnyRole("CEO","COO","chairman")
 	async def optioneParent(self, ctx):
 		"""
 		Group of poll option commands.
 
-		With this command group you can add and remove poll options.
+		With this command group, you can add and remove poll options.
 
-		More infos can be found via 'help poll op [command]'. 
+		More info can be found via 'help poll op [command]'. 
 
-		Can only be used in the DM with the bot and only by users with one of the roles 'CEO', 'COO' or 'chairman'. 
+		Can only be used in the bot-DM and only by members with one of the roles 'CEO', 'COO' or 'chairman'.
 		"""
 		"""
-		param ctx:	Discord Context object. Automatical passed.
+		param ctx:	Discord Context object. Automatically passed.
 
-		Is the parent command for the 'poll op' command.
+		It is the parent command for the 'poll op' command.
 		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
 		"""
 		if ctx.invoked_subcommand is None:
@@ -202,59 +203,59 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@optioneParent.command(name = 'add', brief = 'Add potion to a poll')
 	async def optionAdd(self, ctx, pollID, optionName):
 		"""
-		Use 'poll op add [poll id] [option name]' to add a option to your poll.
+		Use 'poll op add [poll id] [option name]' to add an option to your poll.
 		The option name will be displayed in the poll.
 
-		Can onyl be used if the poll is closed.
-		The option name musst be smaller than 113 characters and there can only be 7 options.
+		Can only be used if the poll is closed.
+		The option name must be smaller than 113 characters and there can only be 7 options.
 
-		Can only be used in the DM with the bot and only by users with one of the roles 'CEO', 'COO' or 'chairman'. 
+		Can only be used in the bot-DM and only by members with one of the roles 'CEO', 'COO' or 'chairman'.
 		"""
 		"""
 		param ctx:	Discord Context object.
 		param pollID:	Integer. ID of a poll in poll.json
 		param optionName:	String.
 
-		Trys to add a option to the poll with optionName.
-		New option gets lowest possible optionID.
+		Tries to add an option to the poll with optionName.
+		New option gets the lowest possible optionID.
 		"""
 		message = ""
 		if self.poll.isAPollID(pollID):
-			if len(optionName) <=112:
+			if len(optionName) <= 112:
 				if not self.poll.optionAdd(pollID, str(optionName), 0):
 					message = "ERROR: Option Name is already taken or poll is not CLOSED. Try another.\n"
 				message += f"{self.poll.pollString(pollID)}"
 			else:
-				message = "ERROR: OptionName is to long."
+				message = "ERROR: OptionName is too long."
 		else:
-			message = "ERROR: Poll does not exists. Check +polls for active polls."
+			message = "ERROR: Poll does not exist. Check `poll list` for all known polls."
 		await ctx.send(message)
 
 
-	@optioneParent.command(name = 'rm', brief = 'Remove a option from a poll.')
+	@optioneParent.command(name = 'rm', brief = 'Remove an option from a poll.')
 	async def polloptionRemove(self, ctx, pollID, optionName):
 		"""
-		If you want to remove a option than it will be possible with 'poll op rm [poll id] [option name]'.
+		If you want to remove an option, it will be possible with 'poll op rm [poll id] [option name]'.
 
-		Can onyl be used if the poll is closed.
+		Can only be used if the poll is closed.
 
-		Can only be used in the DM with the bot and only by users with one of the roles 'CEO', 'COO' or 'chairman'. 
+		Can only be used in the bot-DM and only by members with one of the roles 'CEO', 'COO' or 'chairman'.
 		"""
 		"""
 		param ctx:	Discord Context object.
 		param pollID:	Integer. ID of a poll in poll.json
 		param optionName:	String.
 
-		Trys to remove a option from the poll with optionName.
-		All ids from options higher than the removed option will decremented.
+		Tries to remove an option from the poll with option name.
+		All option IDs higher than the removed option will decremented.
 		"""
 		message = ""
 		if self.poll.isAPollID(pollID):
 			if not self.poll.optionRemove(pollID, str(optionName)):
-				message = "ERROR: Could not find option Name or poll is not CLOSED. Try another Name.\n"
+				message = "ERROR: Could not find option name or poll is not CLOSED. Try another Name.\n"
 			message += f"{self.poll.pollString(pollID)}"
 		else:
-			message = "ERROR: Poll does not exists. Check +polls for active polls."
+			message = "ERROR: Poll does not exist. Check `poll list` for all known polls."
 		await ctx.send(message)
 
 	@poll.command(name = 'list', brief = 'Gives Overview of all polls.')
@@ -262,10 +263,10 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	@hasAnyRole("CEO","COO","chairman","associate")
 	async def pollsList(self, ctx):
 		"""
-		With 'poll list' you will get a overview of every poll the bot knows about.
-		This includes 'poll id', 'poll name', 'date of creation', 'status' and 'votes'.
+		With 'poll list' you will get an overview of every poll the bot knows about.
+		This includes 'poll ID', 'poll name', 'date of creation', 'status' and 'votes'.
 
-		Can only be used in the DM with the bot or in the '🚮spam' channel and only by users with one of the roles 'CEO', 'COO', 'chairman' or 'associate'.
+		Can only be used in the bot-DM or in the '🚮spam' channel and only by members with one of the roles 'CEO', 'COO', 'chairman' or 'associate'.
 		"""
 		"""
 		param ctx:	Discord Context object.
@@ -286,9 +287,9 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		"""
 		To add an option to a poll use the command 'poll op add [poll id] [option name]'
 
-		Can onyl be used if the poll is closed.
+		Can only be used if the poll is closed.
 
-		Can only be used in the DM with the bot and only by users with one of the roles 'CEO', 'COO' or 'chairman'.
+		Can only be used in the bot-DM and only by members with one of the roles 'CEO', 'COO' or 'chairman'.
 		"""
 		"""
 		param ctx:	Discord Context object.
@@ -304,16 +305,16 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 					message = f"Removed Poll {pollName}."
 					await self.utils.log(f"User {ctx.author.mention} removed the poll: \"{pollName}\".", 2)
 					channel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
-					server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+					server = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 					await channel.send(f"User {ctx.author.mention} removed the poll: \"{pollName}\".")
 				else:
-					message = "ERROR: Something strange happend."
+					message = "ERROR: Something strange happened."
 					await self.utils.log(f"User {ctx.author.name} tried to remove poll: \"{pollName}\", {pollID} with message: {ctx.message.content}")
 			else:
 				message = "Can't remove a poll with options. Contacted Bot Mods to review your command. The poll will maybe be removed."
-				await self.utils.sendServerModMessage(f"User {ctx.author.mention} wants to removed the poll: \"{pollName}\". Use Command \"+poll_remove {pollID}.\" to remove to poll.")
+				await self.utils.sendServerModMessage(f"User {ctx.author.mention} wants to remove the poll: \"{pollName}\". Use Command \"poll rm {pollID}.\" to remove the poll.")
 		else:
-			message = "ERROR: Poll does not exists. Check +polls for active polls."
+			message = "ERROR: Poll does not exist. Check `poll list` for all known polls."
 		await ctx.send(message)
 
 	@poll.command(name = 'open', brief = 'Opens a poll.')
@@ -322,13 +323,13 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 	async def poll_open(self, ctx, pollID):
 		"""
 		To open a poll use the command 'poll open [poll id]'.
-		The poll will be posted like in 'poll show' to the channel, in which the command is invoked.
-		Also reactions will be added, which enable a member to vote on the option.
-		Votes will be shown in real time in the poll.
+		The poll will be posted like in 'poll show' into the channel, in which the command is invoked.
+		Also, reactions will be added, which enable a member to vote on the option.
+		The amount of votes will be shown in real time in the poll.
 
-		Can onyl be used if the poll is closed.
+		Can only be used if the poll is closed.
 
-		Can not be used in the "📂log","📢info","⏫level" channel or DM with the bot and can be only by users with one of the roles 'CEO', 'COO' or 'chairman'.
+		Can not be used in the "📂log","📢info","⏫level" channel or bot-DM and can be only by members with one of the roles 'CEO', 'COO' or 'chairman'.
 		"""
 		"""
 		param ctx:	Discord Context object.
@@ -338,9 +339,9 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		"""
 		[messageID, channelID] = self.poll.getMessageID(pollID)
 		self.poll.pollOpen(pollID)
-		# Test if has a send poll string somewhere
+		# Test if it has a send poll string somewhere
 		if messageID and channelID:
-			# poll has been send somewhere => delete old one
+			# poll has been sent somewhere => delete old one
 			channel = self.bot.get_channel(int(channelID))
 			messageToDelet = await channel.fetch_message(int(messageID))
 			await messageToDelet.delete()
@@ -355,7 +356,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 			self.poll.setMessageID(pollID, messageSend.id, messageSend.channel.id)
 			await self.utils.log(f"User {ctx.author.mention} opened the poll {pollID} in channel {ctx.channel.name}.",1)
 		elif self.poll.getStatus(pollID) == "CLOSED":
-			message = f"ERROR: You can't open a poll with only 1 polloption"
+			message = f"ERROR: You can't open a poll with only 1 poll option"
 			await ctx.author.send(message)
 		await ctx.message.delete()
 
@@ -368,15 +369,15 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		Now the poll can be edited again via 'poll op add/rm'.
 		Also the posted poll will be edited to show that it is closed and the reactions will be removed.
 
-		Can onyl be used if the poll is open.
+		Can only be used if the poll is OPEN.
 
-		Can only be used in the DM with the bot and only by users with one of the roles 'CEO', 'COO' or 'chairman'.
+		Can only be used in the bot-DM and only by members with one of the roles 'CEO', 'COO' or 'chairman'.
 		"""
 		"""
 		param ctx:	Discord Context object.
 		param pollID:	Integer. ID of a poll in poll.json
 
-		Sets status of poll to closed and removes reactions from poll, so nobody can vote anymore.
+		Sets status of poll to CLOSED and removes reactions from poll, so nobody can vote anymore.
 		"""
 		[messageID, channelID] = self.poll.getMessageID(pollID)
 		if self.poll.pollClose(pollID) and messageID and channelID:
@@ -397,11 +398,11 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		"""
 		To publish a poll use the command 'poll publish [poll id]'.
 		The poll will be posted like in 'poll show' to the channel, in which the command is invoked.
-		Published polls can not be altert and give the final resulte of a poll.
+		Published polls can not be altered and give the final result of a poll.
 
-		Can onyl be used if the poll is open.
+		Can only be used if the poll is open.
 
-		Can not be used in the "📂log","📢info","⏫level" channel or DM with the bot and can be only by users with one of the roles 'CEO', 'COO' or 'chairman'.
+		Can not be used in the "📂log","📢info","⏫level" channel or bot-DM and only by members with one of the roles 'CEO', 'COO' or 'chairman'.
 		"""
 		"""
 		param ctx:	Discord Context object.
@@ -410,7 +411,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		Sets status of poll to published and removes reactions from poll, so nobody can vote anymore.
 		"""
 		if self.poll.pollPublish(pollID):
-			# Delet OPEN poll to resend as published
+			# Delete OPEN poll to resend as published
 			[messageID, channelID] = self.poll.getMessageID(pollID)
 			channel = self.bot.get_channel(int(channelID))
 			message = await channel.fetch_message(int(messageID))
@@ -431,16 +432,16 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		"""
 		param payload:	Gives context about the added reaction
 
-		Handels diffrent bot interactions with the server via ractions.
+		Handles different bot interactions with the server via reactions.
 
 		First:
 			Handles leaderboard interactions for new page and new sorting.
 		Second:
-			Handels voting on polls.
+			Handles voting on polls.
 		Third:
 			Give role on data processing.
-		Forth: (Handel here)
-			Handels ractions on interest groups for user the get roles.
+		Forth: (Handle here)
+			Handles reactions on interest groups for member the get roles.
 		Fifth:
 			Give XP when a reaction is added.
 		Sixth:
@@ -456,7 +457,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		message = await channel.fetch_message(int(payload.message_id))
 		[state, page] = Utils.getMessageState(message)
 		"""
-		State (0,0): Normal Message
+		State (0,0): Normal message
 		State (1,x): Leaderboard sorted by XP on page x
 		State (2,x): Leaderboard sorted by Voice on page x
 		State (3,x): Leaderboard sorted by TextCount on page x
@@ -487,7 +488,7 @@ class Commandpoll(commands.Cog, name='Poll Commands'):
 		"""
 		param message:	Discord Message object. Should be from a Poll.
 
-		Gets which option is voted for in a Poll created by the Bot via the reactions.
+		Gets which option is voted for in a poll created by the Bot via the reactions.
 		"""
 		reactions = message.reactions
 		i = 0
