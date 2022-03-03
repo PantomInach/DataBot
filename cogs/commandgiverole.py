@@ -49,7 +49,7 @@ class Commandgiverole(commands.Cog):
 		self.jh = Jsonhandel()
 		self.utils = Utils(bot, jh = self.jh)
 		self.datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/giveroles/"
-		self.guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+		self.guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 
 	@commands.group(name = "table", brief = "Manage a table to give/remove roles via reactions.")
 	@isBotModCommand()
@@ -321,10 +321,10 @@ class Commandgiverole(commands.Cog):
 			for l in tupel:
 				for role in l:
 					roles.add(role)
-		guilde_roles = {role.name for role in self.guild.roles}.union(
+		guild_roles = {role.name for role in self.guild.roles}.union(
 			{role.id for role in self.guild.roles},
 			{str(role.id) for role in self.guild.roles})
-		if not roles.issubset(guilde_roles):
+		if not roles.issubset(guild_roles):
 			return (False, "ROLES")
 		# Test passed.
 		return (True, None)
