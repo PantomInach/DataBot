@@ -86,7 +86,6 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		self.utils = Utils(bot, jh = self.jh)
 		Commandsubserver.utils = self.utils
 		Commandsubserver.subserver_role = self.jh.get_subserver_needed_roles()
-		self.guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 
 	@commands.group(name = 'sub', brief = 'Group of subserver commands.')
 	@hasSubserverRoles()
@@ -154,7 +153,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 			await ctx.send(f"ERROR: Subserver name must have 16 or less characters. The given name {subserver_name} has {len(subserver_name)}.")
 			return
 
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 
 		# Test if subserver already exists
 		if "sub-" + subserver_name in guild.roles:
@@ -201,7 +200,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 	@isDMCommand()
 	@hasAnyRole("COO", "CEO")
 	async def remove(self, ctx, name):
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		sub_category = self.get_subserver_category_by_name(name)
 		sub_way_category = find(lambda c: c.name == 'Subserver Gateway', guild.categories)
 		sub_way_channel = find(lambda ch: ch.name.startswith(name), sub_way_category.voice_channels)
@@ -235,7 +234,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		"""
 		Sends an embeded back containing all subserver, how many people are in the voice channel, how many people are currently in the subserver and how many members the subserver has.
 		"""
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		embed = discord.Embed(title = "Subserver List", 
 									description = "(User connected / User online / User total)", 
 									color = 12008408)
@@ -261,7 +260,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 
 		Gives the member with the userID the sub_way role of the subserver if all inputs are correct and author is a member of the subserver.
 		"""
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		(sub_role, sub_way_role) = self.get_subserver_roles(subserver_name)
 		# Check if subserver exists
 		if not (sub_role and sub_way_role):
@@ -306,7 +305,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		if not (sub_role and sub_way_role):
 			await ctx.send(f"ERROR! Subserver with name {subserver_name} not found.", delete_after = 3600)
 			return
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		author_member = guild.get_member(ctx.author.id)
 		if author_member in sub_role.members:
 			await author_member.remove_roles(sub_role, reason = f"Member {ctx.author.name} decided to leave the subserver {subserver_name}.")
@@ -323,7 +322,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 
 		This command can only be used in the DM.
 		"""
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		author_member = guild.get_member(ctx.author.id)
 		if await self.leave_current_subserver_no_permanent(author_member):
 			await ctx.send("You left your current subserver.", delete_after = 60)
@@ -350,7 +349,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		if not (sub_role and sub_way_role):
 			await ctx.send(f"ERROR! No subserver with name {subserver_name}.")
 			return
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		author_member = guild.get_member(ctx.author.id)
 		if not author_member:
 			await ctx.send("ERROR! Your are not on the guild.")
@@ -401,7 +400,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		if not (sub_role and sub_way_role):
 			await ctx.send(f"ERROR! No subserver with name {subserver_name}.")
 			return
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		code = self.hash_invite_code(subserver_name)
 		embed=discord.Embed(title = f"Invite Code for subserver {subserver_name}", description = code, color = 12008408)
 		embed.set_footer(text = f"Use command 'sub join {code}' to join subserver.")
@@ -422,7 +421,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		Computes all hashes of a subserver till the right subserver is hit. Then gives the member the corresponding subserver role.
 		If none is found, than print error message.
 		"""
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		subserver = self.get_all_subserver_roles()
 		all_suberver_names = [sub.name.split("-")[1] for sub, _ in subserver]
 		# Search for matching hash
@@ -457,7 +456,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		When a member connects to a subway channel, he will get the corresponding role.
 		"""
 		# Subway channel function
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		category = find(lambda c: after.channel in c.channels, guild.categories)
 		# Switch to subserver
 		if category and category.name == "Subserver Gateway" and after.channel and after.channel in category.voice_channels:
@@ -475,7 +474,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 
 		Returns the roles. When none is found, the return for the roles is None.
 		"""
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		sub_role = find(lambda r: r.name == "sub-" + sub_name, guild.roles)
 		sub_way_role = find(lambda r: r.name == "sw-" + sub_name, guild.roles)
 		return (sub_role, sub_way_role)
@@ -485,7 +484,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		Returns a list of tuple of roles, which contain the subserver and subway role.
 		Note that a subserver name is in the return when the role "sub-..." exists.
 		"""
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		sub_roles = [role for role in guild.roles if role.name.startswith("sub-") or role.name.startswith("sw-")]
 		# Sort by subserver name. '+ r.name[1]' is for sorting sub roles on top of subway roles, since '+ r.name[1]' is 'u' or 'w'.
 		sorted_roles = sorted(sub_roles, key = lambda r: r.name.split("-")[1] + r.name[1])
@@ -513,7 +512,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		Searches the subserver category for the matching name and returns it.
 		Otherwise return None.
 		"""
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		for cat in guild.categories:
 			if cat.name == "sub-" + name:
 				return cat
@@ -527,7 +526,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		Removes member from current subserver and lets him join new subserver defined to.
 		Returns True if operation was successful.
 		"""
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		if not member:
 			return False
 		succesful = await self.leave_current_subserver_no_permanent(member)
@@ -546,7 +545,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		Removes all sub-roles of user.
 		Returns True if operation was successful.
 		"""
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		if not member:
 			return False
 		sub_roles = [role for role in member.roles if role.name.startswith("sub-")]
@@ -561,7 +560,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		Exp.: {"test": (0,2,4), "test2": (3,6,8), ...}  
 		"""
 		info_dict = {}
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		subserver_dict = self.get_subserver_users_per_role()
 		for key in subserver_dict.keys():
 			subserver_name = key.name[4:]
@@ -581,7 +580,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		"""
 		Updates the member info for each channel in the subway gateway if necessary
 		"""
-		guild = self.guild
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		category = find(lambda cat: cat.name == "Subserver Gateway", guild.categories)
 		info_dict = self.get_subserver_user_amount_info()
 		subservers = [channel for channel in category.voice_channels]

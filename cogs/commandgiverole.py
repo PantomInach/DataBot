@@ -49,7 +49,6 @@ class Commandgiverole(commands.Cog):
 		self.jh = Jsonhandel()
 		self.utils = Utils(bot, jh = self.jh)
 		self.datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/giveroles/"
-		self.guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 
 	@commands.group(name = "table", brief = "Manage a table to give/remove roles via reactions.")
 	@isBotModCommand()
@@ -147,7 +146,8 @@ class Commandgiverole(commands.Cog):
 		# Unutalised option to delet roles on removing a table.
 		roles_to_remove = [role for (give, remove) in table_content["reactions"].values() for role in remove]
 		# Also sorts out users, which discord.Reactions.users() can return.
-		remove_from_member = [member for reaction in message.reactions for member in await reaction.users().flatten() if self.guild.get_member(member.id)] 
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+		remove_from_member = [member for reaction in message.reactions for member in await reaction.users().flatten() if guild.get_member(member.id)] 
 		for member in remove_from_member:
 			await self.utils.removeRoles(member.id, roles_to_remove)
 		"""
@@ -253,7 +253,8 @@ class Commandgiverole(commands.Cog):
 		Otherwise returns a Discord message object.
 		"""
 		table_name = ctx.args[-1]
-		channel = self.guild.get_channel(channel_id)
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+		channel = guild.get_channel(channel_id)
 		if not channel:
 			await ctx.author.send(f"ERROR: Channel `{channel_id}` is not found. The configuration of table `{table_name}` is wrong. Please correct the table by hand in the 'giveroles' folder.")
 			return
@@ -321,9 +322,10 @@ class Commandgiverole(commands.Cog):
 			for l in tupel:
 				for role in l:
 					roles.add(role)
-		guild_roles = {role.name for role in self.guild.roles}.union(
-			{role.id for role in self.guild.roles},
-			{str(role.id) for role in self.guild.roles})
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+		guild_roles = {role.name for role in guild.roles}.union(
+			{role.id for role in guild.roles},
+			{str(role.id) for role in guild.roles})
 		if not roles.issubset(guild_roles):
 			return (False, "ROLES")
 		# Test passed.
