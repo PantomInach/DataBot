@@ -427,12 +427,12 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		# Search for matching hash
 		i = 0
 		hashed_code = self.hash_invite_code(all_suberver_names[i])
-		while i < len(all_suberver_names) and hashed_code != code:
+		while i < len(all_suberver_names) - 1 and hashed_code != code:
 			i += 1
 			hashed_code = self.hash_invite_code(all_suberver_names[i])
 		# Check if search was successful.
 		author_member = guild.get_member(ctx.author.id)
-		if i == len(all_suberver_names) or not author_member:
+		if i >= len(all_suberver_names) - 1 or not author_member:
 			await asyncio.sleep(1)
 			await ctx.send(f"ERROR! Code does not match any invite code of any subserver.")
 			return
