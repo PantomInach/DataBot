@@ -181,42 +181,6 @@ class Commandlistener(commands.Cog):
 				for emoji in reactionsarr:
 					await message.add_reaction(emoji)
 
-		# State 5 =^= Note on data processing
-		elif state == 5:
-			# Give role for using server
-			if not self.utils.hasRole(userID, "✅"):
-				await self.utils.giveRole(userID, "✅")
-
-		# State 6 =^= User interest groups
-		elif state == 6 and (self.utils.hasRole(userID, "✅")):
-			# User needs to accept Note on data processing before using this feature
-			# Gives user role depending on what they react on
-			if str(payload.emoji) == "🎮" and not self.utils.hasRole(userID, "gaming"):
-				await self.utils.giveRole(userID, "gaming")
-
-			elif str(payload.emoji) == "📚" and not self.utils.hasRole(userID, "student"):
-				await self.utils.giveRole(userID, "student")
-
-			elif str(payload.emoji) == "👾" and not self.utils.hasRole(userID, "dev-tech"):
-				await self.utils.giveRole(userID, "dev-tech")
-
-			elif str(payload.emoji) == "🏹" and not self.utils.hasRole(userID, "single"):
-				await self.utils.giveRole(userID, "single")
-
-			elif str(payload.emoji) == "🤑" and not self.utils.hasRole(userID, "gambling"):
-				await self.utils.giveRole(userID, "gambling")
-
-			elif str(payload.emoji) == "⚡" and not self.utils.hasRole(userID, "bot-dev"):
-				await self.utils.giveRole(userID, "bot-dev")
-
-			else:
-				await message.remove_reaction(payload.emoji, payload.member)
-
-		# When user can not get roles
-		elif state == 6 and not self.utils.hasRole(userID, "✅"):
-			# Removes user reaction
-			await message.remove_reaction(payload.emoji, payload.member)
-
 		# Member is reacting to other members and gets XP
 		else:
 			#Give reaction XP
@@ -227,7 +191,6 @@ class Commandlistener(commands.Cog):
 				if not (message.author.bot or payload.member.bot) and self.jh.getFromConfig("log")=="True":
 					self.jh.addReactionXP(payload.user_id, self.xpf.randomRange(1,5))
 					self.jh.saveData()
-
 
 	# When a user changes his voice state
 	@commands.Cog.listener()
@@ -361,55 +324,6 @@ class Commandlistener(commands.Cog):
 				channelName = "DM"
 			string = f"\n######\n# User {message.author.name} tried to invoke a command in {channelName}.\n# Command: {a}\n######"
 			await self.utils.log(string, 2)
-
-
-	# When member removes a reaction
-	@commands.Cog.listener()
-	async def on_raw_reaction_remove(self, payload):
-		"""
-		param payload:	Gives context about the removed reaction
-
-		Handles user interaction in which reactions are removed.
-
-		First:
-			Note on data processing remove server role
-		Second:
-			Remove user roles on interest groups when a reaction is removed 
-		"""
-		userID = payload.user_id
-		server = self.bot.get_guild(payload.guild_id)
-		member = server.get_member(userID)
-		channel = self.bot.get_channel(int(payload.channel_id))
-		message = await channel.fetch_message(int(payload.message_id))
-		[state, page] = Utils.getMessageState(message)
-
-		# If member revokes his approval for Note on data processing
-		if state == 5 and (self.utils.hasRole(userID, "✅")):
-			await self.utils.removeRoles(userID, ["chairman", "associate", "employee", "✅"])
-
-		# When member revokes his interest in interest groups
-		elif state == 6:
-			if not self.utils.hasRole(userID, "✅"):
-				await message.remove_reaction(payload.emoji, member)
-
-			elif str(payload.emoji) == "🎮" and self.utils.hasRole(userID, "gaming"):
-				await self.utils.removeRole(userID, "gaming")
-
-			elif str(payload.emoji) == "📚" and self.utils.hasRole(userID, "student"):
-				await self.utils.removeRole(userID, "student")
-
-			elif str(payload.emoji) == "👾" and self.utils.hasRole(userID, "dev-tech"):
-				await self.utils.removeRole(userID, "dev-tech")
-
-			elif str(payload.emoji) == "🏹" and self.utils.hasRole(userID, "single"):
-				await self.utils.removeRole(userID, "single")
-
-			elif str(payload.emoji) == "🤑" and self.utils.hasRole(userID, "gambling"):
-				await self.utils.removeRole(userID, "gambling")
-
-			elif str(payload.emoji) == "⚡" and self.utils.hasRole(userID, "bot-dev"):
-				await self.utils.removeRole(userID, "bot-dev")
-
 
 	def _getLeaderboardChange(self, message):
 		"""

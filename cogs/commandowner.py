@@ -98,39 +98,6 @@ class Commandowner(commands.Cog, name='Bot Owner Commands'):
 		#await self.bot.logout()
 		await self.bot.close()
 
-	@commands.command(name='sendDPD', brief='Sends data protection declaration to channel')
-	@isBotOwnerCommand()
-	async def sendDPD(self, ctx):
-		datapath = str(os.path.dirname(__file__))[:-4]+"/data/"
-		string = ""
-		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
-		lenght = len(guild.members)
-		i = 0
-		with open(datapath+"dataProtection.txt","r") as f:
-			string = f.read()
-		for member in guild.members:
-			await self.utils.removeRoles(member.id, ["chairman", "associate", "employee", "✅"])
-			print(f"Progress: {i}/{lenght}")
-			i = i+1
-		message = await ctx.send(string)
-		await message.add_reaction("✅")
-
-	@commands.command(name='sendGR', brief='Sends message to assing roles')
-	@isBotOwnerCommand()
-	async def sendGiveRoles(self, ctx):
-		text = "**Choose your interest group**\n```You will be given roles based on your interest that grant you access to optional voice- and textchannels.\nInterest:                      Rolename:\n🎮 gaming                      gaming\n📚 study-channel               student\n👾 development-technology      dev-tech\n🏹 single-exchange             single\n🤑 gambling-channel            gambling\n⚡ bot-development             bot-dev```"
-		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
-		lenght = len(guild.members)
-		i = 1
-		for member in guild.members:
-			await self.utils.removeRoles(member.id, ["gaming", "student", "dev-tech", "single", "gambling", "bot-dev"])
-			print(f"Progress: {i}/{lenght}")
-			i = i+1
-		message = await ctx.send(string)
-		reactionsarr = ["🎮","📚","👾","🏹","🤑","⚡"]
-		for emoji in reactionsarr:
-			await message.add_reaction(emoji)
-
 	@commands.command(name='changeBotMessage')
 	@isBotOwnerCommand()
 	async def changeBotMessage(self, ctx, channelID, messageID, text):
