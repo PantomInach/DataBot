@@ -491,7 +491,8 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		if not sorted_roles:
 			return []
 		# Data pattern: [(sub-a, sw-a), ...]
-		return [(sorted_roles[i], sorted_roles[i + 1]) for i in range(0, (len(sorted_roles) - 1)//2 + 2, 2)]
+		re =  [(sorted_roles[i], sorted_roles[i + 1]) for i in range(0, len(sorted_roles), 2)]
+		return re
 
 	def get_subserver_users_per_role(self):
 		"""
