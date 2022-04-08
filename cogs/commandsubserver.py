@@ -423,7 +423,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		"""
 		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		subserver = self.get_all_subserver_roles()
-		all_suberver_names = [sub.name.split("-")[1] for sub, _ in subserver]
+		all_suberver_names = [sub.name[4:] for sub, _ in subserver]
 		# Search for matching hash
 		i = 0
 		hashed_code = self.hash_invite_code(all_suberver_names[i])
@@ -558,7 +558,7 @@ class Commandsubserver(commands.Cog, name='Subserver Commands'):
 		"""
 		Gets the amount of connected users, online users and total users in the subserver for each subserver.
 		Returns a dict with the subserver_name as key and the data as a triple.
-		Exp.: {"test": (0,2,4), "test2": (3,6,8), ...}  
+		Exp.: {"test": (0,2,4), "test2": (3,6,8), ...}	
 		"""
 		info_dict = {}
 		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
