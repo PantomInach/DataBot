@@ -212,7 +212,6 @@ class Commandgiverole(commands.Cog):
 		if not table_content:
 			return 
 		roles_to_give = table_content["reactions"][payload.emoji.name][0]
-		print(roles_to_give, table_content["text"])
 		await self.utils.giveRoles(payload.member.id, roles_to_give)
 
 	@commands.Cog.listener()
