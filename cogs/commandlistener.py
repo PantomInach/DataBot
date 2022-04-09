@@ -11,7 +11,7 @@ from datahandler.textban import Textban
 
 class Commandlistener(commands.Cog):
 	"""
-	Contains general porpous listeners for bot.
+	Contains general purpose listeners for bot.
 	"""
 
 	def __init__(self,bot):
@@ -26,28 +26,28 @@ class Commandlistener(commands.Cog):
 		print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
 		traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 		errorMessage = traceback.format_exception(type(error), error, error.__traceback__)
-		self.utils.logToFile(f"Ignoring exception in command {ctx.command}\n" + ("\n".join(errorMessage)), withDate = True)
+		Utils.logToFile(f"Ignoring exception in command {ctx.command}\n" + ("\n".join(errorMessage)), withDate = True)
 		embed=discord.Embed(title=f"Ignoring exception in command {ctx.command}", description="\n".join(errorMessage).replace("**","\\*\\*"), color=0xef2929)
 		await self.utils.sendModsMessage("", embed = embed)
 
 	# When bot is connected
 	@commands.Cog.listener()
 	async def on_ready(self):
-		#Sends mesage to mods, when bot is online
-	    print("Now Online")
-	    await self.utils.sendModsMessage(f"Bot is now online.\nVersion:\tWorkingDiscordBot v1.3.3")
+		#Sends message to mods, when bot is online
+		print("Now Online")
+		await self.utils.sendModsMessage(f"Bot is now online.\nVersion:\tDiscordBot DataBot v1.4.0")
 
-	# When a member joins a guilde
+	# When a member joins a guild
 	@commands.Cog.listener()
 	async def on_member_join(self, member):
 		"""
-		param member:	User on guilde
+		param member:	User on guild
 
-		Creates a welcom message in the logchannel
+		Creates a welcome message in the log channel
 		"""
 		channel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
-		await channel.send(f"Hey **{member.mention}**, welcome to {guilde}")
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+		await channel.send(f"Hey **{member.mention}**, welcome to {guild}")
 
 	"""
 	@commands.Cog.listener()
@@ -56,17 +56,17 @@ class Commandlistener(commands.Cog):
 		await self.utils.sendOwnerMessage("Bot is offline.")
 	"""
 
-	# When a member leaves the guilde
+	# When a member leaves the guild
 	@commands.Cog.listener()
 	async def on_member_remove(self, member):
 		"""
-		param member:	User on guilde
+		param member:	User on guild
 
-		Sends a goodbye message in the logchannel
+		Sends a goodbye message in the log channel
 		"""
 		channel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
-		guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
-		await channel.send(f"**{member.name}** has left {guilde}. Press F to pay respect.")
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+		await channel.send(f"**{member.name}** has left {guild}. Press F to pay respect.")
 		"""
 		#Hash user data
 		voice = jh.getUserVoice(member.id)
@@ -93,16 +93,16 @@ class Commandlistener(commands.Cog):
 		"""
 		param payload:	Gives context about the added reaction
 
-		Handels diffrent self.bot interactions with the server via ractions.
+		Handles different self.bot interactions with the server via reactions.
 
 		First:
 			Handles leaderboard interactions for new page and new sorting.
 		Second:
-			Handels voting on polls.
+			Handles voting on polls.
 		Third:
 			Give role on data processing.
-		Forth:	(Handeled in commandpoll.py)
-			Handels ractions on interest groups for user the get rolees.
+		Forth:	(Handled in commandpoll.py)
+			Handles reactions on interest groups for user to get roles.
 		Fifth:
 			Give XP when a reaction is added.
 		Sixth:
@@ -134,7 +134,7 @@ class Commandlistener(commands.Cog):
 			"""
 			change:
 				0: to first page
-				1: page befor
+				1: page before
 				2: page after
 				3: sort xp
 				4: sort voice
@@ -174,48 +174,12 @@ class Commandlistener(commands.Cog):
 			# Changes Leaderboard and adds reactions	
 			await message.edit(content=f"{text}{payload.member.mention}")
 			if change >= 3:
-				# When all reactions were whippe. Added new Reactions
+				# When all reactions were wiped. Added new Reactions
 				reactionsarr = ["⏫","⬅","➡","⏰","💌","🌟"]
 				removeemoji = [5,3,4]
 				del reactionsarr[removeemoji[sortBy]]
 				for emoji in reactionsarr:
 					await message.add_reaction(emoji)
-
-		# State 5 =^= Note on data processing
-		elif state == 5:
-			# Give role for using server
-			if not self.utils.hasRole(userID, "rookie"):
-				await self.utils.giveRole(userID, "rookie")
-
-		# State 6 =^= User interest groups
-		elif state == 6 and (self.utils.hasRole(userID, "rookie") or self.utils.hasRole(userID, "etwasse")):
-			# User needs to accept Note on data processing before using this feature
-			# Gives user role depending on what they react on
-			if str(payload.emoji) == "🎮" and not self.utils.hasRole(userID, "gaming"):
-				await self.utils.giveRole(userID, "gaming")
-
-			elif str(payload.emoji) == "📚" and not self.utils.hasRole(userID, "student"):
-				await self.utils.giveRole(userID, "student")
-
-			elif str(payload.emoji) == "👾" and not self.utils.hasRole(userID, "dev-tech"):
-				await self.utils.giveRole(userID, "dev-tech")
-
-			elif str(payload.emoji) == "🏹" and not self.utils.hasRole(userID, "single"):
-				await self.utils.giveRole(userID, "single")
-
-			elif str(payload.emoji) == "🤑" and not self.utils.hasRole(userID, "gambling"):
-				await self.utils.giveRole(userID, "gambling")
-
-			elif str(payload.emoji) == "⚡" and not self.utils.hasRole(userID, "bot-dev"):
-				await self.utils.giveRole(userID, "bot-dev")
-
-			else:
-				await message.remove_reaction(payload.emoji, payload.member)
-
-		# When user can not get roles
-		elif state == 6 and not self.utils.hasRole(userID, "rookie"):
-			# Removes user reaction
-			await message.remove_reaction(payload.emoji, payload.member)
 
 		# Member is reacting to other members and gets XP
 		else:
@@ -224,46 +188,45 @@ class Commandlistener(commands.Cog):
 			whiteList = self.jh.config["serverTextWhitelist"]
 			if self.jh.isInWhitelist(payload.channel_id):
 				message = await channel.fetch_message(payload.message_id)
-				if not (message.author.self.bot or payload.member.self.bot) and self.jh.getFromConfig("log")=="True":
+				if not (message.author.bot or payload.member.bot) and self.jh.getFromConfig("log")=="True":
 					self.jh.addReactionXP(payload.user_id, self.xpf.randomRange(1,5))
 					self.jh.saveData()
-
 
 	# When a user changes his voice state
 	@commands.Cog.listener()
 	async def on_voice_state_update(self, member, before, after):
 		"""
-		Handels user interactions when a user changes his voice stage.
-		A voice change is when a member changes/joins a channel, mutes/unmutes himself, deafs/undeafs himself.
+		Handles user interactions when a user changes his voice state.
+		A voice change is when a member changes/joins a channel, mutes/unmutes themselves, deafens/undeafens themselves.
 
-		param member:	User on guilde
+		param member:	User on guild
 		param before:	Gives the voice state before the change
 		param after:	Gives the voice state after the change 
 
 		First:
-			Handels voice channel deletion when a user leaves a voice channel and noone else is connected to it.
+			Handles voice channel deletion when a user leaves a voice channel and no one else is connected to it.
 		Second:
-			Creats a new voice channel when all other channels with numbers in the end of its name are occupied.     
+			Creates a new voice channel when all other channels with numbers at the end of its name are occupied.     
 		"""
-		# when user joins channel: before = None; after is a voicestate
+		# when user joins channel: before = None; after is a voice state
 
 
 		allChannel = self.bot.guilds[0].voice_channels
 		"""
-		When a user leaves a channel (before.channel) with a number endingn nobody else is connected und and number is not 1, than the channel will be deleted.
+		When a user leaves a channel (before.channel) with a number at the end, nobody else is connected and and number is not 1, then the channel will be deleted.
 		"""
 		if before.channel and len(before.channel.members) == 0 and before.channel.name[-1].isdigit():
 			# Member left first channel
 			if before.channel.name[-1] == "1" and not before.channel.name[-2].isdigit():
 				# Delete last channel, which has no user in it
-				serverid = int(self.jh.getFromConfig("guilde"))
+				serverid = int(self.jh.getFromConfig("guild"))
 
 				channelWithoutNumber = before.channel.name[:-1]
 				notFirstVoiceChannel = [channel for channel in allChannel if channelWithoutNumber in channel.name and len(channel.members) == 0 and channel.name != channelWithoutNumber + "1"]
 				if notFirstVoiceChannel:
 					lastChannel = max(notFirstVoiceChannel, key = lambda c: int(c.name[len(channelWithoutNumber):]))
 
-					# Removes channel from blacklist if nessacary
+					# Removes channel from blacklist if necessary
 					self.jh.removeFromBalcklist(lastChannel.id)
 
 					await lastChannel.delete()
@@ -271,26 +234,26 @@ class Commandlistener(commands.Cog):
 
 			# User left channel, which is not the first channel. So it will be deleted	
 			else:
-				# Removes channel from blacklist if nessacary
+				# Removes channel from blacklist if necessary
 				self.jh.removeFromBalcklist(before.channel.id)
 				await before.channel.delete()
 
 
 		"""
-		User joins channel after.channel. If channel ends with a number, than a copy will be created with the lowest possible ending number. 
+		User joins channel after.channel. If channel ends with a number, then a copy will be created with the lowest other number at the end. 
 		"""
 		if after.channel and before.channel != after.channel and len(after.channel.members) <= 1:
 			# Get channels to get lowest enumeration of channel
 			afterNumber = None 
 			nameIndex = -1
 			while after.channel.name[nameIndex:].isdigit():
-				afterNumber = int(after.channel.name[nameIndex:])	# number on the end of channel name
+				afterNumber = int(after.channel.name[nameIndex:])	# number at the end of channel name
 				nameIndex -= 1
 			nameIndex += 1
 
-			serverid = int(self.jh.getFromConfig("guilde"))
+			serverid = int(self.jh.getFromConfig("guild"))
 			channelWithoutNumber = after.channel.name[:nameIndex]
-			# When after channel name ends with number and channel number 1 has user in it
+			# When after.channel name ends with number and channel number 1 has user in it
 			if afterNumber and len(find(lambda c: c.name == (channelWithoutNumber + "1"), allChannel).members):
 				# Get channels with after.channel.name without numbers in it and end with digits
 				voiceChanelsWithName = [channel for channel in allChannel if after.channel.name[:nameIndex] in channel.name and channel.name[len(channelWithoutNumber):].isdigit()]
@@ -300,7 +263,7 @@ class Commandlistener(commands.Cog):
 				
 				channelWithNumberBefore = find(lambda c: c.name[-len(str(lowestFreeID - 1)):] == str(lowestFreeID - 1), voiceChanelsWithName)
 				newChannelName = channelWithoutNumber + str(lowestFreeID)
-				# Create channel and gets it
+				# Creates channel and gets it
 				newChannel = await channelWithNumberBefore.clone(name = newChannelName)
 
 				if self.jh.isInBlacklist(after.channel.id):
@@ -321,7 +284,7 @@ class Commandlistener(commands.Cog):
 		if (message.author == self.bot.user):
 			return
 
-		# Delet messages if user is textbanned
+		# Delete messages if user is text banned
 		if Textban.staticHasTextBan(int(message.author.id)) and not isinstance(message.channel, discord.channel.DMChannel):
 			await message.delete()
 			return
@@ -333,7 +296,7 @@ class Commandlistener(commands.Cog):
 			await message.delete()
 			return
 
-		# Checks if message containts a picture
+		# Checks if message contains a picture
 		if len(message.attachments) > 0 and self.jh.getFromConfig("log")=="True":
 			attachments = message.attachments
 			userID = message.author.id
@@ -362,64 +325,15 @@ class Commandlistener(commands.Cog):
 			string = f"\n######\n# User {message.author.name} tried to invoke a command in {channelName}.\n# Command: {a}\n######"
 			await self.utils.log(string, 2)
 
-
-	# When member removes a reaction
-	@commands.Cog.listener()
-	async def on_raw_reaction_remove(self, payload):
-		"""
-		param payload:	Gives context about the removed reaction
-
-		Handels user interaction in which reactions are removed.
-
-		First:
-			Note on data processing remove server role
-		Second:
-			Remove user roles on interset groups when a raction is removed 
-		"""
-		userID = payload.user_id
-		server = self.bot.get_guild(payload.guild_id)
-		member = server.get_member(userID)
-		channel = self.bot.get_channel(int(payload.channel_id))
-		message = await channel.fetch_message(int(payload.message_id))
-		[state, page] = Utils.getMessageState(message)
-
-		# If member revokes his accetptans of the Note on data processing
-		if state == 5 and (self.utils.hasRole(userID, "rookie") or self.utils.hasRole(userID, "etwasse")):
-			await self.utils.removeRoles(userID, ["chairman", "associate", "employee", "rookie", "etwasse"])
-
-		# When member revokes his interest in interest groups
-		elif state == 6:
-			if not self.utils.hasRole(userID, "rookie") and not self.utils.hasRole(userID, "etwasse"):
-				await message.remove_reaction(payload.emoji, member)
-
-			elif str(payload.emoji) == "🎮" and self.utils.hasRole(userID, "gaming"):
-				await self.utils.removeRole(userID, "gaming")
-
-			elif str(payload.emoji) == "📚" and self.utils.hasRole(userID, "student"):
-				await self.utils.removeRole(userID, "student")
-
-			elif str(payload.emoji) == "👾" and self.utils.hasRole(userID, "dev-tech"):
-				await self.utils.removeRole(userID, "dev-tech")
-
-			elif str(payload.emoji) == "🏹" and self.utils.hasRole(userID, "single"):
-				await self.utils.removeRole(userID, "single")
-
-			elif str(payload.emoji) == "🤑" and self.utils.hasRole(userID, "gambling"):
-				await self.utils.removeRole(userID, "gambling")
-
-			elif str(payload.emoji) == "⚡" and self.utils.hasRole(userID, "bot-dev"):
-				await self.utils.removeRole(userID, "bot-dev")
-
-
 	def _getLeaderboardChange(self, message):
 		"""
-		param message:	Discord Message object. Should be from a Leaderboard.
+		param message:	Discord Message object. Should be from a leaderboard.
 
 		Gets how to change the leaderboard depending on its reactions.
 
 		Return:
 			0: to first page
-			1: page befor
+			1: page before
 			2: page after
 			3: sort xp
 			4: sort voice

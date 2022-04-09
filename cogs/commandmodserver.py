@@ -12,23 +12,19 @@ def hasAnyRole(*items):
 	"""
 	Type:	Decorator for functions with ctx object in args[1].
 
-	param items:	Tuple of Strings and/or integers wit Discord Channel ids or names.
+	param items:	Tuple of strings and/or integers wit Discord channel IDs or names.
 
 	Check if a user has any of the roles in items.
 
-	Only use for commands, which don't use @commands.command
-	commands.has_any_role() does not work in DM since a users can't have roles.
-	This on pulls the roles from the configured guilde and makes the same check as commands.has_any_role().
+	Only use for commands, which USE @commands.command
+	commands.has_any_role() does not work in DM, since a user can't have roles.
+	This one pulls the roles from the configured guild and makes the same check as commands.has_any_role().
 
-	Function is not in decorators.py since the Bot or Helpfunction Object is needed.
+	Function is not in decorators.py since the Helpfunction Object is needed.
 	"""
-	def decorator(func):
-		def wrapper(*args, **kwargs):
-			if Commandmodserver.utils.hasOneRole(args[1].author.id, [*items]):
-				return func(*args, **kwargs)
-			return passFunc()
-		return wrapper
-	return decorator
+	def predicate(ctx):
+		return Commandowner.utils.hasOneRole(ctx.author.id, [*items])
+	return commands.check(predicate)
 
 class Commandmodserver(commands.Cog, name='Server Mod Commands'):
 	"""

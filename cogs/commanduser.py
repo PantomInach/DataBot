@@ -3,7 +3,7 @@ from discord.utils import find
 from discord.ext import commands
 
 from helpfunctions.inspiro import Inspiro
-from helpfunctions.decorators import isBotMod, isDM, isInChannelCommand
+from helpfunctions.decorators import isBotModCommand, isDMCommand, isInChannelCommand
 from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban
@@ -13,38 +13,44 @@ from datahandler.jsonhandel import Jsonhandel
 import datetime
 import time
 
-
 def hasAnyRole(*items):
 	"""
 	Type:	Decorator for functions with ctx object in args[1].
 
-	param items:	Tuple of Strings and/or integers wit Discord Channel ids or names.
+	param items:	Tuple of Strings and/or integers wit Discord Channel IDs or names.
 
 	Check if a user has any of the roles in items.
 
-	Only use for commands, which don't use @commands.command
+	Only use for commands, which USE @commands.command
 	commands.has_any_role() does not work in DM since a users can't have roles.
-	This on pulls the roles from the configured guilde and makes the same check as commands.has_any_role().
+	This one pulls the roles from the configured guild and makes the same check as commands.has_any_role().
 
-	Function is not in decorators.py since the Bot or Helpfunction Object is needed.
+	Function is not in decorators.py since the Helpfunction Object is needed.
 	"""
-	def decorator(func):
-		def wrapper(*args, **kwargs):
-			# Wrapper for inputs in func
-			if Commanduser.utils.hasOneRole(args[1].author.id, [*items]):
-				return func(*args, **kwargs)
-			return passFunc()
-		return wrapper
-	return decorator
+	def predicate(ctx):
+		return Commanduser.utils.hasOneRole(ctx.author.id, [*items])
+	return commands.check(predicate)
 
 class Commanduser(commands.Cog, name='User Commands'):
 	"""
 	Class defines user specific commands and functions, which are executed by bot commands.
 
 	Commands:
-		user
+		user get [User ID]
+		user rm [User ID]
+		user set tc [User ID] [amount]
+		user set text [User ID] [amount]
+		user set voice [User ID] [amount]
+		user star [User ID]
+		user tb give [User ID] [time] (reason)
+		user tb rm [User ID]
 		level
-		meme
+		top
+		star
+
+	More info can be found via 'help [command]'.
+
+	All commands in the list below can be executed in this channel.
 	"""
 
 	utils = None
@@ -61,47 +67,34 @@ class Commanduser(commands.Cog, name='User Commands'):
 		# For hasAnyRole Decorator
 		Commanduser.utils = self.utils
 
-	@commands.command(name='user')
-	async def userCommandsInterpretor(self, ctx, *inputs):
+	@commands.group(name='user', brief = 'Group of user commands.')
+	async def userParent(self, ctx):
 		"""
-		param ctx:	Discord Context object. Automatical passed.
-		param inputs:	Tuple of arguments of commands.
+		Used to manage users via the bot.
 
-		Interpretes send commands beginning with user and calls the right function.
+		Commands:
+			user get:	Gives an overview of stored data from the user.
+			user rm:	Removes the user data from the stored data.
+			user set:	Can set the ex specific data of a user.
+			user star:	Gives user 'star of the week' role.
+			user tb:	Manages text bans of users.
+
+		More info can be found via 'help [command]'.
+	
+		All commands in the list below can be executed in this channel.
 		"""
-		lenght = len(inputs)
-		if lenght == 2 and inputs[0] == "get":
-			await self.getUserData(ctx, inputs[1])
+		"""
+		param ctx:	Discord Context object. Automatically passed.
 
-		elif lenght == 2 and inputs[0] == "rm":
-			await self.removeuser(ctx, inputs[1])
-
-		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "tc":
-			await self.setTextCount(ctx, inputs[2], inputs[3])
-
-		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "text":
-			await self.setTextXP(ctx, inputs[2], inputs[3])
-
-		elif lenght == 4 and inputs[0] == "set" and inputs[1] == "voice":
-			await self.setVoiceXP(ctx, inputs[2], inputs[3])
-
-		elif lenght == 4 and inputs[0] == "tb" and inputs[1] == "give":
-			await self.textban(ctx, inputs[2], inputs[3], inputs[4])
-
-		elif lenght == 3 and inputs[0] == "tb" and inputs[1] == "rm":
-			await self.textunban(ctx, inputs[2])
-
-		elif lenght == 2 and inputs[0] == "star":
-			# First option queues the role when someone has the role
-			# await self.giveStarOfTheWeek(ctx, inputs[1])
-			# Second option gives role only when noone has the role
-			await self.giveStarOfTheWeekNow(ctx, inputs[1])
-
-		else:
-			await ctx.author.send(f"Command \"user {' '.join(inputs)}\" is not valid.")
-
-
-
+		Is the parent command for the 'user' command.
+		When invoked without a sub command an error will be sent. The error message will be deleted after an hour.
+		"""
+		if ctx.invoked_subcommand is None:
+			embed=discord.Embed(title = "You need to specify a sub command. Possible sub commands: get, rm, set, tb, star", color=0xa40000)
+			embed.set_author(name = "Invalid command")
+			embed.set_footer(text = "For more help run '+help user'")
+			await ctx.send(embed = embed, delete_after = 3600)
+		
 	"""
 	######################################################################
 
@@ -110,13 +103,48 @@ class Commanduser(commands.Cog, name='User Commands'):
 	######################################################################
 	"""
 
-	@isBotMod()
+	@userParent.group(name = 'set', brief = 'Group of user set commands.')
+	@isBotModCommand()
+	async def userSetParent(self, ctx):
+		"""
+		This command is used to set the voicexp, textxp, textcount of users.
+		Commands:
+			user set tc 	=> sets textcount
+			user set voice	=> sets voicexp
+			user set text 	=> sets textxp
+
+		Can only be used by bot mods aka user with a privilege level of 1 or higher.
+
+		More info can be found via 'help [command]'.
+	
+		All commands in the list below can be executed in this channel.
+		"""
+		"""
+		param ctx:	Discord Context object. Automatically passed.
+
+		Is the parent command for the 'user set' command.
+		When invoked without a sub command an error will be sent. The error message will be deleted after an hour.
+		"""
+		if ctx.invoked_subcommand is None:
+			embed=discord.Embed(title = "You need to specify a sub command. Possible sub commands: voice, text, tc", color=0xa40000)
+			embed.set_author(name = "Invalid command")
+			embed.set_footer(text = "For more help run '+help user set'")
+			await ctx.send(embed = embed, delete_after = 3600)
+
+	@userParent.command(name = 'get', brief = 'Gets brief user data.')
+	@isBotModCommand()
 	async def getUserData(self, ctx, userID):
 		"""
-		Command: poll get <userID>
+		This command gives you the voicexp, textxp and textcount of a user via 'user get [userID]'.
+		As an input the user ID is needed.
+
+		Can only be used by bot mods aka user with a privilege level of 1 or higher.
+		"""
+		"""
+		Command: poll get [userID]
 
 		param ctx:	Discord Context object.
-		param userID:	Is the userID from discord user as a String or int
+		param userID:	Is the user ID from discord user as a string or int
 
 		Sends the user data into the channel.
 		"""
@@ -127,39 +155,51 @@ class Commanduser(commands.Cog, name='User Commands'):
 			message = f"User: {str(self.bot.get_user(int(userID)))} VoiceXP: {voice} TextXP: {text} TextCount: {textCount}"
 		else:
 			user = self.bot.get_user(int(userID))
-			message = f"User was not in data. Created user: {user.mention}"  
+			message = f"User was not found in data. Created user: {user.mention}"  
 		await ctx.send(message)
 
-	@isBotMod()
+	@userSetParent.command(name = 'voice', brief = 'Sets users voicexp')
 	async def setVoiceXP(self, ctx, userID, amount):
 		"""
-		Command: poll set voice <userID> <amount>
+		Sets users voice xp to given amount via 'user set voice [User ID] [amount]'.
+		An integer is needed for the amount.
+
+		Can only be used by bot mods aka user with a privilage level of 1 or higher.
+		"""
+		"""
+		Command: poll set voice [userID] [amount]
 
 		param ctx:	Discord Context object.
-		param userID:	Is the userID from discord user as a String or int
+		param userID:	Is the user ID from discord user as a string or int
 		param amount:	Integer
 
-		Sets user Voice XP to amount.
+		Sets member Voice XP to amount.
 		"""
 		message = ""
 		if not self.jh.isInData(userID):
-			message = f"User was not in data. Created user: {self.bot.get_user(int(userID))}\n"
+			message = f"User was not found in data. Created user: {self.bot.get_user(int(userID))}\n"
 			self.jh.addNewDataEntry(userID)
 		self.jh.setUserVoice(userID, amount)
 		message += f"Set user {str(self.bot.get_user(int(userID)))} voiceXP to {amount}."
 		await self.utils.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} voiceXP to {amount}.",2)
 		await ctx.send(message)
 
-	@isBotMod()
+	@userSetParent.command(name = 'text', brief = 'Sets users textxp.')
 	async def setTextXP(self, ctx, userID, amount):
+		"""
+		Sets users text XP to given amount via 'user set text [userID] [amount]'.
+		An integer is needed for the amount.
+
+		Can only be used by bot mods aka user with a privilage level of 1 or higher.
+		"""
 		"""
 		Command: poll set text <userID> <amount>
 
 		param ctx:	Discord Context object.
-		param userID:	Is the userID from discord user as a String or int
+		param userID:	Is the userID from discord user as a string or int
 		param amount:	Integer
 
-		Sets user Text XP to amount.
+		Sets member Text XP to amount.
 		"""
 		message = ""
 		if not self.jh.isInData(userID):
@@ -170,33 +210,47 @@ class Commanduser(commands.Cog, name='User Commands'):
 		await self.utils.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textXP to {amount}.",2)
 		await ctx.send(message)
 
-	@isBotMod()
+	@userSetParent.command(name = 'tc', brief = 'Sets users text count')
 	async def setTextCount(self, ctx, userID, amount):
 		"""
-		Command: poll set tc <userID> <amount>
+		Sets users text count to given amount via 'user set tc [userID] [amount]'.
+		An integer is needed for the amount.
+
+		Can only be used by bot mods aka user with a privilege level of 1 or higher.
+		"""
+		"""
+		Command: poll set tc [userID] [amount]
 
 		param ctx:	Discord Context object.
-		param userID:	Is the userID from discord user as a String or int
+		param userID:	Is the user ID from discord user as a string or int
 		param amount:	Integer
 
-		Sets user Text Count to amount.
+		Sets member text count to amount.
 		"""
 		message = ""
 		if not self.jh.isInData(userID):
-			message = f"User was not in data. Created user: {self.bot.get_user(int(userID))}\n"
+			message = f"User was not found in data. Created user: {self.bot.get_user(int(userID))}\n"
 			self.jh.addNewDataEntry(userID)
 		self.jh.setUserTextCount(userID, amount)
 		message += f"Set user {str(self.bot.get_user(int(userID)))} TextCount to {amount}."
 		await self.utils.log(f"User {ctx.author} set user {str(self.bot.get_user(int(userID)))} textCount to {amount}.",2)
 		await ctx.send(message)
 
-	@isBotMod()
+	@userParent.command(name = 'rm', brief = 'Removes user from bots data.')
+	@isBotModCommand()
 	async def removeuser(self, ctx, userID):
 		"""
-		Command: poll rm <userID>
+		!!! WARNING !!! THIS ACTION IS NOT REVERSIBLE
+
+		Removes the user data from the bot storage via 'user rm [userID]'.
+
+		Can only be used by bot mods aka user with a privilege level of 1 or higher.
+		"""
+		"""
+		Command: poll rm [userID]
 
 		param ctx:	Discord Context object.
-		param userID:	Is the userID from discord user as a String or int
+		param userID:	Is the user ID from discord user as a string or int
 
 		Removes user from data.
 		"""
@@ -216,23 +270,68 @@ class Commanduser(commands.Cog, name='User Commands'):
 	"""
 	######################################################################
 
-	Guilde Mod user commands
+	guild Mod user commands
 
 	######################################################################
 	"""
 
-	@isDM()
+	@userParent.group(name = 'tb', brief = 'Group of user text ban commands.')
+	@isDMCommand()
 	@hasAnyRole("CEO","COO")
+	async def user_tb_parent(self, ctx):
+		"""
+		This group of commands is use to manage user text bans.
+		Text bans are carried out by deleting every message the user writes to that guild.
+
+		Commands:
+			user tb add [userID] [time] [reason]:	Text bans user
+			user tb rm [userID]:			Removes users text ban
+
+		Can only be used in the bot-DM and only by members with one of the roles 'CEO' or 'COO'.
+
+		More info can be found via 'help [command]'.
+	
+		All commands in the list below can be executed in this channel.
+		"""
+		"""
+		param ctx:	Discord Context object. Automatically passed.
+
+		Is the parent command for the 'user tb' command.
+		When invoked without a sub command an error will be sent. The error message will be deleted after an hour.
+		"""
+		if ctx.invoked_subcommand is None:
+			embed=discord.Embed(title = "You need to specify a sub command. Possible sub commands: give, rm", color=0xa40000)
+			embed.set_author(name = "Invalid command")
+			embed.set_footer(text = "For more help run '+help user tb'")
+			await ctx.send(embed = embed, delete_after = 3600)
+
+
+	@user_tb_parent.command(name = 'give', brief = 'Text ban a user.')
 	async def textban(self, ctx, userID, time, reason):
 		"""
-		param ctx:	Discord Context object.
-		param userID:	Is the userID from discord user as a String or int
-		param time:	Duration of ban as float. Musst be over 0.1.
-		param reason:	Reason for textban.
+		Give an user a text ban via 'user tb add [userID] [time] [reason]'.
+		Time must be a real number higher equal than '0.1'. 
+		E.g. '1.4' for a ban over '1.4' hours.
+		The reason can be any text.
 
-		Textbans a user by adding them to textban.json.
-		Textbans are carryed out in main.on_message() by deleting send messages.
+		The text banned member messages will be immediately removed by the bot. 
+
+		Can only be used in the bot-DM and only by members with one of the roles 'CEO' or 'COO'.
+
+		! NOTICE ! Currently the text bans will be removed if the bot is restarted.
 		"""
+		"""
+		param ctx:	Discord Context object.
+		param userID:	Is the user ID from discord user as a string or int
+		param time:	Duration of ban as float. Must be over 0.1.
+		param reason:	Reason for text ban.
+
+		Text bans a member by adding them to textban.json.
+		Text bans are carried out in main.on_message() by deleting send messages.
+		"""
+		if self.tban.hasTextBan(ctx.author.id):
+			await ctx.send(content="ERROR: You aren't allowed to text ban users when you have a text ban.", delete_after=3600)
+			return
 		if not self.tban.hasTextBan(userID):
 			bantime = 0
 			# Convert String time to float.
@@ -243,33 +342,37 @@ class Commanduser(commands.Cog, name='User Commands'):
 			if bantime >= 0.1:
 				# Get member
 				user = self.bot.get_user(int(userID))
-				guilde = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
-				member = guilde.get_member(int(userID))
+				guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+				member = guild.get_member(int(userID))
 				if user != None:
 					logchannel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
 					# Send messages
-					await self.utils.log(f"User {ctx.author.mention} textbaned {user.mention} for {time} h. Reason:\n{reason}",2)
-					await logchannel.send(f"{user.mention} was textbaned for {time} h.\n**Reason**: {reason}")
-					await user.send(content=f"You received a textban for {time} h.\n**Reason**: {reason}")
-					await self.utils.sendServerModMessage(f"{member.nick} ({user.name}) was textbaned by {guilde.get_member(int(ctx.author.id)).nick} ({ctx.author.name}) for {time} h.\n**Reason**: {reason}")
+					await self.utils.log(f"User {ctx.author.mention} text banned {user.mention} for {time} h. Reason:\n{reason}",2)
+					await logchannel.send(f"{user.mention} was text banned for {time} h.\n**Reason**: {reason}")
+					await user.send(content=f"You received a text ban for {time} h.\n**Reason**: {reason}")
+					await self.utils.sendServerModMessage(f"{member.nick} ({user.name}) was text banned by {guild.get_member(int(ctx.author.id)).nick} ({ctx.author.name}) for {time} h.\n**Reason**: {reason}")
 					# Textban user and wait till it is over.
 					await self.tban.addTextBan(userID, int(bantime*3600.0))
 					#Textban over
-					await user.send("Your Textban is over. Pay more attention to your behavior in the future.")
+					await user.send("Your text ban is over. Pay more attention to your behavior in the future.")
 				else:
-					await ctx.send(content="ERROR: User does not exist.", delete_after=3600)
+					await ctx.send(content="ERROR! User does not exist.", delete_after=3600)
 			else:
-				await ctx.send(content="ERROR: time is not valid.", delete_after=3600)
+				await ctx.send(content="ERROR! Time is not valid.", delete_after=3600)
 		else:
-			await ctx.send(content="ERROR: User has already a textban.", delete_after=3600)
+				await ctx.send(content="ERROR! User has already a text ban.", delete_after=3600)
 					
-
-	@isDM()
-	@hasAnyRole("CEO","COO")
+	@user_tb_parent.command(name = 'rm', brief = 'Remove a text ban from a user.')
 	async def textunban(self, ctx, userID):
 		"""
+		Remove a text ban from a user via 'user tb rm [userID]'.
+		Now the user can freely write messages again.
+
+		Can only be used in the DM with the bot and only by users with one of the roles 'CEO' or 'COO'.
+		"""
+		"""
 		param ctx:	Discord Context object.
-		param userID:	Is the userID from discord user as a String or int
+		param userID:	Is the user ID from discord user as a string or int
 
 		Removes a textban of the given user.
 		Textbans are carryed out in main.on_message() by deleting send messages.
@@ -283,17 +386,28 @@ class Commanduser(commands.Cog, name='User Commands'):
 			else:
 				await ctx.send(content="ERROR: User has no textban.", delete_after=3600)
 
-	@isDM()
+
+	"""
+	# When give star of the week should be queued
+	@userParent.command(name = 'star', brief = 'Gives user \'star of the week\'.')
+	@isDMCommand()
 	@hasAnyRole("CEO","COO")
 	async def giveStarOfTheWeek(self, ctx, userID):
-		"""
-		param ctx:	Discord Context object.
-		param userID:	Is the userID from discord user as a String or int
+		""
+		You can give a user 'star of the week' via the command 'user star [user id]'.
+		This role should be given as a reward if a user did something great.
+		The role will be removed every Monday at 00:00 CET summer time.
 
-		Gives the given user the 'star off the week' role when noone else has the role.
-		When someone has the role than it will be queued to the next Monday when noone gets the role.
-		"""
-		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+		Can only be used in the bot-DM and only by members with one of the roles 'CEO' or 'COO'.
+		""
+		""
+		param ctx:	Discord Context object.
+		param userID:	Is the user ID from discord user as a string or int
+
+		Gives the chosen member the 'star of the week' role when no one else has the role.
+		When someone already has the role, it will be queued to the next Monday when no one gets the role.
+		""
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		role = find(lambda role: role.name == "star of the week", guild.roles)
 		if role and userID.isdigit() and guild.get_member(int(userID)):
 			user = self.bot.get_user(int(userID))
@@ -311,19 +425,28 @@ class Commanduser(commands.Cog, name='User Commands'):
 				await self.utils.log(f"User {ctx.author.name} {ctx.author.id} gave {user.name} {user.id} 'star of the week' threw. +user star ", 2)
 				await ctx.send(f"Member {user.name} got 'star of the week' now.")
 		else:
-			await ctx.send(f"Invalid input. Either userID is not from user of the guild {guild.name} or it is not a ID.")
+			await ctx.send(f"Invalid input. Either userID is not an user on the guild {guild.name} or it is not a ID.")
+	"""
 
-	@isDM()
+	@userParent.command(name = 'star', brief = 'Gives user \'star of the week\'.')
+	@isDMCommand()
 	@hasAnyRole("CEO", "COO")
 	async def giveStarOfTheWeekNow(self, ctx, userID):
 		"""
-		param ctx:	Discord Context object.
-		param userID:	Is the userID from discord user as a String or int
+		You can give a user 'star of the week' via the command 'user star [userID]'.
+		This role should be given as a reward if a member did something great.
+		The role will be removed every Monday at 00:00 CET summer time.
 
-		Gives the given user the 'star off the week' role when noone else has the role.
+		Can only be used in the bot-DM and only by members with one of the roles 'CEO' or 'COO'.
+		"""
+		"""
+		param ctx:	Discord Context object.
+		param userID:	Is the user ID from discord user as a string or int
+
+		Gives the given user the 'star of the week' role when no one else has the role.
 		When someone has the role do nothing.
 		"""
-		guild = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		role = find(lambda role: role.name == "star of the week", guild.roles)
 		if role and userID.isdigit() and guild.get_member(int(userID)):
 			user = self.bot.get_user(int(userID))
@@ -334,7 +457,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 			else:
 				# When no one has the role => Give user 'star of the week' immediately
 				await self.utils.giveRoles(userID, [role.id])
-				await self.utils.log(f"User {ctx.author.name} {ctx.author.id} gave {user.name} {user.id} 'star of the week' threw. +user star ", 2)
+				await self.utils.log(f"User {ctx.author.name} {ctx.author.id} gave {user.name} {user.id} 'star of the week' through +user star ", 2)
 				await ctx.send(f"Member {user.name} got 'star of the week' now.")
 
 	def _nextWeekdayInUnixEpoch(self, toWeekday):
@@ -357,38 +480,68 @@ class Commanduser(commands.Cog, name='User Commands'):
 	######################################################################
 	"""
 
-	@commands.command(name='level', pass_context=True, brief='Returns the level of a player.', description='You need privilege level 0 to use this command. Returns the users level on the configured server. The higher the level, the more roles you will get. Can only be used in the level Channel')
+	@commands.command(name='level', pass_context=True, brief='Returns the level of a player.')
 	@isInChannelCommand("⏫level")
-	async def getLevel(self, ctx):
+	async def getLevel(self, ctx, *inputs):
+		"""
+		Gives the member a level card via the command 'level'.
+		This gives a short overview over the member's stats on the guild.
+		By adding a mention or memberID after the command the member can also view the levelcard of other members.
+
+		Can only be used in "⏫level" channel.
+		"""
 		"""
 		param ctx:	Discord Context object.
 
-		Creates a embeded level card of user.
+		Creates an embeded level card of member.
 		"""
 		userID = ctx.author.id
-		server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+		if inputs:
+			userID = str(inputs[0]).replace('<', '').replace('>', '').replace('@','').replace('!','')
+			if not userID.isdigit():
+				return
+			userID = int(userID)
+		server = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 		member = server.get_member(int(userID))
+		if not member:
+			return
 		self.jh.addNewDataEntry(userID)
 		#Create Embeded
-		avatar_url = ctx.author.avatar_url
+		avatar_url = member.avatar_url
 		level = self.jh.getUserLevel(userID)
 		voiceXP = self.jh.getUserVoice(userID)
 		textXP = self.jh.getUserText(userID)
 		textCount = self.jh.getUserTextCount(userID)
 		nextLevel = self.xpf.xpNeed(voiceXP,textXP)
-		embed = discord.Embed(title=f"{member.nick}     ({ctx.author.name})", color=12008408)
+		embed = discord.Embed(title=f"{member.nick}     ({member.name})", color=12008408)
 		embed.set_thumbnail(url=avatar_url)
 		embed.add_field(name="HOURS", value=f"{round(int(voiceXP)/30.0,1)}", inline=True)
 		embed.add_field(name="MESSAGES", value=f"{str(textCount)}", inline=True)
 		embed.add_field(name="EXPERIENCE", value=f"{str(int(voiceXP)+int(textXP))}/{nextLevel}",inline=True)
 		embed.add_field(name="LEVEL", value=f"{level}", inline=True)
 		#Send Embeded
-		await ctx.send(embed=embed, delete_after=86400)
+		content = ""
+		if userID != ctx.author.id:
+			content = ctx.author.mention
+		await ctx.send(embed=embed, content=content, delete_after=86400)
 		await ctx.message.delete()
 
-	@commands.command(name='top',brief='Sends an interactive rank list.', description='You need privilege level 0 to use this command. Sends a list of the top 10 users orderd by XP. By klicking on ⏫, you jump to the first page, on ⬅, you go one page back, on ➡, you go one page further, on ⏰, you order by time, on 💌, you order by messages sent, and on 🌟, you order by XP. Can only be used in the level Channel')
+	@commands.command(name='top',brief='Sends an interactive rank list.')
 	@isInChannelCommand("⏫level")
 	async def leaderboard(self, ctx):
+		"""
+		Spawns an interactive leaderboard in the "⏫level" via the command 'top'.
+		Displays the first 10 member with the highest XP total.
+		The sites can be changed via reacting with the ⬅️ ➡️ emojis. Use ⬅️ to go higher and ➡️ to go lower.
+		With ⏫ you get to the first page.
+
+		Normally the leaderboard is sorted by the total XP. You can see this if 🕰️ 💌 are reactions.
+		When 🌟 🕰️ are available, it is sorted by messages.
+		When 🌟 💌 are available, it is sorted by time on guild.
+		You can change the sorting by reacting with 🌟 for total XP, 🕰️ for time spent on guild and 💌 for total messages send.
+
+		Can only be used in the "⏫level" channel.
+		"""
 		"""
 		param ctx:	Discord Context object.
 
@@ -403,13 +556,19 @@ class Commanduser(commands.Cog, name='User Commands'):
 			await message.add_reaction(emoji)
 		await ctx.message.delete()
 
-	@commands.command(name='quote', brief='Sends an unique inspirational quote.', description='You need privilege level 0 to use this command. Sends a random quote from inspirobot.me. Can only be used in the Spam Channel.')
+	@commands.command(name='quote', brief='Sends an unique inspirational quote.')
 	@isInChannelCommand("🚮spam")
 	async def getPicture(self, ctx):
 		"""
+		Sent a AI generated inspirational quote via 'quote'.
+		These quotes are randomly from 'inspirobot.me'.
+
+		Can only be used in the "🚮spam" channel.
+		"""
+		"""
 		param ctx:	Discord Context object.
 
-		Sents a AI generated quote from inspirobot.me
+		Sends a AI generated quote from inspirobot.me
 		"""
 		url = Inspiro.getPictureUrl()
 		#Create Embeded
@@ -425,7 +584,7 @@ class Commanduser(commands.Cog, name='User Commands'):
 	@commands.command(name='reclaimData')
 	async def reclaimData(self, ctx, voice, text, textCount, code, hash):
 		if isinstance(ctx.channel, discord.channel.DMChannel):
-			server = self.bot.get_guild(int(self.jh.getFromConfig("guilde")))
+			server = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
 			if server.get_member(ctx.author.id) != None:
 				if str(voice).isDigit() and str(text).isDigit() and str(textCount).isDigit() and str(code).isDigit():
 					if self.utils.hashDataWithCode(int(voice), int(text), int (textCount), int(code))[0] == hash:
@@ -442,18 +601,6 @@ class Commanduser(commands.Cog, name='User Commands'):
 		else:
 			await ctx.message.delete()
 	"""
-
-	@commands.command(name='meme')
-	async def memeResponse(self, ctx):
-		"""
-		param ctx:	Discord Context object.
-
-		Rebellion againt some special person.
-		!!! Not for production !!!
-		"""
-		message = "Lieber User,\nder Command nach dem du suchst ist '+ meme'.\nAn die Person, die sich gedacht hat, es sei eine gute Idee das Prefix von Dankmemer Bot soll '+' sein, you suck.\nDer Bot hat gesprochen!"
-		await ctx.send(message)
-
 		
 def setup(bot):
 	bot.add_cog(Commanduser(bot))

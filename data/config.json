@@ -10,7 +10,7 @@
             "Your ID": "2",
             "Lower rank ID": "1"
       },
-      "guilde": "Your guilde ID",
+      "guild": "Your guild ID",
       "serverVoiceBlacklist": [
             "0"
       ],
@@ -18,5 +18,6 @@
             "0"
       ],
       "roles": [],
-      "rolesXPNeed": []
+      "rolesXPNeed": [],
+      "needForSubServer": []
 }
