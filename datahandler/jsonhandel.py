@@ -8,12 +8,17 @@ class Jsonhandel(object):
     Handles maipulation and reading from userdata.json and config.json
     """
 
-    def __init__(self):
-        super(Jsonhandel, self).__init__()
-        self.datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
-        # Reads in userdata.json and config.json
-        self.config = json.load(open(self.datapath + "config.json"))
-        self.data = json.load(open(self.datapath + "userdata.json"))
+    _instance = None
+
+    def __new__(cls):
+        """Singelton pattern."""
+        if cls._instance is None:
+            cls._instance = super(Jsonhandel, cls).__new__(cls)
+            cls.datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
+            # Reads in userdata.json and config.json
+            cls.config = json.load(open(cls.datapath + "config.json"))
+            cls.data = json.load(open(cls.datapath + "userdata.json"))
+        return cls._instance
 
     """
 	###########################################
