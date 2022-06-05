@@ -1,6 +1,6 @@
 import os
 import datetime
-from discord.ext import find
+from discord.utils import find
 
 from helpfunctions.xpfunk import Xpfunk
 from datahandler.jsonhandle import Jsonhandle

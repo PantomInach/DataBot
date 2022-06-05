@@ -1,53 +1,117 @@
 {
-  "pollCreate":{
-    "roles": ["CEO", "COO", "chairman"] 
+  "pollCreate": {
+    "roles": [
+      "CEO",
+      "COO",
+      "chairman"
+    ]
   },
-  "pollShow":{
-    "roles": ["CEO", "COO", "chairman"] 
+  "pollShow": {
+    "roles": [
+      "CEO",
+      "COO",
+      "chairman"
+    ]
   },
-  "optionParent":{
-    "roles": ["CEO", "COO", "chairman"]
+  "optionParent": {
+    "roles": [
+      "CEO",
+      "COO",
+      "chairman"
+    ]
   },
-  "pollsList":{
-    "roles": ["CEO", "COO", "chairman", "associate"],
-    "channel": ["🚮spam"]
+  "pollsList": {
+    "roles": [
+      "CEO",
+      "COO",
+      "chairman",
+      "associate"
+    ],
+    "channel": [
+      "🚮spam"
+    ]
   },
   "pollRemove": {
-    "roles": ["CEO", "COO", "chairman"]
+    "roles": [
+      "CEO",
+      "COO",
+      "chairman"
+    ]
   },
   "pollOpen": {
-    "roles": ["CEO", "COO", "chairman"],
-    "channel": ["📂log", "📢info", "⏫level"]
+    "roles": [
+      "CEO",
+      "COO",
+      "chairman"
+    ],
+    "channel": [
+      "📂log",
+      "📢info",
+      "⏫level"
+    ]
   },
   "pollClose": {
-    "roles": ["CEO", "COO", "chairman"]
+    "roles": [
+      "CEO",
+      "COO",
+      "chairman"
+    ]
   },
   "pollPublish": {
-    "roles": ["CEO", "CEO", "chairman"],
-    "channel": ["📂log", "📢info", "⏫level"]
+    "roles": [
+      "CEO",
+      "CEO",
+      "chairman"
+    ],
+    "channel": [
+      "📂log",
+      "📢info",
+      "⏫level"
+    ]
   },
   "subCreate": {
-    "roles": ["CEO", "COO"]
+    "roles": [
+      "CEO",
+      "COO"
+    ]
   },
   "subRemove": {
-    "roles": ["CEO", "COO"]
+    "roles": [
+      "CEO",
+      "COO"
+    ]
   },
   "subCreateCode": {
-    "roles": ["CEO", "COO"]
+    "roles": [
+      "CEO",
+      "COO"
+    ]
   },
   "userTextban": {
-    "roles": ["CEO", "COO"]
+    "roles": [
+      "CEO",
+      "COO"
+    ]
   },
   "userStarOfTheWeek": {
-    "roles": ["CEO", "COO"]
+    "roles": [
+      "CEO",
+      "COO"
+    ]
   },
   "userLevel": {
-    "channel": ["⏫level"]
+    "channel": [
+      "⏫level"
+    ]
   },
   "userLeaderboard": {
-    "channel": ["⏫level"]
+    "channel": [
+      "⏫level"
+    ]
   },
   "userGetPicture": {
-    "channel": ["🚮spam"] 
+    "channel": [
+      "🚮spam"
+    ]
   }
 }

@@ -6,7 +6,6 @@ def read_rights_of(command, category):
     datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
     rights = json.load(open(datapath + "commandRights.json"))
     if command in rights and category in rights[command]:
-        print(rights[command])
         return rights[command][category]
     else:
         return []
