@@ -446,7 +446,7 @@ class Commanduser(commands.Cog, name="User Commands"):
 	# When give star of the week should be queued
 	@userParent.command(name = 'star', brief = 'Gives user \'star of the week\'.')
 	@isDMCommand()
-	@hasAnyRole("CEO","COO")
+	@hasAnyRole(*roles_userStarOfTheWeek)
 	async def giveStarOfTheWeek(self, ctx, userID):
 		""
 		You can give a user 'star of the week' via the command 'user star [user id]'.
