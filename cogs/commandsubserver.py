@@ -7,6 +7,7 @@ from discord.utils import find
 from helpfunctions.decorators import isDMCommand, isBotOwnerCommand
 from helpfunctions.utils import Utils
 from datahandler.jsonhandel import Jsonhandel
+from datahandler.commandrights import read_rights_of
 
 from hashlib import sha512
 
@@ -88,6 +89,10 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
             To irrevocable remove a sub server use 'sub rm {[subID/[sub_name]}'. Can only be done by users with at least the role 'COO'.
     """
 
+    roles_subCreate = read_rights_of("subRreate", "roles")
+    roles_subRemove = read_rights_of("subRemove", "roles")
+    roles_subCreateCode = read_rights_of("subCreateCode", "roles")
+
     def __init__(self, bot):
         super(Commandsubserver, self).__init__()
         self.bot = bot
@@ -136,7 +141,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
     @sub.command(name="create", brief="Creates a subserver.")
     @isDMCommand()
-    @hasAnyRole("CEO", "COO")
+    @hasAnyRole(*roles_subCreate)
     async def create(self, ctx, subserver_name):
         """
         To create a subserver use the command 'sub create [subserver name]'.
@@ -257,7 +262,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
     @sub.command(name="rm", brief="Removes a subserver.")
     @isDMCommand()
-    @hasAnyRole("COO", "CEO")
+    @hasAnyRole(*roles_subRemove)
     async def remove(self, ctx, name):
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         sub_category = self.get_subserver_category_by_name(name)
@@ -482,7 +487,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
     @invite.command(name="create", brief="Creates a invite code.")
     @isDMCommand()
-    @hasAnyRole("CEO", "COO")
+    @hasAnyRole(*roles_subCreateCode)
     async def create_code(self, ctx, subserver_name):
         """
         Creates an invite code for a subserver with the command 'sub invite create [subserver name]'.

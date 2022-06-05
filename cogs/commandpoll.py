@@ -7,6 +7,7 @@ from helpfunctions.decorators import (
     isNotInChannelOrDMCommand,
 )
 from helpfunctions.utils import Utils
+from datahandler.commandrights import read_rights_of
 from datahandler.poll import Poll
 from datahandler.jsonhandel import Jsonhandel
 
@@ -71,6 +72,18 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
 
     utils = None
 
+    roles_pollCreate = read_rights_of("pollCreate", "roles")
+    roles_pollShow = read_rights_of("pollShow", "roles")
+    roles_optionParent = read_rights_of("optionParent", "roles")
+    roles_pollsList = read_rights_of("pollsList", "roles")
+    channel_pollsList = read_rights_of("pollsList", "channel")
+    roles_pollRemove = read_rights_of("pollsList", "roles")
+    roles_pollOpen = read_rights_of("pollOpen", "roles")
+    channel_pollOpen = read_rights_of("pollOpen", "channel")
+    roles_pollClose = read_rights_of("pollClose", "roles")
+    roles_pollPublish = read_rights_of("pollPublish", "roles")
+    channel_pollPublish = read_rights_of("pollPublish", "channel")
+
     def __init__(self, bot):
         super(Commandpoll, self).__init__()
         self.bot = bot
@@ -131,7 +144,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
 
     @poll.command(name="create", brief="Creates a poll.")
     @isDMCommand()
-    @hasAnyRole("CEO", "COO", "chairman")
+    @hasAnyRole(*roles_pollCreate)
     async def pollCreate(self, ctx, pollName):
         """
         You can create a poll by typing 'poll create [poll name]'.
@@ -167,7 +180,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
 
     @poll.command(name="show", brief="Shows an overview of the poll.")
     @isDMCommand()
-    @hasAnyRole("CEO", "COO", "chairman")
+    @hasAnyRole(*roles_pollShow)
     async def pollShow(self, ctx, pollID):
         """
         You can use 'poll show [poll ID]' to se an overview of all information stored in your poll.
@@ -192,7 +205,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
 
     @poll.group(name="op", brief="Manipulate options of a poll.")
     @isDMCommand()
-    @hasAnyRole("CEO", "COO", "chairman")
+    @hasAnyRole(*roles_optionParent)
     async def optioneParent(self, ctx):
         """
         Group of poll option commands.
@@ -280,8 +293,8 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         await ctx.send(message)
 
     @poll.command(name="list", brief="Gives Overview of all polls.")
-    @isInChannelOrDMCommand("🚮spam")
-    @hasAnyRole("CEO", "COO", "chairman", "associate")
+    @isInChannelOrDMCommand(*channel_pollsList)
+    @hasAnyRole(*roles_pollsList)
     async def pollsList(self, ctx):
         """
         With 'poll list' you will get an overview of every poll the bot knows about.
@@ -303,7 +316,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
 
     @poll.command(name="rm", brief="Removes a poll.")
     @isDMCommand()
-    @hasAnyRole("CEO", "COO", "chairman")
+    @hasAnyRole(*roles_pollRemove)
     async def poll_remove(self, ctx, pollID):
         """
         To add an option to a poll use the command 'poll op add [poll id] [option name]'
@@ -355,8 +368,8 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         await ctx.send(message)
 
     @poll.command(name="open", brief="Opens a poll.")
-    @isNotInChannelOrDMCommand("📂log", "📢info", "⏫level")
-    @hasAnyRole("CEO", "COO", "chairman")
+    @isNotInChannelOrDMCommand(*channel_pollOpen)
+    @hasAnyRole(*roles_pollOpen)
     async def poll_open(self, ctx, pollID):
         """
         To open a poll use the command 'poll open [poll id]'.
@@ -406,7 +419,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
 
     @poll.command(name="close", brief="Closes a poll.")
     @isDMCommand()
-    @hasAnyRole("CEO", "COO", "chairman")
+    @hasAnyRole(*roles_pollClose)
     async def poll_close(self, ctx, pollID):
         """
         Closing a poll can be done by the command 'poll close [poll id]'.
@@ -445,8 +458,8 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
             return
 
     @poll.command(name="publish", brief="Publishes a poll.")
-    @isNotInChannelOrDMCommand("📂log", "📢info", "⏫level")
-    @hasAnyRole("CEO", "COO", "chairman")
+    @isNotInChannelOrDMCommand(*channel_pollPublish)
+    @hasAnyRole(*roles_pollPublish)
     async def poll_publish(self, ctx, pollID):
         """
         To publish a poll use the command 'poll publish [poll id]'.

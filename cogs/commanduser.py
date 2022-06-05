@@ -9,6 +9,7 @@ from helpfunctions.utils import Utils
 from datahandler.textban import Textban
 from datahandler.sub import Sub
 from datahandler.jsonhandel import Jsonhandel
+from datahandler.commandrights import read_rights_of
 
 import datetime
 import time
@@ -58,6 +59,12 @@ class Commanduser(commands.Cog, name="User Commands"):
     """
 
     utils = None
+
+    roles_userTextban = read_rights_of("userTextban", "roles")
+    roles_userStarOfTheWeek = read_rights_of("userStarOfTheWeek", "roles")
+    channel_userLevel = read_rights_of("userLevel", "channel")
+    channel_userLeaderboard = read_rights_of("userLeaderboard", "channel")
+    channel_userGetPicture = read_rights_of("userGetPicture", "channel")
 
     def __init__(self, bot):
         super(Commanduser, self).__init__()
@@ -298,7 +305,7 @@ class Commanduser(commands.Cog, name="User Commands"):
 
     @userParent.group(name="tb", brief="Group of user text ban commands.")
     @isDMCommand()
-    @hasAnyRole("CEO", "COO")
+    @hasAnyRole(*roles_userTextban)
     async def user_tb_parent(self, ctx):
         """
         This group of commands is use to manage user text bans.
@@ -478,7 +485,7 @@ class Commanduser(commands.Cog, name="User Commands"):
 
     @userParent.command(name="star", brief="Gives user 'star of the week'.")
     @isDMCommand()
-    @hasAnyRole("CEO", "COO")
+    @hasAnyRole(*roles_userStarOfTheWeek)
     async def giveStarOfTheWeekNow(self, ctx, userID):
         """
         You can give a user 'star of the week' via the command 'user star [userID]'.
@@ -538,7 +545,7 @@ class Commanduser(commands.Cog, name="User Commands"):
     @commands.command(
         name="level", pass_context=True, brief="Returns the level of a player."
     )
-    @isInChannelCommand("⏫level")
+    @isInChannelCommand(*channel_userLevel)
     async def getLevel(self, ctx, *inputs):
         """
         Gives the member a level card via the command 'level'.
@@ -598,7 +605,7 @@ class Commanduser(commands.Cog, name="User Commands"):
         await ctx.message.delete()
 
     @commands.command(name="top", brief="Sends an interactive rank list.")
-    @isInChannelCommand("⏫level")
+    @isInChannelCommand(*channel_userLeaderboard)
     async def leaderboard(self, ctx):
         """
         Spawns an interactive leaderboard in the "⏫level" via the command 'top'.
@@ -628,7 +635,7 @@ class Commanduser(commands.Cog, name="User Commands"):
         await ctx.message.delete()
 
     @commands.command(name="quote", brief="Sends an unique inspirational quote.")
-    @isInChannelCommand("🚮spam")
+    @isInChannelCommand(*channel_userGetPicture)
     async def getPicture(self, ctx):
         """
         Sent a AI generated inspirational quote via 'quote'.
