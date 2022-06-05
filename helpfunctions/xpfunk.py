@@ -75,9 +75,7 @@ class Xpfunk(object):
         levelLim = 100
         while xp > levelLim:
             level += 1
-            levelLim += 100
-            for x in [(55 + y * 10) for y in range(level)]:
-                levelLim += x
+            levelLim += 100 + sum([(55 + y * 10) for y in range(level)])
         return int(level)
 
     def xpNeed(self, voice, text):
@@ -92,7 +90,5 @@ class Xpfunk(object):
         levelLim = 100
         while xp > levelLim:
             level += 1
-            levelLim += 100
-            for x in [(55 + y * 10) for y in range(level)]:
-                levelLim += x
+            levelLim += sum([(55 + y * 10) for y in range(level)]) + 100
         return levelLim

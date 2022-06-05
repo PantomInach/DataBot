@@ -129,7 +129,6 @@ class Commandlistener(commands.Cog):
         if self.bot.get_user(payload.user_id).bot:
             return
 
-        userID = payload.user_id
         channel = self.bot.get_channel(int(payload.channel_id))
         message = await channel.fetch_message(int(payload.message_id))
         [state, page] = Utils.getMessageState(message)
@@ -201,7 +200,6 @@ class Commandlistener(commands.Cog):
         else:
             # Give reaction XP
             channel = self.bot.get_channel(payload.channel_id)
-            whiteList = self.jh.config["serverTextWhitelist"]
             if self.jh.isInWhitelist(payload.channel_id):
                 message = await channel.fetch_message(payload.message_id)
                 if (
@@ -241,7 +239,6 @@ class Commandlistener(commands.Cog):
             # Member left first channel
             if before.channel.name[-1] == "1" and not before.channel.name[-2].isdigit():
                 # Delete last channel, which has no user in it
-                serverid = int(self.jh.getFromConfig("guild"))
 
                 channelWithoutNumber = before.channel.name[:-1]
                 notFirstVoiceChannel = [
@@ -286,7 +283,6 @@ class Commandlistener(commands.Cog):
                 nameIndex -= 1
             nameIndex += 1
 
-            serverid = int(self.jh.getFromConfig("guild"))
             channelWithoutNumber = after.channel.name[:nameIndex]
             # When after.channel name ends with number and channel number 1 has user in it
             if afterNumber and len(

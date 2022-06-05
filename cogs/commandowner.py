@@ -1,6 +1,7 @@
 import os
-from discord.ext import commands
 
+from discord import InvalidArgument
+from discord.ext import commands
 from discord.utils import find
 
 from helpfunctions.decorators import isBotOwnerCommand, isDMCommand
@@ -46,22 +47,6 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
         self.tban = Textban()
 
         Commandowner.utils = self.utils
-
-    @commands.command(
-        name="test",
-        pass_context=True,
-        brief="Testing command for programmer.",
-        description="You require privilege level Owner to use this command. Only the programmer knows what happens here.",
-    )
-    @isBotOwnerCommand()
-    async def test(self, ctx, inputs):
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
-        category = find(lambda cat: cat.name == "Subserver Gateway", guild.categories)
-        main_gateway = find(
-            lambda vc: vc.name.startswith("Main Server"), category.voice_channels
-        )
-        print(main_gateway)
-        await main_gateway.edit(name="Main Server " + inputs)
 
     @commands.command(name="ping")
     @isBotOwnerCommand()
@@ -172,20 +157,6 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
                 self.bot.load_extension(ext)
                 reloadedExtensions.append(ext)
         await self.utils.log(f"Reloaded extensions: {', '.join(reloadedExtensions)}", 2)
-
-    @commands.group(name="hahahah")
-    @isBotOwnerCommand()
-    @hasAnyRole("gaming")
-    async def testing(self, ctx):
-        if ctx.invoked_subcommand is None:
-            await ctx.send("No subcommand is invoked 2")
-        else:
-            await ctx.send("Invoking subcommand")
-
-    @testing.command()
-    @isDMCommand()
-    async def sub(self, ctx, *inputs):
-        await ctx.send(" ".join(inputs) + "Geht")
 
 
 def setup(bot):

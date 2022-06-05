@@ -1,5 +1,6 @@
 import os
 import datetime
+from discord.ext import find
 
 from helpfunctions.xpfunk import Xpfunk
 from datahandler.jsonhandle import Jsonhandle
@@ -64,12 +65,10 @@ class Utils(object):
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         member = guild.get_member(int(userID))
         return (
-            len(
-                {
-                    x
-                    for x in member.roles
-                    if x.id in roles or str(x.id) in roles or x.name in roles
-                }
+            sum(
+                1
+                for x in member.roles
+                if x.id in roles or str(x.id) in roles or x.name in roles
             )
             >= 1
         )
@@ -196,15 +195,11 @@ class Utils(object):
             member = guild.get_member(int(userID))
             # When user is not in guild, member is None.
             if member != None:
-                nick = member.display_name
-                name = member.name
                 # Filter out Emojis in names
-                for i in range(len(nick)):
-                    if nick[i] in UNICODE_EMOJI["en"]:
-                        nick = "".join((nick[:i], "#", nick[i + 1 :]))
-                for i in range(len(name)):
-                    if name[i] in UNICODE_EMOJI["en"]:
-                        name = "".join((name[:i], "#", name[i + 1 :]))
+                nick = "".join(
+                    [c for c in member.display_name if c not in UNICODE_EMOJI["en"]]
+                )
+                name = "".join([c for c in member.name if c not in UNICODE_EMOJI["en"]])
             else:
                 # When user is not in guild.
                 nick = "Not on guild"
