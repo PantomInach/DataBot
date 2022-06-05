@@ -3,11 +3,11 @@ from discord.ext import commands
 
 import os
 
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 
 print("[Startup] Prepare to start Bot...")
 
-jh = Jsonhandel()
+jh = Jsonhandle()
 
 intents = discord.Intents.default()
 intents.presences = True

@@ -8,7 +8,7 @@ from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban
 from datahandler.sub import Sub
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 from datahandler.commandrights import read_rights_of
 
 import datetime
@@ -70,7 +70,7 @@ class Commanduser(commands.Cog, name="User Commands"):
         super(Commanduser, self).__init__()
         # Defines all needed objects
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         self.tban = Textban()
         self.xpf = Xpfunk()
@@ -100,14 +100,15 @@ class Commanduser(commands.Cog, name="User Commands"):
 		Is the parent command for the 'user' command.
 		When invoked without a sub command an error will be sent. The error message will be deleted after an hour.
 		"""
-        if ctx.invoked_subcommand is None:
-            embed = discord.Embed(
-                title="You need to specify a sub command. Possible sub commands: get, rm, set, tb, star",
-                color=0xA40000,
-            )
-            embed.set_author(name="Invalid command")
-            embed.set_footer(text="For more help run '+help user'")
-            await ctx.send(embed=embed, delete_after=3600)
+        if not ctx.invoked_subcommand is None:
+            return
+        embed = discord.Embed(
+            title="You need to specify a sub command. Possible sub commands: get, rm, set, tb, star",
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(text="For more help run '+help user'")
+        await ctx.send(embed=embed, delete_after=3600)
 
     """
 	######################################################################
@@ -139,14 +140,15 @@ class Commanduser(commands.Cog, name="User Commands"):
 		Is the parent command for the 'user set' command.
 		When invoked without a sub command an error will be sent. The error message will be deleted after an hour.
 		"""
-        if ctx.invoked_subcommand is None:
-            embed = discord.Embed(
-                title="You need to specify a sub command. Possible sub commands: voice, text, tc",
-                color=0xA40000,
-            )
-            embed.set_author(name="Invalid command")
-            embed.set_footer(text="For more help run '+help user set'")
-            await ctx.send(embed=embed, delete_after=3600)
+        if not ctx.invoked_subcommand is None:
+            return
+        embed = discord.Embed(
+            title="You need to specify a sub command. Possible sub commands: voice, text, tc",
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(text="For more help run '+help user set'")
+        await ctx.send(embed=embed, delete_after=3600)
 
     @userParent.command(name="get", brief="Gets brief user data.")
     @isBotModCommand()
@@ -327,14 +329,15 @@ class Commanduser(commands.Cog, name="User Commands"):
 		Is the parent command for the 'user tb' command.
 		When invoked without a sub command an error will be sent. The error message will be deleted after an hour.
 		"""
-        if ctx.invoked_subcommand is None:
-            embed = discord.Embed(
-                title="You need to specify a sub command. Possible sub commands: give, rm",
-                color=0xA40000,
-            )
-            embed.set_author(name="Invalid command")
-            embed.set_footer(text="For more help run '+help user tb'")
-            await ctx.send(embed=embed, delete_after=3600)
+        if not ctx.invoked_subcommand is None:
+            return
+        embed = discord.Embed(
+            title="You need to specify a sub command. Possible sub commands: give, rm",
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(text="For more help run '+help user tb'")
+        await ctx.send(embed=embed, delete_after=3600)
 
     @user_tb_parent.command(name="give", brief="Text ban a user.")
     async def textban(self, ctx, userID, time, reason):

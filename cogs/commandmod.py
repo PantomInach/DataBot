@@ -4,7 +4,7 @@ from discord.ext import commands
 from helpfunctions.decorators import isBotModCommand
 from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 
 
 class Commandmod(commands.Cog, name="Bot Mod Commands"):
@@ -28,7 +28,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
     def __init__(self, bot):
         super(Commandmod, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         self.xpf = Xpfunk()
 
@@ -66,14 +66,15 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
 		It is the parent command for the 'textwl' command.
 		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
 		"""
-        if ctx.invoked_subcommand is None:
-            embed = discord.Embed(
-                title="You need to specify a subcommand. Possible subcommands: add, remove",
-                color=0xA40000,
-            )
-            embed.set_author(name="Invalid command")
-            embed.set_footer(text="For more help run '+help textwl'")
-            await ctx.send(embed=embed, delete_after=3600)
+        if not ctx.invoked_subcommand is None:
+            return
+        embed = discord.Embed(
+            title="You need to specify a subcommand. Possible subcommands: add, remove",
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(text="For more help run '+help textwl'")
+        await ctx.send(embed=embed, delete_after=3600)
 
     @textwl.command(name="add", brief="Adds a channel to the whitelist")
     async def addtextwhitelist(self, ctx, channelID=None):

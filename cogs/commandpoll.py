@@ -9,7 +9,7 @@ from helpfunctions.decorators import (
 from helpfunctions.utils import Utils
 from datahandler.commandrights import read_rights_of
 from datahandler.poll import Poll
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 
 
 def hasAnyRole(*items):
@@ -88,7 +88,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         super(Commandpoll, self).__init__()
         self.bot = bot
         self.poll = Poll()
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         Commandpoll.utils = self.utils
 
@@ -133,14 +133,15 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
 		It is the parent command for the 'poll' command.
 		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
 		"""
-        if ctx.invoked_subcommand is None:
-            embed = discord.Embed(
-                title="You need to specify a subcommand. Possible subcommands: create, list, show, close, open, publish, rm, op",
-                color=0xA40000,
-            )
-            embed.set_author(name="Invalid command")
-            embed.set_footer(text="For more help run '+help poll'")
-            await ctx.send(embed=embed, delete_after=3600)
+        if not ctx.invoked_subcommand is None:
+            return
+        embed = discord.Embed(
+            title="You need to specify a subcommand. Possible subcommands: create, list, show, close, open, publish, rm, op",
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(text="For more help run '+help poll'")
+        await ctx.send(embed=embed, delete_after=3600)
 
     @poll.command(name="create", brief="Creates a poll.")
     @isDMCommand()
@@ -206,7 +207,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
     @poll.group(name="op", brief="Manipulate options of a poll.")
     @isDMCommand()
     @hasAnyRole(*roles_optionParent)
-    async def optioneParent(self, ctx):
+    async def option_parent(self, ctx):
         """
         Group of poll option commands.
 
@@ -222,16 +223,17 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
 		It is the parent command for the 'poll op' command.
 		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
 		"""
-        if ctx.invoked_subcommand is None:
-            embed = discord.Embed(
-                title="You need to specify a subcommand. Possible subcommands: add, rm",
-                color=0xA40000,
-            )
-            embed.set_author(name="Invalid command")
-            embed.set_footer(text="For more help run '+help poll op'")
-            await ctx.send(embed=embed, delete_after=3600)
+        if not ctx.invoked_subcommand is None:
+            return
+        embed = discord.Embed(
+            title="You need to specify a subcommand. Possible subcommands: add, rm",
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(text="For more help run '+help poll op'")
+        await ctx.send(embed=embed, delete_after=3600)
 
-    @optioneParent.command(name="add", brief="Add potion to a poll")
+    @option_parent.command(name="add", brief="Add potion to a poll")
     async def optionAdd(self, ctx, pollID, optionName):
         """
         Use 'poll op add [poll id] [option name]' to add an option to your poll.
@@ -264,7 +266,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
             )
         await ctx.send(message)
 
-    @optioneParent.command(name="rm", brief="Remove an option from a poll.")
+    @option_parent.command(name="rm", brief="Remove an option from a poll.")
     async def polloptionRemove(self, ctx, pollID, optionName):
         """
         If you want to remove an option, it will be possible with 'poll op rm [poll id] [option name]'.
@@ -347,7 +349,6 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
                     channel = self.bot.get_channel(
                         int(self.jh.getFromConfig("logchannel"))
                     )
-                    server = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
                     await channel.send(
                         f'User {ctx.author.mention} removed the poll: "{pollName}".'
                     )
@@ -530,7 +531,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         userID = payload.user_id
         channel = self.bot.get_channel(int(payload.channel_id))
         message = await channel.fetch_message(int(payload.message_id))
-        [state, page] = Utils.getMessageState(message)
+        [state, _] = Utils.getMessageState(message)
         """
 		State (0,0): Normal message
 		State (1,x): Leaderboard sorted by XP on page x

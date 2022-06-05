@@ -3,7 +3,7 @@ import os
 import time
 
 
-class Jsonhandel(object):
+class Jsonhandle(object):
     """
     Handles maipulation and reading from userdata.json and config.json
     """
@@ -13,7 +13,7 @@ class Jsonhandel(object):
     def __new__(cls):
         """Singelton pattern."""
         if cls._instance is None:
-            cls._instance = super(Jsonhandel, cls).__new__(cls)
+            cls._instance = super(Jsonhandle, cls).__new__(cls)
             cls.datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
             # Reads in userdata.json and config.json
             cls.config = json.load(open(cls.datapath + "config.json"))
@@ -244,7 +244,7 @@ class Jsonhandel(object):
         return sortedData[::-1]
 
     @_reloadData
-    def getSortedDataEntrys(self, entryBeginn, entryEnd, sortBy):
+    def getSortedDataEntrys(self, entryBegin, entryEnd, sortBy):
         """
         param entrBeginn:	Begin of user entry which will be returned. When in data range, empty list will be returned.
         param entryEnd:		Defines the end of the returned user data. Is not included. When it's larger or smaller than data, all data points beginning with entryBeginn will be returned.
@@ -256,11 +256,11 @@ class Jsonhandel(object):
         Sorts Data by given parameter and returns the given entries.
         """
         l = len(self.data)
-        if entryBeginn >= l:
+        if entryBegin >= l:
             return []
         if entryEnd > l:
             entryEnd = l
-        return self.sortDataBy(sortBy)[entryBeginn:entryEnd]
+        return self.sortDataBy(sortBy)[entryBegin:entryEnd]
 
     @_reloadData
     def addNewDataEntry(self, userID):

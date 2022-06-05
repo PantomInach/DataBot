@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord.utils import find
 
 import os
 import json
@@ -13,7 +12,7 @@ from helpfunctions.decorators import (
     isNotInChannelOrDMCommand,
 )
 from helpfunctions.utils import Utils
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 
 
 class Commandgiverole(commands.Cog):
@@ -52,7 +51,7 @@ class Commandgiverole(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         self.datapath = (
             str(os.path.dirname(os.path.dirname(__file__))) + "/data/giveroles/"

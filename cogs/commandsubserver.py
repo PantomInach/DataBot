@@ -4,9 +4,9 @@ import asyncio
 
 from discord.utils import find
 
-from helpfunctions.decorators import isDMCommand, isBotOwnerCommand
+from helpfunctions.decorators import isDMCommand
 from helpfunctions.utils import Utils
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 from datahandler.commandrights import read_rights_of
 
 from hashlib import sha512
@@ -96,7 +96,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
     def __init__(self, bot):
         super(Commandsubserver, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         Commandsubserver.utils = self.utils
         Commandsubserver.subserver_role = self.jh.get_subserver_needed_roles()
@@ -128,16 +128,17 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 		Is the parent command for the 'sub' command.
 		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
 		"""
-        if ctx.invoked_subcommand is None:
-            embed = discord.Embed(
-                title="You need to specify a subcommand. Possible subcommands: list, create, invite, rm, inv, join, leave, sw, ss",
-                color=0xA40000,
-            )
-            embed.set_author(name="Invalid command")
-            embed.set_footer(
-                text="For more help run '+help sub' or '+help Subserver Commands'"
-            )
-            await ctx.send(embed=embed, delete_after=3600)
+        if not ctx.invoked_subcommand is None:
+            return
+        embed = discord.Embed(
+            title="You need to specify a subcommand. Possible subcommands: list, create, invite, rm, inv, join, leave, sw, ss",
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(
+            text="For more help run '+help sub' or '+help Subserver Commands'"
+        )
+        await ctx.send(embed=embed, delete_after=3600)
 
     @sub.command(name="create", brief="Creates a subserver.")
     @isDMCommand()
@@ -474,16 +475,17 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
         All commands in the list below can be executed in this channel.
         """
-        if ctx.invoked_subcommand is None:
-            embed = discord.Embed(
-                title="You need to specify a subcommand. Possible subcommands: create",
-                color=0xA40000,
-            )
-            embed.set_author(name="Invalid command")
-            embed.set_footer(
-                text="For more help run '+help sub invite' or '+help Subserver Commands'"
-            )
-            await ctx.send(embed=embed, delete_after=3600)
+        if not ctx.invoked_subcommand is None:
+            return
+        embed = discord.Embed(
+            title="You need to specify a subcommand. Possible subcommands: create",
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(
+            text="For more help run '+help sub invite' or '+help Subserver Commands'"
+        )
+        await ctx.send(embed=embed, delete_after=3600)
 
     @invite.command(name="create", brief="Creates a invite code.")
     @isDMCommand()
@@ -559,7 +561,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 	"""
 
     @commands.Cog.listener()
-    async def on_voice_state_update(self, member, before, after):
+    async def on_voice_state_update(self, member, _, after):
         """
         Handles the subserver gateway functions
         When a member connects to a subway channel, he will get the corresponding role.
@@ -648,7 +650,6 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         Removes member from current subserver and lets him join new subserver defined to.
         Returns True if operation was successful.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         if not member:
             return False
         succesful = await self.leave_current_subserver_no_permanent(member)
@@ -669,7 +670,6 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         Removes all sub-roles of user.
         Returns True if operation was successful.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         if not member:
             return False
         sub_roles = [role for role in member.roles if role.name.startswith("sub-")]
@@ -684,7 +684,6 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         Exp.: {"test": (0,2,4), "test2": (3,6,8), ...}
         """
         info_dict = {}
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         subserver_dict = self.get_subserver_users_per_role()
         for key in subserver_dict.keys():
             subserver_name = key.name[4:]
