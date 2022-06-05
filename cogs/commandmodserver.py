@@ -6,7 +6,7 @@ import asyncio
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban
 from datahandler.counter import Counter
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 
 
 def hasAnyRole(*items):
@@ -40,9 +40,9 @@ class Commandmodserver(commands.Cog, name="Server Mod Commands"):
     def __init__(self, bot):
         super(Commandmodserver, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.tban = Textban()
-        self.jh = Jsonhandel
+        self.jh = Jsonhandle
         self.utils = Utils(bot, jh=self.jh)
         self.counter = Counter()
         Commandmodserver.utils = self.utils

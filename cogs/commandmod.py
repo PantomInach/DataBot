@@ -4,7 +4,7 @@ from discord.ext import commands
 from helpfunctions.decorators import isBotModCommand
 from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 
 
 class Commandmod(commands.Cog, name="Bot Mod Commands"):
@@ -28,7 +28,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
     def __init__(self, bot):
         super(Commandmod, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         self.xpf = Xpfunk()
 

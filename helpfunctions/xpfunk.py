@@ -1,6 +1,6 @@
 import random
 
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 
 
 class Xpfunk(object):
@@ -16,7 +16,7 @@ class Xpfunk(object):
         """
         super(Xpfunk, self).__init__()
         # Read only
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
 
     def textXP(self, message):
         """

@@ -10,7 +10,7 @@ from helpfunctions.decorators import isBotModCommand, isBotOwnerCommand, isDMCom
 from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 
 
 def hasAnyRole(*items):
@@ -43,7 +43,7 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
     def __init__(self, bot):
         super(Commandowner, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         self.xpf = Xpfunk()
         self.tban = Textban()

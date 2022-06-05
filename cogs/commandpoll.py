@@ -9,7 +9,7 @@ from helpfunctions.decorators import (
 from helpfunctions.utils import Utils
 from datahandler.commandrights import read_rights_of
 from datahandler.poll import Poll
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 
 
 def hasAnyRole(*items):
@@ -88,7 +88,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         super(Commandpoll, self).__init__()
         self.bot = bot
         self.poll = Poll()
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         Commandpoll.utils = self.utils
 

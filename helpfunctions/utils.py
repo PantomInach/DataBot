@@ -5,7 +5,7 @@ import os
 import datetime
 
 from helpfunctions.xpfunk import Xpfunk
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 
 # import hashlib
 
@@ -24,7 +24,7 @@ class Utils(object):
         """
         super(Utils, self).__init__()
         self.bot = bot
-        self.jh = jh if jh else Jsonhandel()
+        self.jh = jh if jh else Jsonhandle()
         self.xpf = Xpfunk()
 
     def hasRole(self, userID, role):

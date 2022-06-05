@@ -8,7 +8,7 @@ from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban
 from datahandler.sub import Sub
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 from datahandler.commandrights import read_rights_of
 
 import datetime
@@ -70,7 +70,7 @@ class Commanduser(commands.Cog, name="User Commands"):
         super(Commanduser, self).__init__()
         # Defines all needed objects
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         self.tban = Textban()
         self.xpf = Xpfunk()

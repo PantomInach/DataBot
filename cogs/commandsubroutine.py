@@ -6,7 +6,7 @@ import traceback
 
 from discord.ext import tasks, commands
 
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 from datahandler.sub import Sub
 from helpfunctions.utils import Utils
 from helpfunctions.decorators import isBotOwnerCommand
@@ -30,7 +30,7 @@ class Subroutine(commands.Cog):
     def __init__(self, bot):
         super(Subroutine, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         self.sub = Sub()
         self.xpf = Xpfunk()

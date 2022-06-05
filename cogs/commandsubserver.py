@@ -6,7 +6,7 @@ from discord.utils import find
 
 from helpfunctions.decorators import isDMCommand, isBotOwnerCommand
 from helpfunctions.utils import Utils
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 from datahandler.commandrights import read_rights_of
 
 from hashlib import sha512
@@ -96,7 +96,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
     def __init__(self, bot):
         super(Commandsubserver, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         Commandsubserver.utils = self.utils
         Commandsubserver.subserver_role = self.jh.get_subserver_needed_roles()

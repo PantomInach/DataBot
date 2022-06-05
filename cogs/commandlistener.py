@@ -6,7 +6,7 @@ import sys
 
 from helpfunctions.utils import Utils
 from helpfunctions.xpfunk import Xpfunk
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 from datahandler.textban import Textban
 
 
@@ -17,7 +17,7 @@ class Commandlistener(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         self.xpf = Xpfunk()
 

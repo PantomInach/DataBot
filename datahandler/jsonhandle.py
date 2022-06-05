@@ -3,7 +3,7 @@ import os
 import time
 
 
-class Jsonhandel(object):
+class Jsonhandle(object):
     """
     Handles maipulation and reading from userdata.json and config.json
     """
@@ -13,7 +13,7 @@ class Jsonhandel(object):
     def __new__(cls):
         """Singelton pattern."""
         if cls._instance is None:
-            cls._instance = super(Jsonhandel, cls).__new__(cls)
+            cls._instance = super(Jsonhandle, cls).__new__(cls)
             cls.datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
             # Reads in userdata.json and config.json
             cls.config = json.load(open(cls.datapath + "config.json"))
