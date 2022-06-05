@@ -2,7 +2,6 @@ import asyncio
 import discord
 from discord.ext import commands
 from datahandler.jsonhandle import Jsonhandle
-from helpfunctions.utils import Utils
 
 """
 Following functions are ment to be used as decorators, when not using @commands.command

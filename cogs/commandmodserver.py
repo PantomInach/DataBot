@@ -1,7 +1,4 @@
-import discord
-from discord.utils import get
 from discord.ext import commands
-import asyncio
 
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban

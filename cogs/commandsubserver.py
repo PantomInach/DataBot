@@ -4,7 +4,7 @@ import asyncio
 
 from discord.utils import find
 
-from helpfunctions.decorators import isDMCommand, isBotOwnerCommand
+from helpfunctions.decorators import isDMCommand
 from helpfunctions.utils import Utils
 from datahandler.jsonhandle import Jsonhandle
 from datahandler.commandrights import read_rights_of

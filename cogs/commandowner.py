@@ -1,12 +1,9 @@
-import discord
-import sys
 import os
-import asyncio
 from discord.ext import commands
 
 from discord.utils import find
 
-from helpfunctions.decorators import isBotModCommand, isBotOwnerCommand, isDMCommand
+from helpfunctions.decorators import isBotOwnerCommand, isDMCommand
 from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban

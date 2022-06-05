@@ -1,7 +1,4 @@
-import asyncio
 import time
-import os
-import json
 import traceback
 
 from discord.ext import tasks, commands
