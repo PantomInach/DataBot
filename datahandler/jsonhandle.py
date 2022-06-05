@@ -244,7 +244,7 @@ class Jsonhandle(object):
         return sortedData[::-1]
 
     @_reloadData
-    def getSortedDataEntrys(self, entryBeginn, entryEnd, sortBy):
+    def getSortedDataEntrys(self, entryBegin, entryEnd, sortBy):
         """
         param entrBeginn:	Begin of user entry which will be returned. When in data range, empty list will be returned.
         param entryEnd:		Defines the end of the returned user data. Is not included. When it's larger or smaller than data, all data points beginning with entryBeginn will be returned.
@@ -256,11 +256,11 @@ class Jsonhandle(object):
         Sorts Data by given parameter and returns the given entries.
         """
         l = len(self.data)
-        if entryBeginn >= l:
+        if entryBegin >= l:
             return []
         if entryEnd > l:
             entryEnd = l
-        return self.sortDataBy(sortBy)[entryBeginn:entryEnd]
+        return self.sortDataBy(sortBy)[entryBegin:entryEnd]
 
     @_reloadData
     def addNewDataEntry(self, userID):

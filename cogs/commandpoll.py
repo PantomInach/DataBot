@@ -206,7 +206,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
     @poll.group(name="op", brief="Manipulate options of a poll.")
     @isDMCommand()
     @hasAnyRole(*roles_optionParent)
-    async def optioneParent(self, ctx):
+    async def option_parent(self, ctx):
         """
         Group of poll option commands.
 
@@ -231,7 +231,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
             embed.set_footer(text="For more help run '+help poll op'")
             await ctx.send(embed=embed, delete_after=3600)
 
-    @optioneParent.command(name="add", brief="Add potion to a poll")
+    @option_parent.command(name="add", brief="Add potion to a poll")
     async def optionAdd(self, ctx, pollID, optionName):
         """
         Use 'poll op add [poll id] [option name]' to add an option to your poll.
@@ -264,7 +264,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
             )
         await ctx.send(message)
 
-    @optioneParent.command(name="rm", brief="Remove an option from a poll.")
+    @option_parent.command(name="rm", brief="Remove an option from a poll.")
     async def polloptionRemove(self, ctx, pollID, optionName):
         """
         If you want to remove an option, it will be possible with 'poll op rm [poll id] [option name]'.
