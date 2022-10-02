@@ -16,13 +16,14 @@ def hasAnyRole(*items):
 
     Only use for commands, which USE @commands.command
     commands.has_any_role() does not work in DM, since a user can't have roles.
-    This one pulls the roles from the configured guild and makes the same check as commands.has_any_role().
+    This one pulls the roles from the configured guild and makes the same check as
+    commands.has_any_role().
 
     Function is not in decorators.py since the Helpfunction Object is needed.
     """
 
     def predicate(ctx):
-        return Commandowner.utils.hasOneRole(ctx.author.id, [*items])
+        return Commandmodserver.utils.hasOneRole(ctx.author.id, [*items])
 
     return commands.check(predicate)
 

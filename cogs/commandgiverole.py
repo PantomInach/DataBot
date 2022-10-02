@@ -43,10 +43,14 @@ class Commandgiverole(commands.Cog):
             post
             update
 
-    When you have configured your table, you can post it to the current channel by executing 'table post [table name]'.
+    When you have configured your table, you can post it to the current channel be
+    executing 'table post [table name]'.
     To get all tables, use 'table list'.
-    If you want to change a table, because you want to add/remove a role or change the text, modify the corresponding .json and run 'rlext' and 'table update [table name]'.
-    It is also possible to remove your table message via 'table rm [table name]'. !!! BE CAREFULLY WHEN USING THIS COMMAND. This action can not be reverted.
+    If you want to change a table, because you want to add/remove a role or change the
+    text, modify the corresponding .json and run 'rlext' and
+    'table update [table name]'.
+    It is also possible to remove your table message via 'table rm [table name]'.
+    !!! BE CAREFULLY WHEN USING THIS COMMAND. This action can not be reverted.
     """
 
     def __init__(self, bot):
@@ -66,20 +70,26 @@ class Commandgiverole(commands.Cog):
         Group of table commands.
 
         With this command you can post, update or remove a table.
-        Tables are used by members to receive roles, when reacting with the specified emoji.
+        Tables are used by members to receive roles, when reacting with the specified
+        emoji.
         Also, removing the roles is possible when revoking the reaction.
 
         More infos can be found via 'help table [command]'.
         """
         """
-		param ctx:	Discord Context object. Automatical passed.
+        param ctx: Discord Context object. Automatical passed.
 
-		Parent command for 'table'.
-		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
-		"""
+        Parent command for 'table'.
+        When invoked without a subcommand an error will be sent. The error message
+        will be deleted after an hour.
+        """
         if ctx.invoked_subcommand is None:
+            title = (
+                "You need to specify a subcommand."
+                + " Possible subcommands: post, update, rm, list"
+            )
             embed = discord.Embed(
-                title="You need to specify a subcommand. Possible subcommands: post, update, rm, list",
+                title=title,
                 color=0xA40000,
             )
             embed.set_author(name="Invalid command")
@@ -117,21 +127,30 @@ class Commandgiverole(commands.Cog):
         Can only be executed by the bot owner and also not in a DM channel.
         """
         """
-		First checks if the message's reactions are all emojis and if the guild contains all roles.
-		Post table to the message channel nd addes the reactions.
-		Also save the channel and message id to the table json file.
-		"""
+        First checks if the message's reactions are all emojis and if the guild
+        contains all roles. Post table to the message channel nd addes the reactions.
+        Also save the channel and message id to the table json file.
+        """
         table_content = self.get_table_content(table_name)
         if not table_content:
+            message_to_send = (
+                f"There is no table with the name {table_name}."
+                + " See 'table list' to see all tables."
+            )
             await ctx.author.send(
-                f"There is no table with the name {table_name}. See 'table list' to see all tables.",
+                message_to_send,
                 delete_after=3600,
             )
             return
         check_res = self.check_content_table(table_content)
         if not check_res[0]:
+            message_to_send = (
+                "There is a problem with the config of the table "
+                + str(table_name)
+                + ". Please check the '{check_res[1]}' roles if they are correct.",
+            )
             await ctx.author.send(
-                f"There is a problem with the config of the table {table_name}. Please check the '{check_res[1]}' roles if they are correct.",
+                message_to_send,
                 delete_after=3600,
             )
             return
@@ -149,19 +168,25 @@ class Commandgiverole(commands.Cog):
     async def rm(self, ctx, table_name):
         """
         To remove a table the command 'table rm [table_name]' can be used.
-        The corresponding table will be deleted from its channel. The config file will remain untouched.
+        The corresponding table will be deleted from its channel. The config file will
+        remain untouched.
 
         Can only be executed by the bot owner and also in a DM channel.
         """
         """
-		First checks if the table with the given name exists. Then checks if the messages can be found via the channel and message id.
-		If an error occures, a corresponding message will be send.
-		When nothing fails the message will be removed from the channel.
-		"""
+        First checks if the table with the given name exists. Then checks if the
+        messages can be found via the channel and message id.
+        If an error occures, a corresponding message will be send.
+        When nothing fails the message will be removed from the channel.
+        """
         table_content = self.get_table_content(table_name)
         if not table_content:
+            message_to_send = (
+                f"There is no table with the name {table_name}"
+                + ". See 'table list' to see all tables.",
+            )
             await ctx.author.send(
-                f"There is no table with the name {table_name}. See 'table list' to see all tables.",
+                message_to_send,
                 delete_after=3600,
             )
             return
@@ -171,14 +196,23 @@ class Commandgiverole(commands.Cog):
         if message is None:
             return
         """
-		# Unutalised option to delet roles on removing a table.
-		roles_to_remove = [role for (give, remove) in table_content["reactions"].values() for role in remove]
-		# Also sorts out users, which discord.Reactions.users() can return.
-		guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
-		remove_from_member = [member for reaction in message.reactions for member in await reaction.users().flatten() if guild.get_member(member.id)] 
-		for member in remove_from_member:
-			await self.utils.removeRoles(member.id, roles_to_remove)
-		"""
+        # Unutalised option to delet roles on removing a table.
+        roles_to_remove = [
+            role
+            for (give, remove) in table_content["reactions"].values()
+            for role in remove
+        ]
+        # Also sorts out users, which discord.Reactions.users() can return.
+        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        remove_from_member = [
+            member
+            for reaction in message.reactions
+            for member in await reaction.users().flatten()
+            if guild.get_member(member.id)
+        ]
+        for member in remove_from_member:
+            await self.utils.removeRoles(member.id, roles_to_remove)
+        """
         await message.delete()
 
     @table.command(name="update", brief="Updates a table.")
@@ -186,29 +220,44 @@ class Commandgiverole(commands.Cog):
     @isDMCommand()
     async def update(self, ctx, table_name):
         """
-        If you want to change a table, then update the config and invoke 'table update [table_name]'.
-        The table message will be updated including the changed emojis.
+        If you want to change a table, then update the config and invoke 'table update
+        [table_name]'. The table message will be updated including the changed emojis.
 
         Can only be executed by the bot owner and also in a DM channel.
         """
         """
-		First checks if the table with the given name exists. Then checks if the messages can be found via the channel and message id.
-		If an error occures, a corresponding message will be send.
-		Also tests if the message is from the bot itself. 
-		!!! WARNING !!! If a false message/channel id is given, the command can overwritte another bot message. For more details view the command below in the code.
-		When nothing fails, reactions will be cleard, the message will be updated and new reactions will be 
-		"""
+        First checks if the table with the given name exists. Then checks if the
+        messages can be found via the channel and message id.
+        If an error occures, a corresponding message will be send.
+        Also tests if the message is from the bot itself.
+        !!! WARNING !!! If a false message/channel id is given, the command can
+        overwritte another bot message. For more details view the command below in the
+        code. When nothing fails, reactions will be cleard, the message will be
+        updated and new reactions will be cleard.
+        """
         table_content = self.get_table_content(table_name)
         if not table_content:
+            message_to_send = (
+                "There is no table with the name '"
+                + str(table_name)
+                + "'. See 'table list' to see all tables."
+            )
             await ctx.author.send(
-                f"There is no table with the name `{table_name}`. See 'table list' to see all tables.",
+                message_to_send,
                 delete_after=3600,
             )
             return
         check_res = self.check_content_table(table_content)
         if not check_res[0]:
+            message_to_send = (
+                "There is a problem with the config of the table '"
+                + str(table_name)
+                + "'. Please check the '"
+                + str(check_res[1])
+                + "' roles if they are correct."
+            )
             await ctx.author.send(
-                f"There is a problem with the config of the table `{table_name}`. Please check the '{check_res[1]}' roles if they are correct.",
+                message_to_send,
                 delete_after=3600,
             )
             return
@@ -218,11 +267,23 @@ class Commandgiverole(commands.Cog):
         if not message:
             return
         # Test if message is from itself. When fails => message can not be a table.
-        # No further test is implemented since there are no identifier for a table and the message/channel id could be modified by the owner.
-        # The owner is trusted to specify the correct message/channel id or not to change them.
+        # No further test is implemented since there are no identifier for a table and
+        # the message/channel id could be modified by the owner.
+        # The owner is trusted to specify the correct message/channel id or not to
+        # change them.
         if message.author != self.bot.user:
+            message_to_send = (
+                "ERROR: The message with id '"
+                + str(message.id)
+                + "' in channel with id '"
+                + str(message.channel.id)
+                + "' is not from the bot itself. Please check the config file for "
+                + "table '"
+                + str(table_name)
+                + "'."
+            )
             await ctx.author.send(
-                f"ERROR: The message with id `{message_id}` in channel with id `{channel_id}` is not from the bot itself. Please check the config file for table `{table_name}`."
+                message_to_send,
             )
             return
         # Clear all removed reactions
@@ -292,23 +353,39 @@ class Commandgiverole(commands.Cog):
         param channel_id: 	Id of channel as int
         param message_id: 	Id of message as int
 
-        Trys to retrive a message from the current guild with the give channel and message id.
-        If not found, the ctx.author gets an error message.
+        Trys to retrive a message from the current guild with the give channel and
+        message id. If not found, the ctx.author gets an error message.
         Otherwise returns a Discord message object.
         """
         table_name = ctx.args[-1]
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         channel = guild.get_channel(channel_id)
         if not channel:
+            message_to_send = (
+                "ERROR: Channel '"
+                + str(channel_id)
+                + "' was not found- The configuration of table '"
+                + str(table_name)
+                + "' is wrong. Please correct the table by hand in the 'giveroles'"
+                + " folder."
+            )
             await ctx.author.send(
-                f"ERROR: Channel `{channel_id}` is not found. The configuration of table `{table_name}` is wrong. Please correct the table by hand in the 'giveroles' folder."
+                message_to_send,
             )
             return
         try:
             message = await channel.fetch_message(message_id)
-        except discord.NotFound as e:
+        except discord.NotFound:
+            message_to_send = (
+                "ERROR: Message '"
+                + str(message_id)
+                + "' was not found. The configuration of table '"
+                + str(table_name)
+                + "' is wrong. Please correct the table by hand in the 'giveroles'"
+                + " folder."
+            )
             await ctx.author.send(
-                f"ERROR: Message `{message_id}` is not found. The configuration of table `{table_name}` is wrong. Please correct the table by hand in the 'giveroles' folder."
+                message_to_send,
             )
             return
         return message
@@ -317,8 +394,8 @@ class Commandgiverole(commands.Cog):
         """
         param table_name:	String of table_name
 
-        Gets the json Data of a table with the name table_name from '../data/giveroles'.
-        The ending '.json' is optional.
+        Gets the json Data of a table with the name table_name from
+        '../data/giveroles'. The ending '.json' is optional.
         """
         if not table_name.endswith(".json"):
             table_name += ".json"
@@ -359,7 +436,8 @@ class Commandgiverole(commands.Cog):
 
         Checks if the provided content is suitable to be posted as a discord message.
         Investigates if reactions are emojis and if the roles exist on the guild.
-        When one test does not pass, False and a reason will be returned as a tuple (False, Reason). Otherwise (True, None) will be returned.
+        When one test does not pass, False and a reason will be returned as a tuple
+        (False, Reason). Otherwise (True, None) will be returned.
         """
         # Check emoji's
         if not set(content["reactions"].keys()).issubset(

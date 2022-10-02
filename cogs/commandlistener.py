@@ -23,7 +23,9 @@ class Commandlistener(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        print("Ignoring exception in command {}:".format(ctx.command), file=sys.stderr)
+        print(
+            "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
+        )
         traceback.print_exception(
             type(error), error, error.__traceback__, file=sys.stderr
         )
@@ -48,14 +50,14 @@ class Commandlistener(commands.Cog):
         # Sends message to mods, when bot is online
         print("Now Online")
         await self.utils.sendModsMessage(
-            f"Bot is now online.\nVersion:\tDiscordBot DataBot v1.4.0"
+            "Bot is now online.\nVersion:\tDiscordBot DataBot v1.4.0"
         )
 
     # When a member joins a guild
     @commands.Cog.listener()
     async def on_member_join(self, member):
         """
-        param member:	User on guild
+        param member:   User on guild
 
         Creates a welcome message in the log channel
         """
@@ -64,17 +66,17 @@ class Commandlistener(commands.Cog):
         await channel.send(f"Hey **{member.mention}**, welcome to {guild}")
 
     """
-	@commands.Cog.listener()
-	async def on_disconnect(self):
-		owner = self.bot.get_user(int(self.jh.getFromConfig("owner")))
-		await self.utils.sendOwnerMessage("Bot is offline.")
-	"""
+    @commands.Cog.listener()
+    async def on_disconnect(self):
+        owner = self.bot.get_user(int(self.jh.getFromConfig("owner")))
+        await self.utils.sendOwnerMessage("Bot is offline.")
+    """
 
     # When a member leaves the guild
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         """
-        param member:	User on guild
+        param member:   User on guild
 
         Sends a goodbye message in the log channel
         """
@@ -84,30 +86,30 @@ class Commandlistener(commands.Cog):
             f"**{member.name}** has left {guild}. Press F to pay respect."
         )
         """
-		#Hash user data
-		voice = jh.getUserVoice(member.id)
-		text = jh.getUserText(member.id)
-		textCount = jh.getUserTextCount(member.id)
-		[hash, code] = self.utils.hashData(voice, text, textCount, member.id)
-		#Send user data
-		embed = discord.Embed(title=f"{member.nick}     ({member.name})", color=12008408)
-		embed.set_thumbnail(url=member.avatar_url)
-		embed.add_field(name="VoiceXP", value=f"{voice}", inline=True)
-		embed.add_field(name="TextXP", value=f"{text}", inline=True)
-		embed.add_field(name="TextMessages", value=f"{textCount}", inline=True)
-		embed.add_field(name="Security code", value=f"{code}", inline=False)
-		embed.add_field(name="Hash code", value=f"{hash}", inline=False)
-		user = await bot.fetch_user(member.id)
-		await user.send(content=f"**User related data from {server.name}**", embed=embed)
-		await user.send(f"If you would like to join the Server again type this command to gain back your data **after** rejoining the server.\n```+reclaim {voice} {text} {textCount} {code} {hash}```\nhttps://discord.gg/3Fk4gnQ2Jz")
-		jh.removeUserFromData(member.id)
-		"""
+        #Hash user data
+        voice = jh.getUserVoice(member.id)
+        text = jh.getUserText(member.id)
+        textCount = jh.getUserTextCount(member.id)
+        [hash, code] = self.utils.hashData(voice, text, textCount, member.id)
+        #Send user data
+        embed = discord.Embed(title=f"{member.nick}     ({member.name})", color=12008408)
+        embed.set_thumbnail(url=member.avatar_url)
+        embed.add_field(name="VoiceXP", value=f"{voice}", inline=True)
+        embed.add_field(name="TextXP", value=f"{text}", inline=True)
+        embed.add_field(name="TextMessages", value=f"{textCount}", inline=True)
+        embed.add_field(name="Security code", value=f"{code}", inline=False)
+        embed.add_field(name="Hash code", value=f"{hash}", inline=False)
+        user = await bot.fetch_user(member.id)
+        await user.send(content=f"**User related data from {server.name}**", embed=embed)
+        await user.send(f"If you would like to join the Server again type this command to gain back your data **after** rejoining the server.\n```+reclaim {voice} {text} {textCount} {code} {hash}```\nhttps://discord.gg/3Fk4gnQ2Jz")
+        jh.removeUserFromData(member.id)
+        """
 
     # When a reacting is added
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         """
-        param payload:	Gives context about the added reaction
+        param payload:  Gives context about the added reaction
 
         Handles different self.bot interactions with the server via reactions.
 
@@ -117,7 +119,7 @@ class Commandlistener(commands.Cog):
                 Handles voting on polls.
         Third:
                 Give role on data processing.
-        Forth:	(Handled in commandpoll.py)
+        Forth:  (Handled in commandpoll.py)
                 Handles reactions on interest groups for user to get roles.
         Fifth:
                 Give XP when a reaction is added.
@@ -133,36 +135,36 @@ class Commandlistener(commands.Cog):
         message = await channel.fetch_message(int(payload.message_id))
         [state, page] = Utils.getMessageState(message)
         """
-		State (0,0): Normal Message
-		State (1,x): Leaderboard sorted by XP on page x
-		State (2,x): Leaderboard sorted by Voice on page x
-		State (3,x): Leaderboard sorted by TextCount on page x
-		State (4,0): Poll
-		State (5,0): data protection declaration
-		State (6,0): giveRoles message
-		"""
+        State (0,0): Normal Message
+        State (1,x): Leaderboard sorted by XP on page x
+        State (2,x): Leaderboard sorted by Voice on page x
+        State (3,x): Leaderboard sorted by TextCount on page x
+        State (4,0): Poll
+        State (5,0): data protection declaration
+        State (6,0): giveRoles message
+        """
 
         # Stage [1,3] =^= message is Leaderboard
         if state in range(1, 4):
             # Handel Leaderboard reactions
             change = self._getLeaderboardChange(message)
             """
-			change:
-				0: to first page
-				1: page before
-				2: page after
-				3: sort xp
-				4: sort voice
-				5: sort textcount
-				6: otherwise
-			"""
+            change:
+                0: to first page
+                1: page before
+                2: page after
+                3: sort xp
+                4: sort voice
+                5: sort textcount
+                6: otherwise
+            """
             sortBy = state - 1
             """
-			sortBy:
-				0 => Sort by voice + text = xp
-				1 => Sort by voice
-				2 => Sort by textcount
-			"""
+            sortBy:
+                0 => Sort by voice + text = xp
+                1 => Sort by voice
+                2 => Sort by textcount
+            """
             if change < 3:
                 # Change page if needed
                 choice = [0, page - 1 if page - 1 >= 0 else 0, page + 1]
@@ -173,11 +175,11 @@ class Commandlistener(commands.Cog):
                 # Changes the ordering of the leaderboard
                 sortBy = change - 3
                 """
-				sortBy:
-					0 => Sort by voice + text = xp
-					1 => Sort by voice
-					2 => Sort by textcount
-				"""
+                sortBy:
+                    0 => Sort by voice + text = xp
+                    1 => Sort by voice
+                    2 => Sort by textcount
+                """
                 # Whip all reactions
                 await message.clear_reactions()
 
@@ -214,23 +216,28 @@ class Commandlistener(commands.Cog):
     async def on_voice_state_update(self, member, before, after):
         """
         Handles user interactions when a user changes his voice state.
-        A voice change is when a member changes/joins a channel, mutes/unmutes themselves, deafens/undeafens themselves.
+        A voice change is when a member changes/joins a channel,
+        mutes/unmutes themselves, deafens/undeafens themselves.
 
-        param member:	User on guild
-        param before:	Gives the voice state before the change
-        param after:	Gives the voice state after the change
+        param member:   User on guild
+        param before:   Gives the voice state before the change
+        param after:    Gives the voice state after the change
 
         First:
-                Handles voice channel deletion when a user leaves a voice channel and no one else is connected to it.
+                Handles voice channel deletion when a user leaves a voice channel
+                and no one else is connected to it.
         Second:
-                Creates a new voice channel when all other channels with numbers at the end of its name are occupied.
+                Creates a new voice channel when all other channels
+                with numbers at the end of its name are occupied.
         """
         # when user joins channel: before = None; after is a voice state
 
         allChannel = self.bot.guilds[0].voice_channels
         """
-		When a user leaves a channel (before.channel) with a number at the end, nobody else is connected and and number is not 1, then the channel will be deleted.
-		"""
+        When a user leaves a channel (before.channel) with a number at the end,
+        nobody else is connected and and number is not 1,
+        then the channel will be deleted.
+        """
         if (
             before.channel
             and len(before.channel.members) == 0
@@ -251,7 +258,7 @@ class Commandlistener(commands.Cog):
                 if notFirstVoiceChannel:
                     lastChannel = max(
                         notFirstVoiceChannel,
-                        key=lambda c: int(c.name[len(channelWithoutNumber) :]),
+                        key=lambda c: int(c.name[len(channelWithoutNumber):]),
                     )
 
                     # Removes channel from blacklist if necessary
@@ -266,8 +273,9 @@ class Commandlistener(commands.Cog):
                 await before.channel.delete()
 
         """
-		User joins channel after.channel. If channel ends with a number, then a copy will be created with the lowest other number at the end. 
-		"""
+        User joins channel after.channel. If channel ends with a number,
+        then a copy will be created with the lowest other number at the end.
+        """
         if (
             after.channel
             and before.channel != after.channel
@@ -284,34 +292,36 @@ class Commandlistener(commands.Cog):
             nameIndex += 1
 
             channelWithoutNumber = after.channel.name[:nameIndex]
-            # When after.channel name ends with number and channel number 1 has user in it
+            # When after.channel name ends with number and channel number 1 has user
+            # in it
             if afterNumber and len(
                 find(
                     lambda c: c.name == (channelWithoutNumber + "1"), allChannel
                 ).members
             ):
-                # Get channels with after.channel.name without numbers in it and end with digits
+                # Get channels with after.channel.name without numbers in it and end
+                # with digits
                 voiceChanelsWithName = [
                     channel
                     for channel in allChannel
                     if after.channel.name[:nameIndex] in channel.name
-                    and channel.name[len(channelWithoutNumber) :].isdigit()
+                    and channel.name[len(channelWithoutNumber):].isdigit()
                 ]
                 # Get all numbers in the end of voiceChannelsWithName
                 numbersOfChannels = [
-                    int(channel.name[len(channelWithoutNumber) :])
+                    int(channel.name[len(channelWithoutNumber):])
                     for channel in voiceChanelsWithName
                 ]
                 lowestFreeID = min(
                     [
                         i
                         for i in range(2, max(numbersOfChannels) + 2)
-                        if not i in numbersOfChannels
+                        if i not in numbersOfChannels
                     ]
                 )
 
                 channelWithNumberBefore = find(
-                    lambda c: c.name[-len(str(lowestFreeID - 1)) :]
+                    lambda c: c.name[-len(str(lowestFreeID - 1)):]
                     == str(lowestFreeID - 1),
                     voiceChanelsWithName,
                 )
@@ -329,7 +339,7 @@ class Commandlistener(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         """
-        param message:	Message read by the bot
+        param message:  Message read by the bot
 
         Ignore bot messages
         """
@@ -380,14 +390,20 @@ class Commandlistener(commands.Cog):
             channelName = "DM"
             try:
                 channelName = message.channel.name
-            except:
+            except Exception:
                 channelName = "DM"
-            string = f"\n######\n# User {message.author.name} tried to invoke a command in {channelName}.\n# Command: {a}\n######"
+            string = (
+                "\n######\n# User "
+                + str(message.author.name)
+                + "tried to invoke a command in "
+                + str(channelName)
+                + ".\n# Command: {a}\n######"
+            )
             await self.utils.log(string, 2)
 
     def _getLeaderboardChange(self, message):
         """
-        param message:	Discord Message object. Should be from a leaderboard.
+        param message:  Discord Message object. Should be from a leaderboard.
 
         Gets how to change the leaderboard depending on its reactions.
 
