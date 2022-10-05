@@ -38,7 +38,7 @@ The requirements must be installed via `pip3 install -r requirements.txt`.
 That's it.
 
 ## Installation
-Run 'git clone https://github.com/PantomInach/DataBot.git' in your installation folder or download the repository manually.
+Run `git clone https://github.com/PantomInach/DataBot.git` in your installation folder or download the repository manually.
 
 ## Create a bot
 Create a [Discord Application](https://discord.com/developers/applications) on the site [https://discord.com/developers/applications](https://discord.com/developers/applications).
