@@ -97,18 +97,18 @@ The main config file can be found here [config](https://github.com/PantomInach/D
 
 ### Command config
 The command config is for specifying what command should work in which text channel or be invokable by which user with certain roles.
-This config file can be found in [command config](https://github.com/PantomInach/DataBot/blob/main/data/commandRights.json) in the directory [data](https://github.com/PantomInach/DataBot/blob/main/data).
+The config file [commandRights.json](https://github.com/PantomInach/DataBot/blob/main/data/commandRights.json)) can be found in the directory [data](https://github.com/PantomInach/DataBot/blob/main/data).
 An entry contains the following:
 ```
 "command name":
   {
     "roles":[
       "roles which are required",
-      "as id or name"
+      "id or name"
     ],
     "channel":[
       "in which channel is the command invokable",
-      "as id or name"
+      "id or name"
     ]
   } 
 ```
