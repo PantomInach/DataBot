@@ -38,14 +38,14 @@ The requirements must be installed via `pip3 install -r requirements.txt`.
 That's it.
 
 ## Installation
-Run 'https://github.com/PantomInach/DataBot.git' in your installation folder or download the repository manually.
+Run 'git clone https://github.com/PantomInach/DataBot.git' in your installation folder or download the repository manually.
 
 ## Create a bot
 Create a [Discord Application](https://discord.com/developers/applications) on the site [https://discord.com/developers/applications](https://discord.com/developers/applications).
 Make sure "Presence Intent" and "Server Members Intent" are enabled in Privileged Gateway Intents under the Bot tab.
 Then copy the token to the specified space in the data/config.json file.
 More to the config file in [Configuration](#Configuration).
-Also add your guild in the "server" space and your Discord in "owner".
+Also add your guild in the "server" space and your Discord ID in "owner".
 Now you need to invite the Bot to your guild.
 Use https://discord.com/oauth2/authorize?client_id=INSERT_CLIENT_ID_HERE&scope=bot&permissions=2416143440 after replacing "INSERT_CLIENT_ID_HERE" with your Bots client ID under the tab OAuth2.
 The bot is now created and invited to your server.
