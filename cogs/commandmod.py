@@ -281,11 +281,11 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
             if (
                 len(message) + len(messageadd) > 1994
             ):  # Get around 2000 char discord text limit
-                await ctx.send(f"```message```")
+                await ctx.send(f"```{message}```")
                 message = ""
             message += messageadd
         print(f"User {ctx.author} prints all data in {ctx.channel}.")
-        await ctx.send(message)
+        await ctx.send(f"```{message}```")
 
 
 def setup(bot):
