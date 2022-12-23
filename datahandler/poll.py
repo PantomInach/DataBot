@@ -230,7 +230,10 @@ class Poll(object):
                 copy = self.pollData[str(pollID)]["options"][i]
                 if copy[0] == str(optionName):
                     self.pollData[str(pollID)]["options"][i] = [
-                        copy[0], votes, copy[2]]
+                        copy[0],
+                        votes,
+                        copy[2],
+                    ]
                     self.savePollData()
                     return True
         return False

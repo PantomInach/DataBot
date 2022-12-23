@@ -209,7 +209,9 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
         # Create subserver roles
         sub_way_role = await guild.create_role(
-            name="sw-" + subserver_name, color=13277615, reason="Creating new subserver"
+            name="sw-" + subserver_name,
+            color=13277615,
+            reason="Creating new subserver",
         )
         sub_role = await guild.create_role(
             name="sub-" + subserver_name,
@@ -498,7 +500,8 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
             return
         if await self.change_subserver(author_member, to=subserver_name):
             await ctx.send(
-                f"You made your way to the subserver {subserver_name}", delete_after=60
+                f"You made your way to the subserver {subserver_name}",
+                delete_after=60,
             )
             await self.update_subserver_info()
         else:
@@ -654,7 +657,9 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         ]
         # Sort by subserver name. '+ r.name[1]' is for sorting sub roles on top of
         # subway roles, since '+ r.name[1]' is 'u' or 'w'.
-        sorted_roles = sorted(sub_roles, key=lambda r: r.name.split("-")[1] + r.name[1])
+        sorted_roles = sorted(
+            sub_roles, key=lambda r: r.name.split("-")[1] + r.name[1]
+        )
         if not sorted_roles:
             return []
         # Data pattern: [(sub-a, sw-a), ...]

@@ -527,7 +527,7 @@ class Jsonhandle(object):
     def setUserText(self, userID: Any, text: str):
         """
         Sets the users text to text in userdata.json.
-        
+
         Keyword arguments:
         userID -- Is the user ID from discord user as a string or int
         text -- Integer to which the Text is set to.
@@ -573,8 +573,9 @@ class Jsonhandle(object):
         userID --Is the user ID from discord user as a string or int
         """
         self.addNewDataEntry(userID)
-        self.data[str(userID)]["Text"] = int(
-            self.data[str(userID)]["Text"]) + int(text)
+        self.data[str(userID)]["Text"] = int(self.data[str(userID)]["Text"]) + int(
+            text
+        )
         self.saveData()
 
     @_reloadData

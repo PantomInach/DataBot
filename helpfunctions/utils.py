@@ -35,7 +35,8 @@ class Utils(object):
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         member = guild.get_member(int(userID))
         return find(
-            lambda r: r.name == role or r.id == role or str(r.id) == role, member.roles
+            lambda r: r.name == role or r.id == role or str(r.id) == role,
+            member.roles,
         )
 
     def hasRoles(self, userID, roles):
@@ -199,7 +200,9 @@ class Utils(object):
                 nick = "".join(
                     [c for c in member.display_name if c not in UNICODE_EMOJI["en"]]
                 )
-                name = "".join([c for c in member.name if c not in UNICODE_EMOJI["en"]])
+                name = "".join(
+                    [c for c in member.name if c not in UNICODE_EMOJI["en"]]
+                )
             else:
                 # When user is not in guild.
                 nick = "Not on guild"

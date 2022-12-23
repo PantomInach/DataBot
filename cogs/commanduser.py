@@ -502,7 +502,9 @@ class Commanduser(commands.Cog, name="User Commands"):
                     f"User {ctx.author.mention} textunbaned {user.mention}"
                 )
             else:
-                await ctx.send(content="ERROR: User has no textban.", delete_after=3600)
+                await ctx.send(
+                    content="ERROR: User has no textban.", delete_after=3600
+                )
 
     """
     # When give star of the week should be queued
@@ -596,7 +598,8 @@ class Commanduser(commands.Cog, name="User Commands"):
         )
         return time.mktime(
             time.strptime(
-                f"{nextWeekday.year} {nextWeekday.month} {nextWeekday.day}", "%Y %m %d"
+                f"{nextWeekday.year} {nextWeekday.month} {nextWeekday.day}",
+                "%Y %m %d",
             )
         )
 

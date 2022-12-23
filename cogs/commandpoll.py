@@ -386,7 +386,8 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
                 if self.poll.removePoll(pollID):
                     message = f"Removed Poll {pollName}."
                     await self.utils.log(
-                        f'User {ctx.author.mention} removed the poll: "{pollName}".', 2
+                        f'User {ctx.author.mention} removed the poll: "{pollName}".',
+                        2,
                     )
                     channel = self.bot.get_channel(
                         int(self.jh.getFromConfig("logchannel"))
@@ -498,7 +499,8 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         closed = self.poll.pollClose(pollID)
         if closed:
             await self.utils.log(
-                f'User {ctx.author.name} cloesed poll: "{self.poll.getName(pollID)}"', 1
+                f'User {ctx.author.name} cloesed poll: "{self.poll.getName(pollID)}"',
+                1,
             )
         if not (closed and messageID and channelID):
             await ctx.send("ERROR POLL STATUS: Can't close Poll.")

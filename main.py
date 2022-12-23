@@ -13,6 +13,7 @@ import os
 
 from datahandler.jsonhandle import Jsonhandle
 
+
 def start_bot():
     print("[Startup] Prepare to start Bot...")
 

@@ -87,7 +87,9 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
             guildName = str(self.bot.get_guild(guildID))
             self.jh.config["log"] = "False"
             self.jh.saveConfig()
-            await self.utils.log(f"Stopped to log users from Server:\n\t{guildName}", 2)
+            await self.utils.log(
+                f"Stopped to log users from Server:\n\t{guildName}", 2
+            )
         else:
             await ctx.send("Bot is NOT logging. Logging state: False")
 
@@ -156,7 +158,11 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
         if not extensions:
             extensions = self.bot.extensions.copy()
             list(extensions.keys()).extend(
-                ["cogs." + ext[:-3] for ext in os.listdir("./") if ext.endswith(".py")]
+                [
+                    "cogs." + ext[:-3]
+                    for ext in os.listdir("./")
+                    if ext.endswith(".py")
+                ]
             )
         reloadedExtensions = []
         for ext in extensions:
@@ -164,7 +170,9 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
                 self.bot.unload_extension(ext)
                 self.bot.load_extension(ext)
                 reloadedExtensions.append(ext)
-        await self.utils.log(f"Reloaded extensions: {', '.join(reloadedExtensions)}", 2)
+        await self.utils.log(
+            f"Reloaded extensions: {', '.join(reloadedExtensions)}", 2
+        )
 
 
 def setup(bot):
