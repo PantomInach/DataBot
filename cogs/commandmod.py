@@ -4,7 +4,7 @@ from discord.ext import commands
 from helpfunctions.decorators import isBotModCommand
 from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 
 
 class Commandmod(commands.Cog, name="Bot Mod Commands"):
@@ -28,17 +28,17 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
     def __init__(self, bot):
         super(Commandmod, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         self.xpf = Xpfunk()
 
     """
-	######################################################################
+    ######################################################################
 
-	Text Whitelist commands and function
+    Text Whitelist commands and function
 
-	######################################################################
-	"""
+    ######################################################################
+    """
 
     @commands.group(
         name="textwl", brief="Add or remove a text channel to be logged by the bot."
@@ -49,10 +49,13 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         Group of text whitelist commands.
 
         This command group is for managing the text whitelist.
-        When a message is sent to a whitelisted text channel and the bot can see the message, the author of this message will get XP.
+        When a message is sent to a whitelisted text channel and the bot can see the
+        message, the author of this message will get XP.
 
-        Use \'textwl add [channelID]\' or use \'textwl add\' in a channel to add it to the whitelist.
-        Use \'textwl rm [channelID]\' or use \'textwl rm\' in a channel to remove it from the whitelist.
+        Use \'textwl add [channelID]\' or use \'textwl add\' in a channel to add it to
+        the whitelist.
+        Use \'textwl rm [channelID]\' or use \'textwl rm\' in a channel to remove it
+        from the whitelist.
 
         Can only be used by bot mods aka user with a privilege level of 1 or higher.
 
@@ -61,36 +64,42 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         All commands in the list below can be executed in this channel.
         """
         """
-		param ctx:	Discord Context object. Automatically passed.
+        param ctx:  Discord Context object. Automatically passed.
 
-		It is the parent command for the 'textwl' command.
-		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
-		"""
-        if ctx.invoked_subcommand is None:
-            embed = discord.Embed(
-                title="You need to specify a subcommand. Possible subcommands: add, remove",
-                color=0xA40000,
-            )
-            embed.set_author(name="Invalid command")
-            embed.set_footer(text="For more help run '+help textwl'")
-            await ctx.send(embed=embed, delete_after=3600)
+        It is the parent command for the 'textwl' command.
+        When invoked without a subcommand an error will be sent. The error message
+        will be deleted after an hour.
+        """
+        if ctx.invoked_subcommand is not None:
+            return
+        title = "You need to specify a subcommand. Possible subcommands: add, remove"
+
+        embed = discord.Embed(
+            title=title,
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(text="For more help run '+help textwl'")
+        await ctx.send(embed=embed, delete_after=3600)
 
     @textwl.command(name="add", brief="Adds a channel to the whitelist")
     async def addtextwhitelist(self, ctx, channelID=None):
         """
         Adds a text channel to the whitelist.
 
-        You can obtain the channel ID by right-clicking on a channel and pressing 'copy ID' when you have developer options enabled.
-        Also, it is possible to add a text channel to the whitelist by writing 'textwl add' into it.
+        You can obtain the channel ID by right-clicking on a channel and pressing
+        'copy ID' when you have developer options enabled.
+        Also, it is possible to add a text channel to the whitelist by writing 'textwl
+        add' into it.
 
         Can only be used by bot mods aka user with a privilege level of 1 or higher.
         """
         """
-		param ctx:	Discord Context object.
-		param channelID:	Integer or String of channel ID. Default is None.
+        param ctx:  Discord Context object.
+        param channelID:    Integer or String of channel ID. Default is None.
 
-		Adds channel to whitelist, so users can get XP in the channel.
-		"""
+        Adds channel to whitelist, so users can get XP in the channel.
+        """
         guild = self.bot.get_guild(self.jh.getFromConfig("guild"))
         channels = self.bot.guilds[0].text_channels
         # When channelID is not given, use ctx.channel.id.
@@ -101,7 +110,13 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
             # Try to write in whitelist
             if self.jh.writeToWhitelist(channelID):
                 channelName = str(self.bot.get_channel(int(channelID)))
-                message = f"Added {channelName} with ID {channelID} to whitelist. This Text channel will be logged."
+                message = (
+                    "Added "
+                    + str(channelName)
+                    + " with ID "
+                    + str(channelID)
+                    + " to whitelist. This Text channel will be logged."
+                )
             else:
                 message = "Channel is already in whitelist."
         else:
@@ -114,36 +129,44 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         """
         Removes a text channel from the whitelist.
 
-        You can obtain the channel ID by right-clicking on a channel and pressing 'copy ID' when you have developer options enabled.
-        Also, it is possible to remove a text channel from the whitelist by writing 'textwl rm' into it.
+        You can obtain the channel ID by right-clicking on a channel and pressing
+        'copy ID' when you have developer options enabled.
+        Also, it is possible to remove a text channel from the whitelist by writing
+        'textwl rm' into it.
 
         Can only be used by bot mods aka user with a privilege level of 1 or higher.
         """
         """
-		param ctx:	Discord Context object.
-		param channelID:	Integer or String of channel ID. Default is None.
+        param ctx:  Discord Context object.
+        param channelID:    Integer or String of channel ID. Default is None.
 
-		Removes channel from whitelist, so users can not get XP in the channel.
-		"""
+        Removes channel from whitelist, so users can not get XP in the channel.
+        """
         # When channelID is not given, use ctx.channel.id.
         if not channelID:
             channelID = ctx.channel.id
         # Try to remove from whitelist
         if self.jh.removeFromWhitelist(channelID):
             channelName = str(self.bot.get_channel(int(channelID)))
-            message = f"Removed {channelName} with ID {channelID} from Whitelist. This Text channel will not be logged."
+            message = (
+                "Removed "
+                + str(channelName)
+                + " with ID "
+                + str(channelID)
+                + " from Whitelist. This Text channel will not be logged."
+            )
         else:
             message = "Channel does not exist or is not in Whitelist"
             await self.utils.log(f"{message} from user {ctx.author}", 2)
         await ctx.send(message)
 
     """
-	######################################################################
+    ######################################################################
 
-	Voice Blacklist commands and function
+    Voice Blacklist commands and function
 
-	######################################################################
-	"""
+    ######################################################################
+    """
 
     @commands.group(name="voicebl")
     @isBotModCommand()
@@ -152,7 +175,9 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         Group of voice blacklist commands.
 
         This command group is for managing the voice blacklist.
-        In a predefined time interval the bot scans all voice channels for aktive members to give them voive XP. When the channel is on the blacklist, aktive members will be ignored.
+        In a predefined time interval the bot scans all voice channels for aktive
+        members to give them voive XP. When the channel is on the blacklist, aktive
+        members will be ignored.
 
         Use \'voicebl add [channelID]\' to add a channel to the blacklist.
         Use \'voicebl rm [channelID]\' to remove it from the blacklist.
@@ -164,14 +189,19 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         All commands in the list below can be executed in this channel.
         """
         """
-		param ctx:	Discord Context object. Automatically passed.
+        param ctx:  Discord Context object. Automatically passed.
 
-		It is the parent command for the 'voicebl' command.
-		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
-		"""
+        It is the parent command for the 'voicebl' command.
+        When invoked without a subcommand an error will be sent. The error message
+        will be deleted after an hour.
+        """
         if ctx.invoked_subcommand is None:
+            title = (
+                "You need to specify a subcommand."
+                + " Possible subcommands: add, remove"
+            )
             embed = discord.Embed(
-                title="You need to specify a subcommand. Possible subcommands: add, remove",
+                title=title,
                 color=0xA40000,
             )
             embed.set_author(name="Invalid command")
@@ -183,16 +213,17 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         """
         Adds a voice channel to the blacklist.
 
-        You can obtain the channel ID by right-clicking on a channel and pressing 'copy ID' when you have developer options enabled.
+        You can obtain the channel ID by right-clicking on a channel and pressing
+        'copy ID' when you have developer options enabled.
 
         Can only be used by bot mods aka user with a privilege level of 1 or higher.
         """
         """
-		param ctx:	Discord Context object.
-		param channelID:	Integer or String of channel ID.
+        param ctx:  Discord Context object.
+        param channelID:    Integer or String of channel ID.
 
-		Adds channel to whitelist, so users can not get XP in the channel.
-		"""
+        Adds channel to whitelist, so users can not get XP in the channel.
+        """
         guild = self.bot.get_guild(self.jh.getFromConfig("guild"))
         channels = self.bot.guilds[0].voice_channels
         # Test if channel is in Server
@@ -200,7 +231,13 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
             # Try to write in Blacklist
             if self.jh.writeToBalcklist(channelID):
                 channelName = str(self.bot.get_channel(int(channelID)))
-                message = f"Added {channelName} with ID {channelID} to blacklist. This Voice channel will not be logged."
+                message = (
+                    "Added "
+                    + str(channelName)
+                    + " with ID "
+                    + str(channelID)
+                    + " to blacklist. This Voice channel will not be logged."
+                )
             else:
                 message = "Channel is already in blacklist."
         else:
@@ -213,50 +250,64 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         """
         Removes a voice channel from the blacklist.
 
-        You can obtain the channel ID by right-clicking on a channel and pressing 'copy ID' when you have developer options enabled.
+        You can obtain the channel ID by right-clicking on a channel and pressing
+        'copy ID' when you have developer options enabled.
 
         Can only be used by bot mods aka user with a privilege level of 1 or higher.
         """
         """
-		param ctx:	Discord Context object.
-		param channelID:	Integer or String of channel ID. Default is None.
+        param ctx:  Discord Context object.
+        param channelID:    Integer or String of channel ID. Default is None.
 
-		Removes channel from whitelist, so users can get XP in the channel.
-		"""
+        Removes channel from whitelist, so users can get XP in the channel.
+        """
         # When channelID is not given, use ctx.channel.id.
         if not channelID:
             channelID = ctx.channel.id
         if self.jh.removeFromBalcklist(channelID):
             channelName = str(self.bot.get_channel(int(channelID)))
-            message = f"Removed {channelName} with ID {channelID} from blacklist. This Voice channel will be logged."
+            message = (
+                "Removed "
+                + str(channelName)
+                + " with ID "
+                + str(channelID)
+                + " from blacklist. This Voice channel will be logged."
+            )
         else:
             message = "Channel does not exist or is not in blacklist"
         await self.utils.log(f"{message} from user {ctx.author}", 2)
         await ctx.send(message)
 
     """
-	######################################################################
+    ######################################################################
 
-	Normal @commads.command functions
+    Normal @commads.command functions
 
-	######################################################################
-	"""
+    ######################################################################
+    """
 
     @commands.command(name="dp", brief="Prints the Data of the Users")
     @isBotModCommand()
     async def printData(self, ctx):
         """
-        Prints the Username, userID, level, voiceXP, textXP and textCount off all members on the server.
-        If the user is not in the guild anymore, the name will be replaced by 'No User' and put to the end of the list.
+        Prints the Username, userID, level, voiceXP, textXP and textCount off all
+        members on the server. If the user is not in the guild anymore, the name
+        will be replaced by 'No User' and put to the end of the list.
 
-        Can only be used by bot mods aka the user with a privilege level of 1 or higher.
+        Can only be used by bot mods aka the user with a privilege level of 1 or
+        higher.
         """
         """
-		param ctx:	Discord Context object. Automatically passed.
+        param ctx:  Discord Context object. Automatically passed.
 
-		Prints all user data in format:
-			User: "Username", UserID: User ID, Level: int, VoiceXP: int, TextXP: int, Messages: int.
-		"""
+        Prints all user data in format:
+            User: "Username",
+            UserID: User ID,
+            Level: int,
+            VoiceXP: int,
+            TextXP: int,
+            Messages: int.
+        """
         guild = str(self.bot.get_guild(int(self.jh.getFromConfig("guild"))))
         message = f"Printing data of server {guild}:\n"
         # Sorts user by their usernames
@@ -274,10 +325,13 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
             user = self.bot.get_user(int(userID))
             username = "No User"
             # Handel not existing User IDs
-            if user != None:
+            if user is not None:
                 username = user.name
             # Message format
-            messageadd = f"\nUser: {username}, UserID: {userID}, Level: {level}, VoiceXP: {voiceXP}, TextXP: {textXP}, Messages: {textCount}."
+            messageadd = (
+                f"\nUser: {username}, UserID: {userID}, Level: {level}, "
+                + f"VoiceXP: {voiceXP}, TextXP: {textXP}, Messages: {textCount}."
+            )
             if (
                 len(message) + len(messageadd) > 1994
             ):  # Get around 2000 char discord text limit

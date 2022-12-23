@@ -1,29 +1,27 @@
-import discord
-import sys
 import os
-import asyncio
+
+from discord import InvalidArgument
 from discord.ext import commands
 
-from discord.utils import find
-
-from helpfunctions.decorators import isBotModCommand, isBotOwnerCommand, isDMCommand
+from helpfunctions.decorators import isBotOwnerCommand
 from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 
 
 def hasAnyRole(*items):
     """
-    Type:	Decorator for functions with ctx object in args[1].
+    Type:   Decorator for functions with ctx object in args[1].
 
-    param items:	Tuple of Strings and/or integers wit Discord Channel IDs or names.
+    param items:    Tuple of Strings and/or integers wit Discord Channel IDs or names.
 
     Check if a user has any of the roles in items.
 
     Only use for commands, which USE @commands.command
     commands.has_any_role() does not work in DM since a user can't have roles.
-    This one pulls the roles from the configured guild and makes the same check as commands.has_any_role().
+    This one pulls the roles from the configured guild and makes the same check as
+    commands.has_any_role().
 
     Function is not in decorators.py since the Helpfunction Object is needed.
     """
@@ -43,28 +41,12 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
     def __init__(self, bot):
         super(Commandowner, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         self.xpf = Xpfunk()
         self.tban = Textban()
 
         Commandowner.utils = self.utils
-
-    @commands.command(
-        name="test",
-        pass_context=True,
-        brief="Testing command for programmer.",
-        description="You require privilege level Owner to use this command. Only the programmer knows what happens here.",
-    )
-    @isBotOwnerCommand()
-    async def test(self, ctx, inputs):
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
-        category = find(lambda cat: cat.name == "Subserver Gateway", guild.categories)
-        main_gateway = find(
-            lambda vc: vc.name.startswith("Main Server"), category.voice_channels
-        )
-        print(main_gateway)
-        await main_gateway.edit(name="Main Server " + inputs)
 
     @commands.command(name="ping")
     @isBotOwnerCommand()
@@ -75,10 +57,13 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
     @commands.command(
         name="startlog",
         brief="Starts to log the users on the configured server.",
-        description="You require privilege level 2 to use this command. Gets the connected users of the configured server and increments every second minute their voice XP.",
     )
     @isBotOwnerCommand()
     async def startlog(self, ctx):
+        """
+        You require privilege level 2 to use this command. Gets the connected users of
+        the configured server and increments every second minute their voice XP.
+        """
         if self.jh.getFromConfig("log") == "False":
             self.jh.config["log"] = "True"
             self.jh.saveConfig()
@@ -86,15 +71,17 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
             guildName = str(self.bot.get_guild(guildID))
             await self.utils.log(f"Start to log users from Server:\n\t{guildName}", 2)
         else:
-            await ctx.send(f"Bot is logging. Logging state: True")
+            await ctx.send("Bot is logging. Logging state: True")
 
     @commands.command(
         name="stoplog",
         brief="Stops to log the users on configured server.",
-        description="You require privilege level 2 to use this command. When the bot logs the connective users on the configured server, this command stops the logging process.",
     )
     @isBotOwnerCommand()
     async def stoplog(self, ctx):
+        """
+        You require privilege level 2 to use this command. When the bot logs the connective users on the configured server, this command stops the logging process.
+        """
         if self.jh.getFromConfig("log") == "True":
             guildID = int(self.jh.getFromConfig("guild"))
             guildName = str(self.bot.get_guild(guildID))
@@ -102,15 +89,18 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
             self.jh.saveConfig()
             await self.utils.log(f"Stopped to log users from Server:\n\t{guildName}", 2)
         else:
-            await ctx.send(f"Bot is NOT logging. Logging state: False")
+            await ctx.send("Bot is NOT logging. Logging state: False")
 
     @commands.command(
         name="stopbot",
         brief="Shuts down the bot.",
-        description="You require privilege level 2 to use this command. This command shuts the bot down.",
     )
     @isBotOwnerCommand()
     async def stopbot(self, ctx):
+        """
+        You require privilege level 2 to use this command. This command shuts the
+        bot down.
+        """
         await self.utils.log("[Shut down] Beginning shutdown...", 2)
         # Save json files
         self.jh.saveConfig()
@@ -132,7 +122,7 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
             await ctx.send("Message is not from bot.")
             return
         if len(text) > 2000:
-            await ctx.send(f"Text is to long")
+            await ctx.send("Text is to long")
             return
         await message.edit(content=str(text))
 
@@ -157,12 +147,12 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
         Reloads cogs.
         """
         """
-		param ctx:	Discord Context object.
-		param *ext:	Names of extensions to be reloaded.
+        param ctx:  Discord Context object.
+        param *ext: Names of extensions to be reloaded.
 
-		Reloads given extensions so changes are taken over.
-		When no extension is given, all extensions will be reloaded.
-		"""
+        Reloads given extensions so changes are taken over.
+        When no extension is given, all extensions will be reloaded.
+        """
         if not extensions:
             extensions = self.bot.extensions.copy()
             list(extensions.keys()).extend(
@@ -175,20 +165,6 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
                 self.bot.load_extension(ext)
                 reloadedExtensions.append(ext)
         await self.utils.log(f"Reloaded extensions: {', '.join(reloadedExtensions)}", 2)
-
-    @commands.group(name="hahahah")
-    @isBotOwnerCommand()
-    @hasAnyRole("gaming")
-    async def testing(self, ctx):
-        if ctx.invoked_subcommand is None:
-            await ctx.send("No subcommand is invoked 2")
-        else:
-            await ctx.send("Invoking subcommand")
-
-    @testing.command()
-    @isDMCommand()
-    async def sub(self, ctx, *inputs):
-        await ctx.send(" ".join(inputs) + "Geht")
 
 
 def setup(bot):

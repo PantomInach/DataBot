@@ -1,12 +1,9 @@
-import asyncio
 import time
-import os
-import json
 import traceback
 
 from discord.ext import tasks, commands
 
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 from datahandler.sub import Sub
 from helpfunctions.utils import Utils
 from helpfunctions.decorators import isBotOwnerCommand
@@ -30,7 +27,7 @@ class Subroutine(commands.Cog):
     def __init__(self, bot):
         super(Subroutine, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         self.sub = Sub()
         self.xpf = Xpfunk()
@@ -62,7 +59,8 @@ class Subroutine(commands.Cog):
     @tasks.loop(seconds=120)
     async def subRoutine(self):
         """
-        Runs the subroutine. After a determent waiting time, the features will be called.
+        Runs the subroutine. After a determent waiting time, the features will be
+        called.
 
         Features implemented (will be carried out in this order):
                 Remove role
@@ -70,32 +68,32 @@ class Subroutine(commands.Cog):
         """
         self.sub.reloadSubjson()
         """
-		bufferTime says how long an offset can be used when hitting an interval.
-		!!! Should not be greater than seconds in @taks.loop !!!
-		"""
+        bufferTime says how long an offset can be used when hitting an interval.
+        !!! Should not be greater than seconds in @taks.loop !!!
+        """
         bufferTime = 120
 
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         currentTime = time.time()
 
         """
-		Remove role subroutine:
-			Continuously removes the role in a given interval starting on the offset.
-		"""
+        Remove role subroutine:
+            Continuously removes the role in a given interval starting on the offset.
+        """
         await self.removeRoleSubroutineFunction(currentTime, bufferTime, guild)
 
         """
-		Give role once:
-			Gives a member a role when the time window is hit.
-			The time window is defined with an offset and interval.
-			If the interval hit beginning on the offset, the role is given once. 
-		"""
+        Give role once:
+            Gives a member a role when the time window is hit.
+            The time window is defined with an offset and interval.
+            If the interval hit beginning on the offset, the role is given once.
+        """
         await self.giveRoleOnceSubroutineFunction(currentTime)
 
         """
-		GiveOnlineUserXP:
-			Gives user depending on the rules of addMembersOnlineVoiceXp voice XP.
-		"""
+        GiveOnlineUserXP:
+            Gives user depending on the rules of addMembersOnlineVoiceXp voice XP.
+        """
         await self.giveOnlineUserXPSubroutineFunction(guild.id)
 
     @subRoutine.before_loop
@@ -107,7 +105,7 @@ class Subroutine(commands.Cog):
 
     async def removeRoleSubroutineFunction(self, currentTime, bufferTime, guild):
         """
-        param currentTime:	Float time on what the timing will be compared on.
+        param currentTime:  Float time on what the timing will be compared on.
 
         Removes the role for all users in the guild.
         First scans sub.json for 'removeRole' events.
@@ -115,22 +113,37 @@ class Subroutine(commands.Cog):
         """
         for toRemove in self.sub.getRoleRemoveIDs():
             if not toRemove.isdigit():
+                log_message = (
+                    "[Subroutine ERROR] In 'removeRoleSubroutineFunction'."
+                    + f" Key {toRemove} in removeRole is no role ID. Remove key to"
+                    + " resolve this error."
+                )
                 await self.utils.log(
-                    f"[Subroutine ERROR] In 'removeRoleSubroutineFunction'. Key {toRemove} in removeRole is no role ID. Remove key to resolve this error.",
+                    log_message,
                     2,
                 )
                 continue
             offset, interval = self.sub.getContantOfRoleRemoveID(toRemove)
             if not offset and not interval:
+                log_message = (
+                    "[Subroutine ERROR] In 'removeRoleSubroutineFunction'."
+                    + f" Invalid offset: {offset} or interval: {interval}."
+                )
                 await self.utils.log(
-                    f"[Subroutine ERROR] In 'removeRoleSubroutineFunction'. Invalid offset: {offset} or interval: {interval}.",
+                    log_message,
                     2,
                 )
             if (currentTime - offset) % interval < bufferTime and currentTime > offset:
                 role = guild.get_role(int(toRemove))
-                if role == None:
+                if role is None:
+                    log_message = (
+                        "[Subroutine ERROR] In "
+                        "'removeRoleSubroutineFunction'."
+                        + f" Role with ID {toRemove} is not in guild. Remove it from"
+                        + " 'sub.json' to fix this issue."
+                    )
                     await self.utils.log(
-                        f"[Subroutine ERROR] In 'removeRoleSubroutineFunction'. Role with ID {toRemove} is not in guild. Remove it from 'sub.json' to fix this issue.",
+                        log_message,
                         2,
                     )
                 else:
@@ -140,7 +153,7 @@ class Subroutine(commands.Cog):
 
     async def giveRoleOnceSubroutineFunction(self, currentTime):
         """
-        param currentTime:	Float time on what the timing will be compared on.
+        param currentTime:  Float time on what the timing will be compared on.
 
         Gives member a role if conditions are right.
         Scans sub.json for timing, userID and roleID.
@@ -153,10 +166,14 @@ class Subroutine(commands.Cog):
                 # Gives role to member and clears entry in sub.json.
                 try:
                     await self.utils.giveRoles(userID, [roleID])
-                except AttributeError as e:
+                except AttributeError:
                     # When user is not anymore in the guild.
+                    log_message = (
+                        "[ERROR] Tried to give member role, which is not in"
+                        + " the guild."
+                    )
                     await self.utils.log(
-                        "[ERROR] Tried to give member role which is not in the guild.",
+                        log_message,
                         2,
                     )
                     await self.utils.log(traceback.format_exc(), 2)
@@ -165,7 +182,7 @@ class Subroutine(commands.Cog):
 
     async def giveOnlineUserXPSubroutineFunction(self, guild):
         """
-        param guild:	ID of guild one which users will be given XP
+        param guild:    ID of guild one which users will be given XP
 
         Gives user depending on the rules of addMembersOnlineVoiceXp voice XP.
         """
@@ -179,14 +196,16 @@ class Subroutine(commands.Cog):
     async def updateRoles(self):
         """
         Gives members role in rolesList if they have the level in roleXPNeedList.
-        Also, members needs to have "✅". Another subserver (not yet implemented) are also ok.
+        Also, members needs to have "✅". Another subserver (not yet implemented) are
+        also ok.
         """
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         membersList = guild.members
         for member in membersList:
             if self.jh.isInData(member.id):
                 if self.utils.hasOneRole(member.id, {"✅"}):
-                    # Give all roles user is qualified for even if he already has some roles.
+                    # Give all roles user is qualified for even if he already has some
+                    # roles.
                     userLevel = self.jh.getUserLevel(member.id)
                     rolesList = self.jh.getRoles()
                     roleXPNeedList = self.jh.getRolesXPNeed()
@@ -197,14 +216,14 @@ class Subroutine(commands.Cog):
 
     def addMembersOnlineVoiceXp(self, serverid):
         """
-        param serverid:	guild ID of a Discord guild.
+        param serverid: guild ID of a Discord guild.
 
         Increments to voice XP of member in voice channel if
-                1)	member is not alone in channel
-                2)	member is not a bot
+                1)  member is not alone in channel
+                2)  member is not a bot
         Gain extra XP if
-                1)	member has cam on
-                2)	member is streaming
+                1)  member has cam on
+                2)  member is streaming
         """
         guild = self.bot.get_guild(int(serverid))
         voiceChanels = [
@@ -249,7 +268,7 @@ class Subroutine(commands.Cog):
                 )
                 user = self.bot.get_user(int(userID))
                 userMention = "Unknown user"
-                if user != None:
+                if user is not None:
                     userMention = user.mention
                 await levelchannel.send(
                     f"**{userMention}** reached level **{levelByXP}**."

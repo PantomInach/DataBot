@@ -1,8 +1,7 @@
 import asyncio
 import discord
 from discord.ext import commands
-from datahandler.jsonhandel import Jsonhandel
-from helpfunctions.utils import Utils
+from datahandler.jsonhandle import Jsonhandle
 
 """
 Following functions are ment to be used as decorators, when not using @commands.command
@@ -20,7 +19,7 @@ def isBotOwner():
     def decorator(func):
         def wrapper(*args, **kwargs):
             # Wrapper for inputs in func
-            jh = Jsonhandel()
+            jh = Jsonhandle()
             if jh.getPrivilegeLevel(args[1].author.id) >= 2:
                 return func(*args, **kwargs)
             return sendCTX(args[1], "Not permitted")
@@ -41,7 +40,7 @@ def isBotMod():
     def decorator(func):
         def wrapper(*args, **kwargs):
             # Wrapper for inputs in func
-            jh = Jsonhandel()
+            jh = Jsonhandle()
             if jh.getPrivilegeLevel(args[1].author.id) >= 1:
                 return func(*args, **kwargs)
             return sendCTX(args[1], "Not permitted")
@@ -209,7 +208,7 @@ def isBotModCommand():
     """
 
     def predicate(ctx):
-        jh = Jsonhandel()
+        jh = Jsonhandle()
         return jh.getPrivilegeLevel(ctx.author.id) >= 1
 
     return commands.check(predicate)
@@ -223,7 +222,7 @@ def isBotOwnerCommand():
     """
 
     def predicate(ctx):
-        jh = Jsonhandel()
+        jh = Jsonhandle()
         return jh.getPrivilegeLevel(ctx.author.id) >= 2
 
     return commands.check(predicate)

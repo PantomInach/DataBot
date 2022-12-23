@@ -4,9 +4,9 @@ import asyncio
 
 from discord.utils import find
 
-from helpfunctions.decorators import isDMCommand, isBotOwnerCommand
+from helpfunctions.decorators import isDMCommand
 from helpfunctions.utils import Utils
-from datahandler.jsonhandel import Jsonhandel
+from datahandler.jsonhandle import Jsonhandle
 from datahandler.commandrights import read_rights_of
 
 from hashlib import sha512
@@ -14,15 +14,16 @@ from hashlib import sha512
 
 def hasAnyRole(*items):
     """
-    Type:	Decorator of @commands.command Bot functions.
+    Type:   Decorator of @commands.command Bot functions.
 
-    param items:	Tuple of Strings and/or integers wit Discord Channel IDs or names.
+    param items:    Tuple of Strings and/or integers wit Discord Channel IDs or names.
 
     Check if a user has any of the roles in items.
 
     Only use for commands, which USE @commands.command
     commands.has_any_role() does not work in DM since a users can't have roles.
-    This one pulls the roles from the configured guild and makes the same check as commands.has_any_role().
+    This one pulls the roles from the configured guild and makes the same check as
+    commands.has_any_role().
 
     Function is not in decorators.py since the Helpfunction Object is needed.
     """
@@ -35,15 +36,16 @@ def hasAnyRole(*items):
 
 def hasSubserverRoles():
     """
-    Type:	Decorator for functions with self in args[0] and ctx object in args[1].
+    Type:   Decorator for functions with self in args[0] and ctx object in args[1].
 
-    param items:	Tuple of Strings and/or integers wit Discord Channel IDs or names.
+    param items:    Tuple of Strings and/or integers wit Discord Channel IDs or names.
 
     Check if a user has all of the roles in items.
 
     Only use for commands, which USE @commands.command
     commands.has_any_role() does not work in DM since a users can't have roles.
-    This one pulls the roles from the configured guild and makes the same check as commands.has_any_role().
+    This one pulls the roles from the configured guild and makes the same check as
+    commands.has_any_role().
 
     Function is not in decorators.py since the Helpfunction Object is needed.
     """
@@ -62,31 +64,40 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
     These commands are for creating, joining, leaving and manage sub server.
 
-    Subservers are hidden parts of a server, which only members of a subserver can see.
-    This keeps the guild smaller and clearer.
+    Subservers are hidden parts of a server, which only members of a subserver can
+    see. This keeps the guild smaller and clearer.
 
     Every subserver consists of at least 3 channels.
-    One voice channel is to switch to the subserver by joining it. It had been successful if you were disconnected from the channel.
+    One voice channel is to switch to the subserver by joining it. It had been
+    successful if you were disconnected from the channel.
     The other two channels are the subserver. Optionally there can be more.
 
 
     List of subservers:
             To get an overview of all subservers use the command 'sub list'.
     Creating a subserver:
-            A subserver can be created by a member with the 'COO' role with the command 'sub create [name]'.
+            A subserver can be created by a member with the 'COO' role with the
+            command 'sub create [name]'.
             There will be 2 voice and 1 text channel created.
-            Also it is recommended, that you create a invite code via 'sub inv create {[sub id]/[sub_name]}'.
+            Also it is recommended, that you create a invite code via
+            'sub inv create {[sub id]/[sub_name]}'.
     Joining a subserver:
-            With an invite code you can join the subserver with the command 'sub join [sub_inv_code]'.
-            Also if someone on the subserver can invite someone else with 'sub invite {[user'id]/[user name]} {[subID]/[sub_name]}'.
+            With an invite code you can join the subserver with the command
+            'sub join [sub_inv_code]'.
+            Also if someone on the subserver can invite someone else with
+            'sub invite {[user'id]/[user name]} {[subID]/[sub_name]}'.
     Leaving a subserver:
-            If you don't want to be part of the subserver anymore, you can leave it permanently with 'sub leave {[sub id]/[sub_name]}'.
+            If you don't want to be part of the subserver anymore, you can leave it
+            permanently with 'sub leave {[sub id]/[sub_name]}'.
     Switching subserver:
-            You can switch to another subserver with the command 'sub way {[subID]/[sub_name]} ' if you are already member of it.
-            Also you can join the gateway channel to do so. This had been successful if you were disconnected from this voice channel.
+            You can switch to another subserver with the command
+            'sub way {[subID]/[sub_name]} ' if you are already member of it.
+            Also you can join the gateway channel to do so. This had been successful
+            if you were disconnected from this voice channel.
             To switch to the main server again use 'sub stop'.
     Removing a subserver:
-            To irrevocable remove a sub server use 'sub rm {[subID/[sub_name]}'. Can only be done by users with at least the role 'COO'.
+            To irrevocable remove a sub server use 'sub rm {[subID/[sub_name]}'.
+            Can only be done by users with at least the role 'COO'.
     """
 
     roles_subCreate = read_rights_of("subRreate", "roles")
@@ -96,7 +107,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
     def __init__(self, bot):
         super(Commandsubserver, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandel()
+        self.jh = Jsonhandle()
         self.utils = Utils(bot, jh=self.jh)
         Commandsubserver.utils = self.utils
         Commandsubserver.subserver_role = self.jh.get_subserver_needed_roles()
@@ -108,36 +119,42 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         Group of subserver commands.
 
         Commands:
-                Listing subserver:		sub list
-                Create subserver:		sub create [sub_name]
-                Create subserver invite:	sub invite create [sub_name]
-                Inviting member:		sub inv [userID] [sub_name]
-                Joining subserver:		sub join [sub_inv_code]
-                Leaving subserver:		sub leave [sub_name]
-                Switch subserver:		sub way [sub_name]
-                Return to Main server:		sub stop
-                Delete subserver:		sub rm [sub_name]
+                Listing subserver:      sub list
+                Create subserver:       sub create [sub_name]
+                Create subserver invite:    sub invite create [sub_name]
+                Inviting member:        sub inv [userID] [sub_name]
+                Joining subserver:      sub join [sub_inv_code]
+                Leaving subserver:      sub leave [sub_name]
+                Switch subserver:       sub way [sub_name]
+                Return to Main server:      sub stop
+                Delete subserver:       sub rm [sub_name]
 
         More info can be found via 'help sub [command]'.
 
         All commands in the list below can be executed in this channel.
         """
         """
-		param ctx:	Discord Context object. Automatically passed.
+        param ctx:  Discord Context object. Automatically passed.
 
-		Is the parent command for the 'sub' command.
-		When invoked without a subcommand an error will be sent. The error message will be deleted after an hour.
-		"""
-        if ctx.invoked_subcommand is None:
-            embed = discord.Embed(
-                title="You need to specify a subcommand. Possible subcommands: list, create, invite, rm, inv, join, leave, sw, ss",
-                color=0xA40000,
-            )
-            embed.set_author(name="Invalid command")
-            embed.set_footer(
-                text="For more help run '+help sub' or '+help Subserver Commands'"
-            )
-            await ctx.send(embed=embed, delete_after=3600)
+        Is the parent command for the 'sub' command.
+        When invoked without a subcommand an error will be sent. The error message
+        will be deleted after an hour.
+        """
+        if ctx.invoked_subcommand is not None:
+            return
+        title = (
+            "You need to specify a subcommand. Possible subcommands:"
+            + " list, create, invite, rm, inv, join, leave, sw, ss"
+        )
+        embed = discord.Embed(
+            title=title,
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(
+            text="For more help run '+help sub' or '+help Subserver Commands'"
+        )
+        await ctx.send(embed=embed, delete_after=3600)
 
     @sub.command(name="create", brief="Creates a subserver.")
     @isDMCommand()
@@ -145,33 +162,39 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
     async def create(self, ctx, subserver_name):
         """
         To create a subserver use the command 'sub create [subserver name]'.
-        The subserver_name will be converted to lower case and the spaces will be removed.
-        When the name is longer than 16 letters, an error will be thrown.
+        The subserver_name will be converted to lower case and the spaces will be
+        removed. When the name is longer than 16 letters, an error will be thrown.
         If the name is already taken, you get an error message.
         If the gateway category is not created yet, this command will do it.
 
-        There will be a new gateway channel with the given name and a new category with a text channel and an expanding voice channel.
+        There will be a new gateway channel with the given name and a new category
+        with a text channel and an expanding voice channel.
 
-        Can only be used in the bot-DM and only by members with one of the roles 'CEO' or 'COO'.
+        Can only be used in the bot-DM and only by members with one of the roles
+        'CEO' or 'COO'.
         """
         """
-		param ctx:	Discord Context object. Automatically passed.
-		param subserver_name:	String. Will be sterilize the input by removing spaces and converting it to lower case. Needs sterilized a max length of 16.
+        param ctx:  Discord Context object. Automatically passed.
+        param subserver_name:   String. Will be sterilize the input by removing spaces
+                                and converting it to lower case. Needs sterilized a
+                                max length of 16.
 
-		Generates the two needed subserver roles first.
-		Then creates the category for the subserver and fills it with its two channels.
-		If there isn't already a gateway category, one will be created.
-		Finally the gateway channel for the subserver will be created.
+        Generates the two needed subserver roles first.
+        Then creates the category for the subserver and fills it with its two
+        channels. If there isn't already a gateway category, one will be created.
+        Finally the gateway channel for the subserver will be created.
 
-		All channel have the required permissions.
+        All channel have the required permissions.
 
-		If the subserver name is already taken, an error message will be sent.
-		"""
+        If the subserver name is already taken, an error message will be sent.
+        """
         subserver_name = subserver_name.lower().replace(" ", "")
         if len(subserver_name) > 16:
-            await ctx.send(
-                f"ERROR: Subserver name must have 16 or less characters. The given name {subserver_name} has {len(subserver_name)}."
+            error_message = (
+                "ERROR: Subserver name must have 16 or less characters."
+                + f" The given name {subserver_name} has {len(subserver_name)}."
             )
+            await ctx.send(error_message)
             return
 
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
@@ -257,7 +280,8 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
             },
         )
 
-        # Give bot the sub-roles. Needed to delete them. Don't ask me why it needs them.
+        # Give bot the sub-roles. Needed to delete them. Don't ask me why it needs
+        # them.
         await guild.me.add_roles(sub_way_role, sub_role)
 
     @sub.command(name="rm", brief="Removes a subserver.")
@@ -285,25 +309,29 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         if sub_way_channel:
             await sub_way_channel.delete()
         else:
-            await ctx.send(f"WARNING: No subway channel found.", delete_after=3600)
+            await ctx.send("WARNING: No subway channel found.", delete_after=3600)
 
         for role in self.get_subserver_roles(name):
             if role:
                 await role.delete()
             else:
-                await ctx.send(f"WARNING: No subway role found.", delete_after=3600)
+                await ctx.send("WARNING: No subway role found.", delete_after=3600)
 
     @sub.command(name="list", brief="List all subserver.")
     @isDMCommand()
     async def list(self, ctx):
         """
-        With the command 'sub list' you get an overview of all subserver, how many people are in the voice channel, how many people are currently in the subserver and how many members the subserver has.
+        With the command 'sub list' you get an overview of all subserver, how many
+        people are in the voice channel, how many people are currently in the
+        subserver and how many members the subserver has.
 
         This command can only be used in the DM.
         """
         """
-		Sends an embeded back containing all subserver, how many people are in the voice channel, how many people are currently in the subserver and how many members the subserver has.
-		"""
+        Sends an embeded back containing all subserver, how many people are in the
+        voice channel, how many people are currently in the subserver and how many
+        members the subserver has.
+        """
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         embed = discord.Embed(
             title="Subserver List",
@@ -325,17 +353,18 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
     @isDMCommand()
     async def inv(self, ctx, userID, subserver_name):
         """
-        With the command 'sub inv [user ID] [suberver name]' an other member can be invited to the subserver.
-        Only a member of a subserver can invite another one.
+        With the command 'sub inv [user ID] [suberver name]' an other member can be
+        invited to the subserver. Only a member of a subserver can invite another one.
 
         This command can only be used in the DM.
         """
         """
-		param userID:	Integer of userID
-		param subserver_name: String
+        param userID:   Integer of userID
+        param subserver_name: String
 
-		Gives the member with the userID the sub_way role of the subserver if all inputs are correct and author is a member of the subserver.
-		"""
+        Gives the member with the userID the sub_way role of the subserver if all
+        inputs are correct and author is a member of the subserver.
+        """
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         (sub_role, sub_way_role) = self.get_subserver_roles(subserver_name)
         # Check if subserver exists
@@ -347,15 +376,19 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
             return
         # Author is not in subserver
         author_member = guild.get_member(ctx.author.id)
-        if not author_member in sub_way_role.members:
+        if author_member not in sub_way_role.members:
+            error_message = (
+                "ERROR! You can not invite users to a subserver, "
+                + "you aren't a member of."
+            )
             await ctx.send(
-                f"ERROR! You can not invite users to a subserver, you aren't a member of.",
+                error_message,
                 delete_after=3600,
             )
             return
         # Check for valid user ID
         if not userID.isdigit():
-            await ctx.send(f"ERROR! User ID must be a number.", delete_after=3600)
+            await ctx.send("ERROR! User ID must be a number.", delete_after=3600)
             return
         # Search for member to be invited
         to_invite = guild.get_member(int(userID))
@@ -365,8 +398,12 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
             )
             return
         if to_invite in sub_way_role.members:
+            error_message = (
+                f"ERROR! User {to_invite.name} is already"
+                + f" a member of {subserver_name}."
+            )
             await ctx.send(
-                f"ERROR! User {to_invite.name} is already a member of {subserver_name}.",
+                error_message,
                 delete_after=3600,
             )
             return
@@ -377,16 +414,18 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
     @isDMCommand()
     async def leave(self, ctx, subserver_name):
         """
-        If you want to leave a subserver permanently, then use the command 'sub leave [subserver name]'.
-        !!! WARNING !!! Action can not be reversed by yourself. Someone else must invite you or you have to use an invite code.
+        If you want to leave a subserver permanently, then use the command
+        'sub leave [subserver name]'.
+        !!! WARNING !!! Action can not be reversed by yourself. Someone else must
+        invite you or you have to use an invite code.
 
         This command can only be used in the DM.
         """
         """
-		param subserver_name: String
+        param subserver_name: String
 
-		Removes member from subserver by removing subserver_roles.
-		"""
+        Removes member from subserver by removing subserver_roles.
+        """
         (sub_role, sub_way_role) = self.get_subserver_roles(subserver_name)
         # Check if subserver exists
         if not (sub_role and sub_way_role):
@@ -397,15 +436,19 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
             return
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         author_member = guild.get_member(ctx.author.id)
+        reason = (
+            f"Member {ctx.author.name} decided to leave the subserver"
+            + f" {subserver_name}."
+        )
         if author_member in sub_role.members:
             await author_member.remove_roles(
                 sub_role,
-                reason=f"Member {ctx.author.name} decided to leave the subserver {subserver_name}.",
+                reason=reason,
             )
         if author_member in sub_way_role.members:
             await author_member.remove_roles(
                 sub_way_role,
-                reason=f"Member {ctx.author.name} decided to leave the subserver {subserver_name}.",
+                reason=reason,
             )
         await ctx.send(f"You left subserver {subserver_name}.", delete_after=60)
         await self.update_subserver_info()
@@ -437,10 +480,10 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         This command can only be used in the DM.
         """
         """
-		param subserver_name:	String
+        param subserver_name:   String
 
-		Removes sub-roles and gives sub-role from subersever-name 
-		"""
+        Removes sub-roles and gives sub-role from subersever-name.
+        """
         (sub_role, sub_way_role) = self.get_subserver_roles(subserver_name)
         if not (sub_role and sub_way_role):
             await ctx.send(f"ERROR! No subserver with name {subserver_name}.")
@@ -450,7 +493,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         if not author_member:
             await ctx.send("ERROR! Your are not on the guild.")
             return
-        if not sub_way_role in author_member.roles:
+        if sub_way_role not in author_member.roles:
             await ctx.send("ERROR! Your are not on the subserver.")
             return
         if await self.change_subserver(author_member, to=subserver_name):
@@ -468,37 +511,40 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         Group of subserver invite commands.
 
         Commands:
-                Create subserver invite:	sub invite create [sub_name]
+                Create subserver invite:    sub invite create [sub_name]
 
         More info can be found via 'help sub [command]'.
 
         All commands in the list below can be executed in this channel.
         """
-        if ctx.invoked_subcommand is None:
-            embed = discord.Embed(
-                title="You need to specify a subcommand. Possible subcommands: create",
-                color=0xA40000,
-            )
-            embed.set_author(name="Invalid command")
-            embed.set_footer(
-                text="For more help run '+help sub invite' or '+help Subserver Commands'"
-            )
-            await ctx.send(embed=embed, delete_after=3600)
+        if ctx.invoked_subcommand is not None:
+            return
+        embed = discord.Embed(
+            title="You need to specify a subcommand. Possible subcommands: create",
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(
+            text="For more help run '+help sub invite' or '+help Subserver Commands'"
+        )
+        await ctx.send(embed=embed, delete_after=3600)
 
     @invite.command(name="create", brief="Creates a invite code.")
     @isDMCommand()
     @hasAnyRole(*roles_subCreateCode)
     async def create_code(self, ctx, subserver_name):
         """
-        Creates an invite code for a subserver with the command 'sub invite create [subserver name]'.
+        Creates an invite code for a subserver with the command
+        'sub invite create [subserver name]'.
 
         This command can only be used in the DM.
         """
         """
-		param subserver_name:	String
+        param subserver_name:   String
 
-		Creates an invite code with the function hash_invite_code and sends it to the user.
-		"""
+        Creates an invite code with the function hash_invite_code and sends it to the
+        user.
+        """
         (sub_role, sub_way_role) = self.get_subserver_roles(subserver_name)
         if not (sub_role and sub_way_role):
             await ctx.send(f"ERROR! No subserver with name {subserver_name}.")
@@ -523,11 +569,12 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         This command can only be used in the DM.
         """
         """
-		param code: String
+        param code: String
 
-		Computes all hashes of a subserver till the right subserver is hit. Then gives the member the corresponding subserver role.
-		If none is found, than print error message.
-		"""
+        Computes all hashes of a subserver till the right subserver is hit. Then gives
+        the member the corresponding subserver role.
+        If none is found, than print error message.
+        """
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         subserver = self.get_all_subserver_roles()
         all_suberver_names = [sub.name[4:] for sub, _ in subserver]
@@ -542,27 +589,28 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         if i >= len(all_suberver_names) - 1 or not author_member:
             await asyncio.sleep(1)
             await ctx.send(
-                f"ERROR! Code does not match any invite code of any subserver."
+                "ERROR! Code does not match any invite code of any subserver."
             )
             return
-        if not author_member in subserver[i][1].members:
+        if author_member not in subserver[i][1].members:
             await author_member.add_roles(subserver[i][1])
         await ctx.send(f"You joined the subserver **{all_suberver_names[i]}**.")
         await self.update_subserver_info()
 
     """
-	######################################################################
+    ######################################################################
 
-	Subserver commands end
+    Subserver commands end
 
-	######################################################################
-	"""
+    ######################################################################
+    """
 
     @commands.Cog.listener()
-    async def on_voice_state_update(self, member, before, after):
+    async def on_voice_state_update(self, member, _, after):
         """
-        Handles the subserver gateway functions
-        When a member connects to a subway channel, he will get the corresponding role.
+        Handles the subserver gateway functions.
+        When a member connects to a subway channel, he will get the corresponding
+        role.
         """
         # Subway channel function
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
@@ -582,7 +630,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
     def get_subserver_roles(self, sub_name):
         """
-        param sub_name:	String
+        param sub_name: String
 
         Finds the sub and subway roles of the subserver with the name sub_name.
 
@@ -604,7 +652,8 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
             for role in guild.roles
             if role.name.startswith("sub-") or role.name.startswith("sw-")
         ]
-        # Sort by subserver name. '+ r.name[1]' is for sorting sub roles on top of subway roles, since '+ r.name[1]' is 'u' or 'w'.
+        # Sort by subserver name. '+ r.name[1]' is for sorting sub roles on top of
+        # subway roles, since '+ r.name[1]' is 'u' or 'w'.
         sorted_roles = sorted(sub_roles, key=lambda r: r.name.split("-")[1] + r.name[1])
         if not sorted_roles:
             return []
@@ -617,8 +666,9 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
     def get_subserver_users_per_role(self):
         """
-        Gets the amount of users in the subserver and the amount of users currently using the subserver.
-        This is done by looking up how many people have the role "sub-..." and "sw-...".
+        Gets the amount of users in the subserver and the amount of users currently
+        using the subserver. This is done by looking up how many people have the role
+        "sub-..." and "sw-...".
 
         Returns a dict with the key subserver roles with a tuple of to integers.
         """
@@ -629,7 +679,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
     def get_subserver_category_by_name(self, name):
         """
-        param name:	String.
+        param name: String.
 
         Searches the subserver category for the matching name and returns it.
         Otherwise return None.
@@ -642,13 +692,12 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
     async def change_subserver(self, member, to=None):
         """
-        param member:	Discord Member object
-        param to:	To which subserver. None => Leave subserver
+        param member:   Discord Member object
+        param to:   To which subserver. None => Leave subserver
 
-        Removes member from current subserver and lets him join new subserver defined to.
-        Returns True if operation was successful.
+        Removes member from current subserver and lets him join new subserver defined
+        to. Returns True if operation was successful.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         if not member:
             return False
         succesful = await self.leave_current_subserver_no_permanent(member)
@@ -669,7 +718,6 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         Removes all sub-roles of user.
         Returns True if operation was successful.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         if not member:
             return False
         sub_roles = [role for role in member.roles if role.name.startswith("sub-")]
@@ -679,12 +727,12 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
     def get_subserver_user_amount_info(self):
         """
-        Gets the amount of connected users, online users and total users in the subserver for each subserver.
+        Gets the amount of connected users, online users and total users in the
+        subserver for each subserver.
         Returns a dict with the subserver_name as key and the data as a triple.
         Exp.: {"test": (0,2,4), "test2": (3,6,8), ...}
         """
         info_dict = {}
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         subserver_dict = self.get_subserver_users_per_role()
         for key in subserver_dict.keys():
             subserver_name = key.name[4:]
@@ -714,9 +762,13 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
             if not current_info:
                 # Error when no current info is available
                 # TODO: Make bot fix naming itself
-                await self.utils.sendModsMessage(
-                    f'WARNING! Subserver {subserver_name} has an invalid name. Updating of subserver gateway be suppressed for some subservers. Please bring the name into its correct format of "[subserver_name] (0/0/0)".'
+                message = (
+                    f"WARNING! Subserver {subserver_name} has an invalid name."
+                    + " Updating of subserver gateway be suppressed for some"
+                    + " subservers. Please bring the name into its correct format of"
+                    + ' "[subserver_name] (0/0/0)".'
                 )
+                await self.utils.sendModsMessage(message)
                 return
             new_info = info_dict[subserver_name]
             if new_info != current_info:
@@ -726,7 +778,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
     def get_subserver_info_from_subserver_name(self, subserver_name):
         """
-        param subserver_name:	String
+        param subserver_name:   String
 
         Extracts subserver gateway channel name member infos from its name.
         Returns tuple with user_connected, user_connected, user_total
@@ -738,7 +790,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
 
     def get_subserver_name_from_channel(self, channel_name):
         """
-        param channel:	Discord Channel object
+        param channel:  Discord Channel object
 
         Returns subserver_name from channel.
         Exp.: channel.name = "test(13 (34/254/278)" => "test(13"

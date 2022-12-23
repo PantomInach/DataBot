@@ -11,8 +11,7 @@ except ImportError:
 
 import os
 
-from datahandler.jsonhandel import Jsonhandel
-
+from datahandler.jsonhandle import Jsonhandle
 
 def start_bot():
     print("[Startup] Prepare to start Bot...")
