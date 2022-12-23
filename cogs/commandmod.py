@@ -291,9 +291,8 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
     async def printData(self, ctx):
         """
         Prints the Username, userID, level, voiceXP, textXP and textCount off all
-        members on the server.
-        If the user is not in the guild anymore, the name will be replaced by
-        'No User'.
+        members on the server. If the user is not in the guild anymore, the name
+        will be replaced by 'No User' and put to the end of the list.
 
         Can only be used by bot mods aka the user with a privilege level of 1 or
         higher.
@@ -314,8 +313,8 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         # Sorts user by their usernames
         sortedData = sorted(
             self.jh.data,
-            key=lambda id: str(self.bot.get_user(int(id)).name).lower()
-            if self.bot.get_user(int(id)) is not None
+            key=lambda id: "a" + str(self.bot.get_user(int(id)).name).lower()
+            if self.bot.get_user(int(id)) != None
             else "no user",
         )
         for userID in sortedData:
@@ -334,13 +333,13 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
                 + f"VoiceXP: {voiceXP}, TextXP: {textXP}, Messages: {textCount}."
             )
             if (
-                len(message) + len(messageadd) > 2000
+                len(message) + len(messageadd) > 1994
             ):  # Get around 2000 char discord text limit
-                await ctx.send(message)
+                await ctx.send(f"```{message}```")
                 message = ""
             message += messageadd
         print(f"User {ctx.author} prints all data in {ctx.channel}.")
-        await ctx.send(message)
+        await ctx.send(f"```{message}```")
 
 
 def setup(bot):
