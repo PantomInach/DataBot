@@ -10,28 +10,28 @@ class Poll(object):
     Creates and provides poll strings for Discord.
 
     Poll structure:
-            "ID": {
-                            "name": String,
-                            "datum": "JJJJ-MM-DD HH:MM:SS",
-                            "Status": "CLOSE" or "OPEN" or "PUBLISHED",
-                            "messageID": [
-                                    "Channel of message",
-                                    "Message ID"
-                            ],
-                            "options": [
-                                    [
-                                            "option name",
-                                            votes,
-                                            optionID
-                                    ]
-                            ],
-                            "votes": [
-                                    [
-                                            userID,
-                                            "Member Nick, User Name"
-                                    ]
-                            ]
-            }
+        "ID": {
+            "name": String,
+            "datum": "JJJJ-MM-DD HH:MM:SS",
+            "Status": "CLOSE" or "OPEN" or "PUBLISHED",
+            "messageID": [
+                "Channel of message",
+                "Message ID"
+            ],
+            "options": [
+                 [
+                    "option name",
+                    votes,
+                    optionID
+                ]
+            ],
+            "votes": [
+                [
+                    userID,
+                    "Member Nick, User Name"
+                ]
+            ]
+        }
     """
 
     def __init__(self):
@@ -45,7 +45,7 @@ class Poll(object):
 
     def newPoll(self, pollName):
         """
-        param pollName:	Name for a new poll.
+        pollName:	Name for a new poll.
 
         Creates a new poll-entry with unique ID. Lowest ID possible.
 
@@ -74,7 +74,7 @@ class Poll(object):
 
     def isAPollID(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Tests if a given ID is in pollData
         """
@@ -82,7 +82,7 @@ class Poll(object):
 
     def getStatus(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Gets the status of a poll: OPEN, CLOSED, PUBLISHED
         """
@@ -92,7 +92,7 @@ class Poll(object):
 
     def getOptions(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Gets the list of all options in a poll.
         """
@@ -102,8 +102,8 @@ class Poll(object):
 
     def isInOptions(self, pollID, optionName):
         """
-        param pollID:	The ID of the poll
-        param optionName:	The name of targeted option
+        pollID:	The ID of the poll
+        optionName:	The name of targeted option
 
         Checks if a option is in the poll.
         """
@@ -113,9 +113,9 @@ class Poll(object):
 
     def optionAdd(self, pollID, optionName, votes):
         """
-        param pollID:	The ID of the poll
-        param optionName:	The name of targeted option
-        param votes:	The amount of votes for the new option
+        pollID:	The ID of the poll
+        optionName:	The name of targeted option
+        votes:	The amount of votes for the new option
 
         Adds an option to the poll.
         """
@@ -137,8 +137,8 @@ class Poll(object):
 
     def optionRemove(self, pollID, optionName):
         """
-        param pollID:	The ID of the poll
-        param optionName:	The name of targeted option
+        pollID:	The ID of the poll
+        optionName:	The name of targeted option
 
         Removes an option from a poll
         """
@@ -167,7 +167,7 @@ class Poll(object):
 
     def pollOpen(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Opens the poll if possible.
         """
@@ -180,7 +180,7 @@ class Poll(object):
 
     def pollClose(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Closes the poll if possilbe
         """
@@ -193,7 +193,7 @@ class Poll(object):
 
     def pollPublish(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Publishes the poll
         """
@@ -206,8 +206,8 @@ class Poll(object):
 
     def getVotesOfOption(self, pollID, optionName):
         """
-        param pollID:	The ID of the poll
-        param optionName:	The name of targeted option
+        pollID:	The ID of the poll
+        optionName:	The name of targeted option
 
         Get the votes of a option in a poll
         """
@@ -219,9 +219,9 @@ class Poll(object):
 
     def setVotesOfOption(self, pollID, optionName, votes):
         """
-        param pollID:	The ID of the poll
-        param optionName:	The name of targeted option
-        param votes:	The amount of votes for theoption
+        pollID:	The ID of the poll
+        optionName:	The name of targeted option
+        votes:	The amount of votes for theoption
 
         Sets the votes of an option in a poll to a set amount
         """
@@ -229,15 +229,16 @@ class Poll(object):
             for i in range(len(self.getOptions(pollID))):
                 copy = self.pollData[str(pollID)]["options"][i]
                 if copy[0] == str(optionName):
-                    self.pollData[str(pollID)]["options"][i] = [copy[0], votes, copy[2]]
+                    self.pollData[str(pollID)]["options"][i] = [
+                        copy[0], votes, copy[2]]
                     self.savePollData()
                     return True
         return False
 
     def incVotesOfOption(self, pollID, optionName):
         """
-        param pollID:	The ID of the poll
-        param optionName:	The name of targeted option
+        pollID:	The ID of the poll
+        optionName:	The name of targeted option
 
         Increments the votes of an option in a poll
         """
@@ -247,8 +248,8 @@ class Poll(object):
 
     def decVotesOfOption(self, pollID, optionName):
         """
-        param pollID:	The ID of the poll
-        param optionName:	The name of targeted option
+        pollID:	The ID of the poll
+        optionName:	The name of targeted option
 
         Decrements the votes of an option in a poll
         """
@@ -259,8 +260,8 @@ class Poll(object):
 
     def getOptionByNumber(self, pollID, optionNumber):
         """
-        param pollID:	The ID of the poll
-        param optionNumber:	The number of targeted option
+        pollID:	The ID of the poll
+        optionNumber:	The number of targeted option
 
         Gets the optionName from the optionNumber
         """
@@ -271,7 +272,7 @@ class Poll(object):
 
     def getVotes(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Get the votes by users
         """
@@ -281,8 +282,8 @@ class Poll(object):
 
     def hasUserVote(self, pollID, userID):
         """
-        param pollID:	The ID of the poll
-        param userID:	Is the user ID from discord user as a string or int
+        pollID:	The ID of the poll
+        userID:	Is the user ID from discord user as a string or int
 
         Test if a user voted in a poll.
         """
@@ -293,8 +294,8 @@ class Poll(object):
 
     def getUserVote(self, pollID, userID):
         """
-        param pollID:	The ID of the poll
-        param userID:	Is the user ID from discord user as a string or int
+        pollID:	The ID of the poll
+        userID:	Is the user ID from discord user as a string or int
 
         Gets the vote of a User.
         """
@@ -306,9 +307,9 @@ class Poll(object):
 
     def addUserVote(self, pollID, userID, optionName):
         """
-        param pollID:	The ID of the poll
-        param userID:	Is the user ID from discord user as a string or int
-        param optionName:	The name of targeted option
+        pollID:	The ID of the poll
+        userID:	Is the user ID from discord user as a string or int
+        optionName:	The name of targeted option
 
         Adds the vote of a user. If user has already voted, than removes the previes vote.
         """
@@ -328,8 +329,8 @@ class Poll(object):
 
     def removeUserVote(self, pollID, userID):
         """
-        param pollID:	The ID of the poll
-        param userID:	Is the user ID from discord user as a string or int
+        pollID:	The ID of the poll
+        userID:	Is the user ID from discord user as a string or int
 
         Removes the vote of a user from poll.
         """
@@ -342,8 +343,8 @@ class Poll(object):
 
     def removeOptionVotes(self, pollID, optionName):
         """
-        param pollID:	The ID of the poll
-        param optionName:	The name of targeted option
+        pollID:	The ID of the poll
+        optionName:	The name of targeted option
 
         Removes all votes with the given optionName.
         """
@@ -357,7 +358,7 @@ class Poll(object):
 
     def getSumVotes(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Get the sum of all votes and returns them.
         """
@@ -368,9 +369,9 @@ class Poll(object):
 
     def setMessageID(self, pollID, messageID, channelID):
         """
-        param pollID:	The ID of the poll
-        param messageID:	The ID of a message in discord.
-        param channelID:	The ID of the channel the message of messageID is in.
+        pollID:	The ID of the poll
+        messageID:	The ID of a message in discord.
+        channelID:	The ID of the channel the message of messageID is in.
 
         Sets messageID of Poll
         """
@@ -382,7 +383,7 @@ class Poll(object):
 
     def getName(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Gets the poll name
         """
@@ -392,7 +393,7 @@ class Poll(object):
 
     def getMessageID(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Returns MessageID of Poll.
         """
@@ -402,7 +403,7 @@ class Poll(object):
 
     def getDate(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Gets the date of a poll creation
         """
@@ -412,7 +413,7 @@ class Poll(object):
 
     def removePoll(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Removes a poll.
         """
@@ -432,8 +433,8 @@ class Poll(object):
 
     def sortOptionsBy(self, pollID, sortBy):
         """
-        param pollID:	The ID of the poll
-        param sortBy:	How to sort the output
+        pollID:	The ID of the poll
+        sortBy:	How to sort the output
                                         sortBy = 1 => Sort options by votes
                                         sortBy = 2 => Sort by optionNuber
 
@@ -450,7 +451,7 @@ class Poll(object):
 
     def resetVotes(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Resets the votes of a poll.
         """
@@ -465,7 +466,7 @@ class Poll(object):
 
     def pollHeader(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Generates the poll header.
         """
@@ -480,7 +481,7 @@ class Poll(object):
 
     def pollString(self, pollID):
         """
-        param pollID:	The ID of the poll
+        pollID:	The ID of the poll
 
         Creates the generall poll to be the output.
         """
@@ -488,8 +489,8 @@ class Poll(object):
 
     def pollStringSortBy(self, pollID, sortBy):
         """
-        param pollID:	The ID of the poll
-        param sortBy:	How to sort the output
+        pollID:	The ID of the poll
+        sortBy:	How to sort the output
                                         sortBy = 1 => Sort options by votes
                                         sortBy = 2 => Sort by optionNuber
 
