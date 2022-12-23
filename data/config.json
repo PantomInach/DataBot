@@ -17,7 +17,7 @@
       "serverTextWhitelist": [
             "0"
       ],
-      "roles": [],
-      "rolesXPNeed": [],
-      "needForSubServer": []
+      "roles": ["rolename1", "rolename2", "rolename3"],
+      "rolesXPNeed": ["1", "10", "20"],
+      "needForSubServer": ["rolename"]
 }
