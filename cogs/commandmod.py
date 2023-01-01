@@ -100,28 +100,33 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
 
         Adds channel to whitelist, so users can get XP in the channel.
         """
-        guild = self.bot.get_guild(self.jh.getFromConfig("guild"))
+        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        # This does not include threads
         channels = self.bot.guilds[0].text_channels
         # When channelID is not given, use ctx.channel.id.
         if not channelID:
             channelID = ctx.channel.id
-        # Test if channel is in Server
-        if str(channelID) in [str(channel.id) for channel in channels]:
-            # Try to write in whitelist
-            if self.jh.writeToWhitelist(channelID):
-                channelName = str(self.bot.get_channel(int(channelID)))
-                message = (
-                    "Added "
-                    + str(channelName)
-                    + " with ID "
-                    + str(channelID)
-                    + " to whitelist. This Text channel will be logged."
-                )
-            else:
-                message = "Channel is already in whitelist."
+            channel_to_add = ctx.channel
         else:
-            message = f"Channel is not in the server {str(guild)}"
+            channel_to_add = self.bot.get_channel(int(channelID))
+
+        if not str(channelID) in [str(channel.id) for channel in channels]:
+            # Test if channel is in Server
+            message = f"Channel is not in the server {guild.name}"
             await self.utils.log(f"{message} from user {ctx.author}", 2)
+
+        elif self.jh.writeToWhitelist(channelID):
+            # Try to write in whitelist
+            channelName = channel_to_add.name
+            message = (
+                "Added "
+                + str(channelName)
+                + " with ID "
+                + str(channelID)
+                + " to whitelist. This Text channel will be logged."
+            )
+        else:
+            message = "Channel is already in whitelist."
         await ctx.send(message)
 
     @textwl.command(name="rm", brief="Removes a text channel from the whitelist")
@@ -224,7 +229,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
 
         Adds channel to whitelist, so users can not get XP in the channel.
         """
-        guild = self.bot.get_guild(self.jh.getFromConfig("guild"))
+        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         channels = self.bot.guilds[0].voice_channels
         # Test if channel is in Server
         if str(channelID) in [str(channel.id) for channel in channels]:
@@ -241,7 +246,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
             else:
                 message = "Channel is already in blacklist."
         else:
-            message = f"Channel is not in the server {str(guild)}"
+            message = f"Channel is not in the server {guild.name}"
         await self.utils.log(f"{message} from user {ctx.author}", 2)
         await ctx.send(message)
 
@@ -342,5 +347,5 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         await ctx.send(f"```{message}```")
 
 
-def setup(bot):
-    bot.add_cog(Commandmod(bot))
+async def setup(bot):
+    await bot.add_cog(Commandmod(bot))

@@ -23,9 +23,7 @@ class Commandlistener(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        print(
-            "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
-        )
+        print("Ignoring exception in command {}:".format(ctx.command), file=sys.stderr)
         traceback.print_exception(
             type(error), error, error.__traceback__, file=sys.stderr
         )
@@ -50,7 +48,7 @@ class Commandlistener(commands.Cog):
         # Sends message to mods, when bot is online
         print("Now Online")
         await self.utils.sendModsMessage(
-            "Bot is now online.\nVersion:\tDiscordBot DataBot v2.0.1"
+            "Bot is now online.\nVersion:\tDiscordBot DataBot v2.1.0"
         )
 
     # When a member joins a guild
@@ -61,8 +59,7 @@ class Commandlistener(commands.Cog):
 
         Creates a welcome message in the log channel
         """
-        channel = self.bot.get_channel(
-            int(self.jh.getFromConfig("logchannel")))
+        channel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         await channel.send(f"Hey **{member.mention}**, welcome to {guild}")
 
@@ -81,8 +78,7 @@ class Commandlistener(commands.Cog):
 
         Sends a goodbye message in the log channel
         """
-        channel = self.bot.get_channel(
-            int(self.jh.getFromConfig("logchannel")))
+        channel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         await channel.send(
             f"**{member.name}** has left {guild}. Press F to pay respect."
@@ -95,7 +91,7 @@ class Commandlistener(commands.Cog):
         [hash, code] = self.utils.hashData(voice, text, textCount, member.id)
         #Send user data
         embed = discord.Embed(title=f"{member.nick}     ({member.name})", color=12008408)
-        embed.set_thumbnail(url=member.avatar_url)
+        embed.set_thumbnail(url=member.avatar)
         embed.add_field(name="VoiceXP", value=f"{voice}", inline=True)
         embed.add_field(name="TextXP", value=f"{text}", inline=True)
         embed.add_field(name="TextMessages", value=f"{textCount}", inline=True)
@@ -210,8 +206,7 @@ class Commandlistener(commands.Cog):
                     not (message.author.bot or payload.member.bot)
                     and self.jh.getFromConfig("log") == "True"
                 ):
-                    self.jh.addReactionXP(
-                        payload.user_id, self.xpf.randomRange(1, 5))
+                    self.jh.addReactionXP(payload.user_id, self.xpf.randomRange(1, 5))
                     self.jh.saveData()
 
     # When a user changes his voice state
@@ -247,10 +242,7 @@ class Commandlistener(commands.Cog):
             and before.channel.name[-1].isdigit()
         ):
             # Member left first channel
-            if (
-                before.channel.name[-1] == "1"
-                and not before.channel.name[-2].isdigit()
-            ):
+            if before.channel.name[-1] == "1" and not before.channel.name[-2].isdigit():
                 # Delete last channel, which has no user in it
 
                 channelWithoutNumber = before.channel.name[:-1]
@@ -302,8 +294,7 @@ class Commandlistener(commands.Cog):
             # in it
             if afterNumber and len(
                 find(
-                    lambda c: c.name == (
-                        channelWithoutNumber + "1"), allChannel
+                    lambda c: c.name == (channelWithoutNumber + "1"), allChannel
                 ).members
             ):
                 # Get channels with after.channel.name without numbers in it and end
@@ -363,9 +354,10 @@ class Commandlistener(commands.Cog):
         a = "" + message.content
 
         # Stops user from writting in levelchannel none command messages
-        if str(message.channel.id) == str(
-            self.jh.getFromConfig("levelchannel")
-        ) and a[0] != self.jh.getFromConfig("command_prefix"):
+        print(a)
+        if str(message.channel.id) == str(self.jh.getFromConfig("levelchannel")) and a[
+            0
+        ] != self.jh.getFromConfig("command_prefix"):
             await message.delete()
             return
 
@@ -400,11 +392,13 @@ class Commandlistener(commands.Cog):
             except Exception:
                 channelName = "DM"
             string = (
-                "\n######\n# User "
+                "\n```User "
                 + str(message.author.name)
                 + "tried to invoke a command in "
                 + str(channelName)
-                + ".\n# Command: {a}\n######"
+                + ".\nCommand: "
+                + a
+                + "```\n"
             )
             await self.utils.log(string, 2)
 
@@ -437,5 +431,5 @@ class Commandlistener(commands.Cog):
         return i
 
 
-def setup(bot):
-    bot.add_cog(Commandlistener(bot))
+async def setup(bot):
+    await bot.add_cog(Commandlistener(bot))

@@ -46,5 +46,5 @@ class Commandmodserver(commands.Cog, name="Server Mod Commands"):
         Commandmodserver.utils = self.utils
 
 
-def setup(bot):
-    bot.add_cog(Commandmodserver(bot))
+async def setup(bot):
+    await bot.add_cog(Commandmodserver(bot))
