@@ -391,13 +391,13 @@ class Commandlistener(commands.Cog):
             except Exception:
                 channelName = "DM"
             string = (
-                "\n######\n# User "
+                "\n```User "
                 + str(message.author.name)
                 + "tried to invoke a command in "
                 + str(channelName)
-                + ".\n# Command: "
+                + ".\nCommand: "
                 + a
-                + "\n######"
+                + "```\n"
             )
             await self.utils.log(string, 2)
 
