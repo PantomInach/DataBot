@@ -10,14 +10,24 @@ except ImportError:
     exit()
 
 import os
+import asyncio
 
 from datahandler.jsonhandle import Jsonhandle
+
+
+async def load_extension(bot):
+    print("[Startup] Loading Commands...")
+    for ext in os.listdir("./cogs/"):
+        if ext.endswith(".py") and not ext.startswith("__"):
+            await bot.load_extension("cogs." + ext[:-3])
+
+    print("[Startup] Commands loaded.")
 
 
 def start_bot():
     print("[Startup] Prepare to start Bot...")
 
-    jh = Jsonhandel()
+    jh = Jsonhandle()
 
     intents = discord.Intents.default()
     intents.presences = True
@@ -29,12 +39,14 @@ def start_bot():
     jh.config["log"] = "False"
     jh.saveConfig()
     print("[Startup] Set log to False.")
-    print("[Startup] Loading Commands...")
-    for ext in os.listdir("./cogs/"):
-        if ext.endswith(".py"):
-            bot.load_extension("cogs." + ext[:-3])
 
-    print("[Startup] Commands loaded.")
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(load_extension(bot))
+    finally:
+        loop.close()
+        asyncio.set_event_loop(None)
 
     print("[Startup] Starting Bot...")
     bot.run(jh.getFromConfig("token"))

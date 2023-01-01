@@ -1,6 +1,6 @@
 import os
 
-from discord import InvalidArgument
+from discord import NotFound
 from discord.ext import commands
 
 from helpfunctions.decorators import isBotOwnerCommand
@@ -87,9 +87,7 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
             guildName = str(self.bot.get_guild(guildID))
             self.jh.config["log"] = "False"
             self.jh.saveConfig()
-            await self.utils.log(
-                f"Stopped to log users from Server:\n\t{guildName}", 2
-            )
+            await self.utils.log(f"Stopped to log users from Server:\n\t{guildName}", 2)
         else:
             await ctx.send("Bot is NOT logging. Logging state: False")
 
@@ -139,7 +137,7 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
             return
         try:
             await message.add_reaction(emoji)
-        except InvalidArgument:
+        except NotFound:
             await ctx.send("No vaild emoji was sent by user.")
 
     @commands.command(name="rlext")
@@ -161,19 +159,17 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
                 [
                     "cogs." + ext[:-3]
                     for ext in os.listdir("./")
-                    if ext.endswith(".py")
+                    if ext.endswith(".py") and not ext.startswith("__")
                 ]
             )
         reloadedExtensions = []
         for ext in extensions:
             if ext in self.bot.extensions:
-                self.bot.unload_extension(ext)
-                self.bot.load_extension(ext)
+                await self.bot.unload_extension(ext)
+                await self.bot.load_extension(ext)
                 reloadedExtensions.append(ext)
-        await self.utils.log(
-            f"Reloaded extensions: {', '.join(reloadedExtensions)}", 2
-        )
+        await self.utils.log(f"Reloaded extensions: {', '.join(reloadedExtensions)}", 2)
 
 
-def setup(bot):
-    bot.add_cog(Commandowner(bot))
+async def setup(bot):
+    await bot.add_cog(Commandowner(bot))

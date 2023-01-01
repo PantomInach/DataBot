@@ -658,8 +658,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         # Sort by subserver name. '+ r.name[1]' is for sorting sub roles on top of
         # subway roles, since '+ r.name[1]' is 'u' or 'w'.
         sorted_roles = sorted(
-            sub_roles, key=lambda r: r.name.split("-")[1] + r.name[1]
-        )
+            sub_roles, key=lambda r: r.name.split("-")[1] + r.name[1])
         if not sorted_roles:
             return []
         # Data pattern: [(sub-a, sw-a), ...]
@@ -809,5 +808,5 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
         return code[:8]
 
 
-def setup(bot):
-    bot.add_cog(Commandsubserver(bot))
+async def setup(bot):
+    await bot.add_cog(Commandsubserver(bot))

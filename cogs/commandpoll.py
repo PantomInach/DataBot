@@ -635,5 +635,5 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         return i
 
 
-def setup(bot):
-    bot.add_cog(Commandpoll(bot))
+async def setup(bot):
+    await bot.add_cog(Commandpoll(bot))

@@ -342,5 +342,5 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         await ctx.send(f"```{message}```")
 
 
-def setup(bot):
-    bot.add_cog(Commandmod(bot))
+async def setup(bot):
+    await bot.add_cog(Commandmod(bot))

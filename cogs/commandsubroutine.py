@@ -133,9 +133,7 @@ class Subroutine(commands.Cog):
                     log_message,
                     2,
                 )
-            if (
-                currentTime - offset
-            ) % interval < bufferTime and currentTime > offset:
+            if (currentTime - offset) % interval < bufferTime and currentTime > offset:
                 role = guild.get_role(int(toRemove))
                 if role is None:
                     log_message = (
@@ -236,8 +234,7 @@ class Subroutine(commands.Cog):
         # Total all connected members
         for channel in voiceChanels:
             membersInChannel = [
-                member for member in channel.members if not member.bot
-            ]
+                member for member in channel.members if not member.bot]
             # Check if more than one person is in channel
             if len(membersInChannel) >= 2:
                 membersNotMutedOrBot = [
@@ -246,8 +243,7 @@ class Subroutine(commands.Cog):
                     if not (member.voice.self_mute or member.bot)
                 ]
                 self.jh.addAllUserVoice(
-                    [member.id for member in membersNotMutedOrBot]
-                )
+                    [member.id for member in membersNotMutedOrBot])
                 # Extra XP
                 membersStreamOrVideo = [
                     member
@@ -281,5 +277,5 @@ class Subroutine(commands.Cog):
                 )
 
 
-def setup(bot):
-    bot.add_cog(Subroutine(bot))
+async def setup(bot):
+    await bot.add_cog(Subroutine(bot))
