@@ -645,7 +645,7 @@ class Commanduser(commands.Cog, name="User Commands"):
             return
         self.jh.addNewDataEntry(userID)
         # Create Embeded
-        avatar_url = member.avatar_url
+        avatar_url = member.avatar
         level = self.jh.getUserLevel(userID)
         voiceXP = self.jh.getUserVoice(userID)
         textXP = self.jh.getUserText(userID)

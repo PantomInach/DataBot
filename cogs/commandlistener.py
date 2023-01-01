@@ -91,7 +91,7 @@ class Commandlistener(commands.Cog):
         [hash, code] = self.utils.hashData(voice, text, textCount, member.id)
         #Send user data
         embed = discord.Embed(title=f"{member.nick}     ({member.name})", color=12008408)
-        embed.set_thumbnail(url=member.avatar_url)
+        embed.set_thumbnail(url=member.avatar)
         embed.add_field(name="VoiceXP", value=f"{voice}", inline=True)
         embed.add_field(name="TextXP", value=f"{text}", inline=True)
         embed.add_field(name="TextMessages", value=f"{textCount}", inline=True)
@@ -354,6 +354,7 @@ class Commandlistener(commands.Cog):
         a = "" + message.content
 
         # Stops user from writting in levelchannel none command messages
+        print(a)
         if str(message.channel.id) == str(self.jh.getFromConfig("levelchannel")) and a[
             0
         ] != self.jh.getFromConfig("command_prefix"):
