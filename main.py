@@ -24,7 +24,7 @@ async def load_extension(bot):
     print("[Startup] Commands loaded.")
 
 
-def start_bot():
+async def start_bot():
     print("[Startup] Prepare to start Bot...")
 
     jh = Jsonhandle()
@@ -40,17 +40,11 @@ def start_bot():
     jh.saveConfig()
     print("[Startup] Set log to False.")
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        loop.run_until_complete(load_extension(bot))
-    finally:
-        loop.close()
-        asyncio.set_event_loop(None)
+    await load_extension(bot)
 
     print("[Startup] Starting Bot...")
-    bot.run(jh.getFromConfig("token"))
+    await bot.start(jh.getFromConfig("token"))
 
 
 if __name__ == "__main__":
-    start_bot()
+    asyncio.run(start_bot())
