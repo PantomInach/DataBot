@@ -29,7 +29,7 @@ def start_bot():
 
     jh = Jsonhandle()
 
-    intents = discord.Intents.default()
+    intents = discord.Intents.all()
     intents.presences = True
     intents.members = True
     bot = commands.Bot(
