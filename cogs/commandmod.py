@@ -100,7 +100,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
 
         Adds channel to whitelist, so users can get XP in the channel.
         """
-        guild = self.bot.get_guild(self.jh.getFromConfig("guild"))
+        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         # This does not include threads
         channels = self.bot.guilds[0].text_channels
         # When channelID is not given, use ctx.channel.id.
@@ -112,7 +112,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
 
         if not str(channelID) in [str(channel.id) for channel in channels]:
             # Test if channel is in Server
-            message = f"Channel is not in the server {str(guild)}"
+            message = f"Channel is not in the server {guild.name}"
             await self.utils.log(f"{message} from user {ctx.author}", 2)
 
         elif self.jh.writeToWhitelist(channelID):
@@ -229,7 +229,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
 
         Adds channel to whitelist, so users can not get XP in the channel.
         """
-        guild = self.bot.get_guild(self.jh.getFromConfig("guild"))
+        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         channels = self.bot.guilds[0].voice_channels
         # Test if channel is in Server
         if str(channelID) in [str(channel.id) for channel in channels]:
@@ -246,7 +246,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
             else:
                 message = "Channel is already in blacklist."
         else:
-            message = f"Channel is not in the server {str(guild)}"
+            message = f"Channel is not in the server {guild.name}"
         await self.utils.log(f"{message} from user {ctx.author}", 2)
         await ctx.send(message)
 
