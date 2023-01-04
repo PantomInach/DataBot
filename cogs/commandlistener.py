@@ -394,7 +394,7 @@ class Commandlistener(commands.Cog):
             string = (
                 "\n```User "
                 + str(message.author.name)
-                + "tried to invoke a command in "
+                + " tried to invoke a command in "
                 + str(channelName)
                 + ".\nCommand: "
                 + a
