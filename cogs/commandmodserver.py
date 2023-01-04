@@ -2,7 +2,6 @@ from discord.ext import commands
 
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban
-from datahandler.counter import Counter
 from datahandler.jsonhandle import Jsonhandle
 
 
@@ -42,7 +41,6 @@ class Commandmodserver(commands.Cog, name="Server Mod Commands"):
         self.tban = Textban()
         self.jh = Jsonhandle
         self.utils = Utils(bot, jh=self.jh)
-        self.counter = Counter()
         Commandmodserver.utils = self.utils
 
 
