@@ -42,7 +42,7 @@ Run `git clone https://github.com/PantomInach/DataBot.git` in your installation 
 
 ## Create a bot
 Create a [Discord Application](https://discord.com/developers/applications) on the site [https://discord.com/developers/applications](https://discord.com/developers/applications).
-Make sure "Presence Intent" and "Server Members Intent" are enabled in Privileged Gateway Intents under the Bot tab.
+Make sure "Presence Intent", "Server Members Intent" and "Message Content Intent" are enabled in Privileged Gateway Intents under the Bot tab.
 Then copy the token to the specified space in the data/config.json file.
 More to the config file in [Configuration](#Configuration).
 Also add your guild in the "server" space and your Discord ID in "owner".
