@@ -208,8 +208,8 @@ class Utils(object):
                 nick = "Not on guild"
                 name = f"ID: {userID}"
             # Check length of nick + name
-            nick = nick if len(nick) <= 12 else nick[:-3] + "..."
-            name = name if len(name) <= 22 else name[:-3] + "..."
+            nick = nick if len(nick) <= 12 else nick[:10] + "..."
+            name = name if len(name) <= 22 else name[:20] + "..."
             # Get user data from userdata.json.
             hours = self.jh.getUserHours(userID)
             messages = self.jh.getUserTextCount(userID)
