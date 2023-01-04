@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Have a awsome feature for the bot? Tell us!
-title: "[ENHANCMENT]"
+title: "[ENHANCEMENT]"
 labels: enhancement
 assignees: ''
 
