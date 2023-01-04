@@ -188,7 +188,7 @@ class Utils(object):
         Builds a string for the leaderboard on a given page with the right sorting.
         """
         userIDs = self.jh.getSortedDataEntrys(page * 10, (page + 1) * 10, sortBy)
-        leaderborad = ""
+        leaderboard = f"```md"
         rank = page * 10 + 1
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
         # Generate leaderboard string
@@ -207,6 +207,9 @@ class Utils(object):
                 # When user is not in guild.
                 nick = "Not on guild"
                 name = f"ID: {userID}"
+            # Check length of nick + name
+            nick = nick if len(nick) <= 12 else nick[:-3] + "..."
+            name = name if len(name) <= 22 else name[:-3] + "..."
             # Get user data from userdata.json.
             hours = self.jh.getUserHours(userID)
             messages = self.jh.getUserTextCount(userID)
@@ -214,10 +217,11 @@ class Utils(object):
                 self.jh.getUserVoice(userID), self.jh.getUserText(userID)
             )
             level = self.jh.getUserLevel(userID)
-            # formatting for leaderboard.
-            leaderborad += f"```md\n{' '*(4-len(str(rank)))}{rank}. {nick}{' '*(53-len(nick+name))}({name})    Hours: {' '*(6-len(str(hours)))}{hours}     Messages: {' '*(4-len(str(messages)))}{messages}     Experience: {' '*(6-len(str(xp)))}{xp}      Level: {' '*(3-len(str(level)))}{level}\n```\n"
+            # Formatting for leaderboard.
+            leaderboard += f"\n{' '*(4-len(str(rank)))}{rank}. {nick}{' '*(37-len(nick+name))}({name})   Hours: {' '*(6-len(str(hours)))}{hours}    Messages: {' '*(4-len(str(messages)))}{messages}    Experience: {' '*(6-len(str(xp)))}{xp}     Level: {' '*(3-len(str(level)))}{level}\n"
             rank += 1
-        return leaderborad
+        leaderboard += f"```"
+        return leaderboard
 
     @staticmethod
     def getMessageState(message):
