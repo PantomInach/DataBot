@@ -354,7 +354,6 @@ class Commandlistener(commands.Cog):
         a = "" + message.content
 
         # Stops user from writting in levelchannel none command messages
-        print(a)
         if str(message.channel.id) == str(self.jh.getFromConfig("levelchannel")) and a[
             0
         ] != self.jh.getFromConfig("command_prefix"):
