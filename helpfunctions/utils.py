@@ -1,5 +1,6 @@
 import os
 import datetime
+import re
 from discord.utils import find
 
 from helpfunctions.xpfunk import Xpfunk
@@ -188,10 +189,12 @@ class Utils(object):
         Builds a string for the leaderboard on a given page with the right sorting.
         """
         userIDs = self.jh.getSortedDataEntrys(page * 10, (page + 1) * 10, sortBy)
-        leaderboard = f"```md"
         rank = page * 10 + 1
         guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        leaderboard = f"**Leaderboard {guild.name}**\n```as"
         # Generate leaderboard string
+        if not userIDs:
+            return ""
         for userID in userIDs:
             member = guild.get_member(int(userID))
             # When user is not in guild, member is None.
@@ -218,7 +221,7 @@ class Utils(object):
             )
             level = self.jh.getUserLevel(userID)
             # Formatting for leaderboard.
-            leaderboard += f"\n{' '*(4-len(str(rank)))}{rank}. {nick}{' '*(37-len(nick+name))}({name})   Hours: {' '*(6-len(str(hours)))}{hours}    Messages: {' '*(4-len(str(messages)))}{messages}    Experience: {' '*(6-len(str(xp)))}{xp}     Level: {' '*(3-len(str(level)))}{level}\n"
+            leaderboard += f"\n{' '*(4-len(str(rank)))}{rank}. {nick}{' '*(37-len(nick+name))}({name})   Hours: {' '*(6-len(str(hours)))}{hours}   Messages: {' '*(4-len(str(messages)))}{messages}   Exp: {' '*(6-len(str(xp)))}{xp}   Level: {' '*(3-len(str(level)))}{level}\n"
             rank += 1
         leaderboard += f"```"
         return leaderboard
@@ -274,7 +277,10 @@ class Utils(object):
             return (0, 0)
 
         # Is leaderboard and now find the page of it.
-        pageTopRank = int(str(message.content)[6:10])
+        leaderboard_search_pattern = re.compile("```as\n *[0-9]+\.")
+        leaderboard_search_match = leaderboard_search_pattern.search(str(message.content))
+        leaderboard_search_result = "" if not leaderboard_search_match else leaderboard_search_match.group(0)
+        pageTopRank = int(str(leaderboard_search_result)[6:-1])
         return (state, pageTopRank // 10)
 
     async def sendServerModMessage(self, string, embed=None):
