@@ -227,7 +227,12 @@ class Utils(object):
         return leaderboard
 
     @staticmethod
-    def _get_leaderboard_pageFirstRank(leaderboard_page):
+    def _get_leaderboard_pageFirstRank(leaderboard_page: str) -> int:
+        """
+        param leaderboard_page:	String of a page of leaderboard.
+
+        Determines the first rank number on leaderboard page. Used to identify the number of the current page.
+        """
         leaderboard_search_pattern = re.compile("```as\n *[0-9]+\.")
         leaderboard_search_match = leaderboard_search_pattern.search(str(leaderboard_page))
         # Check if match was found.
