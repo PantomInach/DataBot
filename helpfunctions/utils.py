@@ -227,6 +227,15 @@ class Utils(object):
         return leaderboard
 
     @staticmethod
+    def _get_leaderboard_pageFirstRank(leaderboard_page):
+        leaderboard_search_pattern = re.compile("```as\n *[0-9]+\.")
+        leaderboard_search_match = leaderboard_search_pattern.search(str(leaderboard_page))
+        # Check if match was found.
+        leaderboard_search_result = "" if not leaderboard_search_match else leaderboard_search_match.group(0)
+        pageFirstRank = int(str(leaderboard_search_result)[6:-1])
+        return pageFirstRank
+
+    @staticmethod
     def getMessageState(message):
         """
         param message:	String of a message in Discord.
@@ -277,11 +286,8 @@ class Utils(object):
             return (0, 0)
 
         # Is leaderboard and now find the page of it.
-        leaderboard_search_pattern = re.compile("```as\n *[0-9]+\.")
-        leaderboard_search_match = leaderboard_search_pattern.search(str(message.content))
-        leaderboard_search_result = "" if not leaderboard_search_match else leaderboard_search_match.group(0)
-        pageTopRank = int(str(leaderboard_search_result)[6:-1])
-        return (state, pageTopRank // 10)
+        pageFirstRank = Utils._get_leaderboard_pageFirstRank(message.content)
+        return (state, pageFirstRank // 10)
 
     async def sendServerModMessage(self, string, embed=None):
         """
