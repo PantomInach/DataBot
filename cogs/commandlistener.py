@@ -48,7 +48,7 @@ class Commandlistener(commands.Cog):
         # Sends message to mods, when bot is online
         print("Now Online")
         await self.utils.sendModsMessage(
-            "Bot is now online.\nVersion:\tDiscordBot DataBot v2.1.1"
+            "Bot is now online.\nVersion:\tDiscordBot DataBot v2.2.0"
         )
 
     # When a member joins a guild
