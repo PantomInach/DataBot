@@ -256,7 +256,7 @@ class Commanduser(commands.Cog, name="User Commands"):
             self.jh.addNewDataEntry(userID)
         self.jh.setUserText(userID, amount)
         message += (
-            f"Set user {str(self.bot.get_user(int(userID)))} " + "textXP to {amount}."
+            f"Set user {str(self.bot.get_user(int(userID)))} " + f"textXP to {amount}."
         )
         log_message = (
             f"User {ctx.author} set user "
