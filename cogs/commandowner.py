@@ -103,8 +103,8 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
         """
         await self.utils.log("[Shut down] Beginning shutdown...", 2)
         # Save json files
-        self.jh.saveConfig()
-        self.jh.saveData()
+        # self.jh.saveConfig()
+        # self.jh.saveData()
         await self.utils.log("[Shut down] Files saved", 2)
         # Remove all textbans
         self.tban.removeAllTextBan()
