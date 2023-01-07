@@ -133,7 +133,7 @@ class Jsonhandle(object):
         Keyword arguments:
         channelID -- The ID of the channel the message of messageID is in.
         """
-        return str(channelID) in self.config["serverVoiceBlacklist"].keys()
+        return str(channelID) in self.config["serverVoiceBlacklist"]
 
     @_reloadConfig
     def writeToBalcklist(self, channelID: Any) -> bool:
@@ -175,7 +175,7 @@ class Jsonhandle(object):
         Keyword arguments:
         channelID -- The ID of the channel the message of messageID is in.
         """
-        return str(channelID) in self.config["serverTextWhitelist"].keys()
+        return str(channelID) in self.config["serverTextWhitelist"]
 
     @_reloadConfig
     def writeToWhitelist(self, channelID: Any) -> bool:
@@ -573,9 +573,7 @@ class Jsonhandle(object):
         userID --Is the user ID from discord user as a string or int
         """
         self.addNewDataEntry(userID)
-        self.data[str(userID)]["Text"] = int(self.data[str(userID)]["Text"]) + int(
-            text
-        )
+        self.data[str(userID)]["Text"] = int(self.data[str(userID)]["Text"]) + int(text)
         self.saveData()
 
     @_reloadData
