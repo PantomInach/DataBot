@@ -1,5 +1,6 @@
 import os
 
+import discord
 from discord import NotFound
 from discord.ext import commands
 
@@ -72,6 +73,8 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
             await self.utils.log(f"Start to log users from Server:\n\t{guildName}", 2)
         else:
             await ctx.send("Bot is logging. Logging state: True")
+        # Sets the bot's presence to "Online" to indicate it's logging.
+        await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(str(self.jh.getFromConfig("command_prefix")) + "help"))
 
     @commands.command(
         name="stoplog",
@@ -88,6 +91,8 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
             self.jh.config["log"] = "False"
             self.jh.saveConfig()
             await self.utils.log(f"Stopped to log users from Server:\n\t{guildName}", 2)
+            # Sets the bot's presence to "Do not Disturb" to indicate it's not logging.
+            await self.bot.change_presence(status=discord.Status.dnd, activity=discord.Game(str(self.jh.getFromConfig("command_prefix")) + "help"))
         else:
             await ctx.send("Bot is NOT logging. Logging state: False")
 
