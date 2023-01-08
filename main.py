@@ -5,7 +5,7 @@ try:
     import requests
 except ImportError:
     print(
-        "Pleas install the dependencies before starting the bot.\nUse 'pip install -r requirements.txt' on Linux."
+        "Please install the dependencies before starting the bot.\nUse 'pip install -r requirements.txt' on Linux."
     )
     exit()
 
