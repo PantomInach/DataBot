@@ -71,6 +71,8 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
             guildID = int(self.jh.getFromConfig("guild"))
             guildName = str(self.bot.get_guild(guildID))
             await self.utils.log(f"Start to log users from Server:\n\t{guildName}", 2)
+            # Sets the bot's presence to "Online" to indicate it's logging.
+            await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(str(self.jh.getFromConfig("command_prefix")) + "help"))
         else:
             await ctx.send("Bot is logging. Logging state: True")
         # Sets the bot's presence to "Online" to indicate it's logging.
