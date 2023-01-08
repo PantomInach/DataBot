@@ -50,6 +50,8 @@ class Commandlistener(commands.Cog):
         await self.utils.sendModsMessage(
             "Bot is now online.\nVersion:\tDiscordBot DataBot v2.2.1"
         )
+        # Sets the bot's presence to "Do not Disturb" to indicate it's not logging.
+        await self.bot.change_presence(status=discord.Status.dnd, activity=discord.Game(str(self.jh.getFromConfig("command_prefix")) + "help"))
 
     # When a member joins a guild
     @commands.Cog.listener()
