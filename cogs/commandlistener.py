@@ -6,7 +6,8 @@ import sys
 
 from helpfunctions.utils import Utils
 from helpfunctions.xpfunk import Xpfunk
-from datahandler.jsonhandle import Jsonhandle
+from datahandler.configHandle import ConfigHandle
+from datahandler.userHandle import UserHandle
 from datahandler.textban import Textban
 
 
@@ -17,8 +18,9 @@ class Commandlistener(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.jh = Jsonhandle()
-        self.utils = Utils(bot, jh=self.jh)
+        self.ch = ConfigHandle()
+        self.uh = UserHandle()
+        self.utils = Utils(bot, ch=self.ch, uh=self.uh)
         self.xpf = Xpfunk()
 
     @commands.Cog.listener()
@@ -48,13 +50,13 @@ class Commandlistener(commands.Cog):
         # Sends message to mods, when bot is online
         print("Now Online")
         await self.utils.sendModsMessage(
-            "Bot is now online.\nVersion:\tDiscordBot DataBot v2.3.0"
+            "Bot is now online.\nVersion:\tDiscordBot DataBot v2.3.1"
         )
         # Sets the bot's presence to "Online" or "Do not Disturb" to indicate if it's logging or not.
-        if self.jh.getFromConfig("log") == "True":
-            await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(str(self.jh.getFromConfig("command_prefix")) + "help"))
+        if self.ch.getFromConfig("log") == "True":
+            await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(str(self.ch.getFromConfig("command_prefix")) + "help"))
         else:    
-            await self.bot.change_presence(status=discord.Status.dnd, activity=discord.Game(str(self.jh.getFromConfig("command_prefix")) + "help"))
+            await self.bot.change_presence(status=discord.Status.dnd, activity=discord.Game(str(self.ch.getFromConfig("command_prefix")) + "help"))
 
     # When a member joins a guild
     @commands.Cog.listener()
@@ -64,14 +66,14 @@ class Commandlistener(commands.Cog):
 
         Creates a welcome message in the log channel
         """
-        channel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        channel = self.bot.get_channel(int(self.ch.getFromConfig("logchannel")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         await channel.send(f"Hey **{member.mention}**, welcome to {guild}")
 
     """
     @commands.Cog.listener()
     async def on_disconnect(self):
-        owner = self.bot.get_user(int(self.jh.getFromConfig("owner")))
+        owner = self.bot.get_user(int(self.ch.getFromConfig("owner")))
         await self.utils.sendOwnerMessage("Bot is offline.")
     """
 
@@ -83,16 +85,16 @@ class Commandlistener(commands.Cog):
 
         Sends a goodbye message in the log channel
         """
-        channel = self.bot.get_channel(int(self.jh.getFromConfig("logchannel")))
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        channel = self.bot.get_channel(int(self.ch.getFromConfig("logchannel")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         await channel.send(
             f"**{member.name}** has left {guild}. Press F to pay respect."
         )
         """
         #Hash user data
-        voice = jh.getUserVoice(member.id)
-        text = jh.getUserText(member.id)
-        textCount = jh.getUserTextCount(member.id)
+        voice = uh.getUserVoice(member.id)
+        text = uh.getUserText(member.id)
+        textCount = uh.getUserTextCount(member.id)
         [hash, code] = self.utils.hashData(voice, text, textCount, member.id)
         #Send user data
         embed = discord.Embed(title=f"{member.nick}     ({member.name})", color=12008408)
@@ -105,7 +107,7 @@ class Commandlistener(commands.Cog):
         user = await bot.fetch_user(member.id)
         await user.send(content=f"**User related data from {server.name}**", embed=embed)
         await user.send(f"If you would like to join the Server again type this command to gain back your data **after** rejoining the server.\n```+reclaim {voice} {text} {textCount} {code} {hash}```\nhttps://discord.gg/3Fk4gnQ2Jz")
-        jh.removeUserFromData(member.id)
+        uh.removeUserFromData(member.id)
         """
 
     # When a reacting is added
@@ -205,14 +207,14 @@ class Commandlistener(commands.Cog):
         else:
             # Give reaction XP
             channel = self.bot.get_channel(payload.channel_id)
-            if self.jh.isInWhitelist(payload.channel_id):
+            if self.ch.isInWhitelist(payload.channel_id):
                 message = await channel.fetch_message(payload.message_id)
                 if (
                     not (message.author.bot or payload.member.bot)
-                    and self.jh.getFromConfig("log") == "True"
+                    and self.ch.getFromConfig("log") == "True"
                 ):
-                    self.jh.addReactionXP(payload.user_id, self.xpf.randomRange(1, 5))
-                    self.jh.saveData()
+                    self.uh.addReactionXP(payload.user_id, self.xpf.randomRange(1, 5))
+                    self.uh.saveData()
 
     # When a user changes his voice state
     @commands.Cog.listener()
@@ -265,14 +267,14 @@ class Commandlistener(commands.Cog):
                     )
 
                     # Removes channel from blacklist if necessary
-                    self.jh.removeFromBalcklist(lastChannel.id)
+                    self.ch.removeFromBalcklist(lastChannel.id)
 
                     await lastChannel.delete()
 
             # User left channel, which is not the first channel. So it will be deleted
             else:
                 # Removes channel from blacklist if necessary
-                self.jh.removeFromBalcklist(before.channel.id)
+                self.ch.removeFromBalcklist(before.channel.id)
                 await before.channel.delete()
 
         """
@@ -332,8 +334,8 @@ class Commandlistener(commands.Cog):
                 # Creates channel and gets it
                 newChannel = await channelWithNumberBefore.clone(name=newChannelName)
 
-                if self.jh.isInBlacklist(after.channel.id):
-                    self.jh.writeToBalcklist(newChannel.id)
+                if self.ch.isInBlacklist(after.channel.id):
+                    self.ch.writeToBalcklist(newChannel.id)
 
                 # Move channel after channelWithNumberBefore
                 await newChannel.move(after=channelWithNumberBefore)
@@ -359,37 +361,37 @@ class Commandlistener(commands.Cog):
         a = "" + message.content
 
         # Stops user from writting in levelchannel none command messages
-        if str(message.channel.id) == str(self.jh.getFromConfig("levelchannel")) and a[
+        if str(message.channel.id) == str(self.ch.getFromConfig("levelchannel")) and a[
             0
-        ] != self.jh.getFromConfig("command_prefix"):
+        ] != self.ch.getFromConfig("command_prefix"):
             await message.delete()
             return
 
         # Checks if message contains a picture
-        if len(message.attachments) > 0 and self.jh.getFromConfig("log") == "True":
+        if len(message.attachments) > 0 and self.ch.getFromConfig("log") == "True":
             attachments = message.attachments
             userID = message.author.id
             for attachment in attachments:
                 name = attachment.filename
                 if name.endswith("jpg") or name.endswith("png"):
                     # Gives XP when picture is in message
-                    self.jh.addTextXP(userID, self.xpf.randomRange(20, 40))
-                    self.jh.saveData()
+                    self.uh.addTextXP(userID, self.xpf.randomRange(20, 40))
+                    self.uh.saveData()
                     return
 
         # When Message is a String
         if (
             a != ""
-            and a[0] != self.jh.getFromConfig("command_prefix")
-            and self.jh.getFromConfig("log") == "True"
+            and a[0] != self.ch.getFromConfig("command_prefix")
+            and self.ch.getFromConfig("log") == "True"
         ):
             # Give XP when message is not a command
-            if self.jh.isInWhitelist(message.channel.id):
-                self.jh.addTextXP(message.author.id, self.xpf.textXP(a))
-                self.jh.saveData()
+            if self.ch.isInWhitelist(message.channel.id):
+                self.uh.addTextXP(message.author.id, self.xpf.textXP(a))
+                self.uh.saveData()
 
         # Sends BotOwner commands, which are triggering the bot
-        if len(a) > 0 and a[0] == self.jh.getFromConfig("command_prefix"):
+        if len(a) > 0 and a[0] == self.ch.getFromConfig("command_prefix"):
             channelName = "DM"
             try:
                 channelName = message.channel.name

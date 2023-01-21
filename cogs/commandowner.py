@@ -8,7 +8,8 @@ from helpfunctions.decorators import isBotOwnerCommand
 from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban
-from datahandler.jsonhandle import Jsonhandle
+from datahandler.configHandle import ConfigHandle
+from datahandler.userHandle import UserHandle
 
 
 def hasAnyRole(*items):
@@ -42,8 +43,9 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
     def __init__(self, bot):
         super(Commandowner, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandle()
-        self.utils = Utils(bot, jh=self.jh)
+        self.ch = ConfigHandle()
+        self.uh = UserHandle()
+        self.utils = Utils(bot, ch=self.ch, uh=self.uh)
         self.xpf = Xpfunk()
         self.tban = Textban()
 
@@ -65,18 +67,18 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
         You require privilege level 2 to use this command. Gets the connected users of
         the configured server and increments every second minute their voice XP.
         """
-        if self.jh.getFromConfig("log") == "False":
-            self.jh.config["log"] = "True"
-            self.jh.saveConfig()
-            guildID = int(self.jh.getFromConfig("guild"))
+        if self.ch.getFromConfig("log") == "False":
+            self.ch.config["log"] = "True"
+            self.ch.saveConfig()
+            guildID = int(self.ch.getFromConfig("guild"))
             guildName = str(self.bot.get_guild(guildID))
             await self.utils.log(f"Start to log users from Server:\n\t{guildName}", 2)
             # Sets the bot's presence to "Online" to indicate it's logging.
-            await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(str(self.jh.getFromConfig("command_prefix")) + "help"))
+            await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(str(self.ch.getFromConfig("command_prefix")) + "help"))
         else:
             await ctx.send("Bot is logging. Logging state: True")
         # Sets the bot's presence to "Online" to indicate it's logging.
-        await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(str(self.jh.getFromConfig("command_prefix")) + "help"))
+        await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(str(self.ch.getFromConfig("command_prefix")) + "help"))
 
     @commands.command(
         name="stoplog",
@@ -87,14 +89,14 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
         """
         You require privilege level 2 to use this command. When the bot logs the connective users on the configured server, this command stops the logging process.
         """
-        if self.jh.getFromConfig("log") == "True":
-            guildID = int(self.jh.getFromConfig("guild"))
+        if self.ch.getFromConfig("log") == "True":
+            guildID = int(self.ch.getFromConfig("guild"))
             guildName = str(self.bot.get_guild(guildID))
-            self.jh.config["log"] = "False"
-            self.jh.saveConfig()
+            self.ch.config["log"] = "False"
+            self.ch.saveConfig()
             await self.utils.log(f"Stopped to log users from Server:\n\t{guildName}", 2)
             # Sets the bot's presence to "Do not Disturb" to indicate it's not logging.
-            await self.bot.change_presence(status=discord.Status.dnd, activity=discord.Game(str(self.jh.getFromConfig("command_prefix")) + "help"))
+            await self.bot.change_presence(status=discord.Status.dnd, activity=discord.Game(str(self.ch.getFromConfig("command_prefix")) + "help"))
         else:
             await ctx.send("Bot is NOT logging. Logging state: False")
 
@@ -110,8 +112,8 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
         """
         await self.utils.log("[Shut down] Beginning shutdown...", 2)
         # Save json files
-        # self.jh.saveConfig()
-        # self.jh.saveData()
+        # self.ch.saveConfig()
+        # self.ch.saveData()
         await self.utils.log("[Shut down] Files saved", 2)
         # Remove all textbans
         self.tban.removeAllTextBan()

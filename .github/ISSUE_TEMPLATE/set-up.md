@@ -14,4 +14,4 @@ Describe what are the issues you are having while setting up the bot.
 Some problems may result from other configs or parts of the set-up process. Tell us what have you done so far.
 
 **What version of the bot**
-There may be differences in the set-up process depending on the bot version. State the version. Eg. `1.4.0`
+There may be differences in the set-up process depending on the bot version. State the version. Eg. `2.3.1`

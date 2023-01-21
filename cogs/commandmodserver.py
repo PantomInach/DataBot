@@ -2,7 +2,8 @@ from discord.ext import commands
 
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban
-from datahandler.jsonhandle import Jsonhandle
+from datahandler.configHandle import ConfigHandle
+from datahandler.userHandle import UserHandle
 
 
 def hasAnyRole(*items):
@@ -37,10 +38,10 @@ class Commandmodserver(commands.Cog, name="Server Mod Commands"):
     def __init__(self, bot):
         super(Commandmodserver, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandle()
+        self.ch = ConfigHandle()
         self.tban = Textban()
-        self.jh = Jsonhandle
-        self.utils = Utils(bot, jh=self.jh)
+        self.uh = UserHandle()
+        self.utils = Utils(bot, ch=self.ch, uh=self.uh)
         Commandmodserver.utils = self.utils
 
 

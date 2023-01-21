@@ -40,7 +40,7 @@ class Sub(object):
 
     def _reloadSubjson(func):
         """
-        Type:	Decorator for functions in Jsonhandel using self.config
+        Type:	Decorator for functions in Sub using self.subjson
 
         Reloads the sub.json file and executes the function.
         Midigates race conditions and data corruption when creating multiple Sub objects.

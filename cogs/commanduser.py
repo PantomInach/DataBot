@@ -8,7 +8,8 @@ from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
 from datahandler.textban import Textban
 from datahandler.sub import Sub
-from datahandler.jsonhandle import Jsonhandle
+from datahandler.configHandle import ConfigHandle
+from datahandler.userHandle import UserHandle
 from datahandler.commandrights import read_rights_of
 
 import datetime
@@ -72,8 +73,9 @@ class Commanduser(commands.Cog, name="User Commands"):
         super(Commanduser, self).__init__()
         # Defines all needed objects
         self.bot = bot
-        self.jh = Jsonhandle()
-        self.utils = Utils(bot, jh=self.jh)
+        self.ch = ConfigHandle()
+        self.uh = UserHandle()
+        self.utils = Utils(bot, ch=self.ch, uh=self.uh)
         self.tban = Textban()
         self.xpf = Xpfunk()
         self.sub = Sub()
@@ -179,10 +181,10 @@ class Commanduser(commands.Cog, name="User Commands"):
 
         Sends the user data into the channel.
         """
-        if self.jh.isInData(userID):
-            voice = self.jh.getUserVoice(userID)
-            text = self.jh.getUserText(userID)
-            textCount = self.jh.getUserTextCount(userID)
+        if self.uh.isInData(userID):
+            voice = self.uh.getUserVoice(userID)
+            text = self.uh.getUserText(userID)
+            textCount = self.uh.getUserTextCount(userID)
             message = (
                 f"User: {str(self.bot.get_user(int(userID)))}"
                 + f" VoiceXP: {voice} TextXP: {text} TextCount: {textCount}"
@@ -210,13 +212,13 @@ class Commanduser(commands.Cog, name="User Commands"):
         Sets member Voice XP to amount.
         """
         message = ""
-        if not self.jh.isInData(userID):
+        if not self.uh.isInData(userID):
             message = (
                 "User was not found in data. Created user: "
                 + f"{self.bot.get_user(int(userID))}\n"
             )
-            self.jh.addNewDataEntry(userID)
-        self.jh.setUserVoice(userID, amount)
+            self.uh.addNewDataEntry(userID)
+        self.uh.setUserVoice(userID, amount)
         message += (
             f"Set user {str(self.bot.get_user(int(userID)))} voiceXP to {amount}."
         )
@@ -248,13 +250,13 @@ class Commanduser(commands.Cog, name="User Commands"):
         Sets member Text XP to amount.
         """
         message = ""
-        if not self.jh.isInData(userID):
+        if not self.uh.isInData(userID):
             message = (
                 "User was not in data."
                 + f" Created user: {self.bot.get_user(int(userID))}\n"
             )
-            self.jh.addNewDataEntry(userID)
-        self.jh.setUserText(userID, amount)
+            self.uh.addNewDataEntry(userID)
+        self.uh.setUserText(userID, amount)
         message += (
             f"Set user {str(self.bot.get_user(int(userID)))} " + f"textXP to {amount}."
         )
@@ -286,13 +288,13 @@ class Commanduser(commands.Cog, name="User Commands"):
         Sets member text count to amount.
         """
         message = ""
-        if not self.jh.isInData(userID):
+        if not self.uh.isInData(userID):
             message = (
                 "User was not found in data. Created user: "
                 + f"{self.bot.get_user(int(userID))}\n"
             )
-            self.jh.addNewDataEntry(userID)
-        self.jh.setUserTextCount(userID, amount)
+            self.uh.addNewDataEntry(userID)
+        self.uh.setUserTextCount(userID, amount)
         message += (
             f"Set user {str(self.bot.get_user(int(userID)))} TextCount to {amount}."
         )
@@ -324,7 +326,7 @@ class Commanduser(commands.Cog, name="User Commands"):
 
         Removes user from data.
         """
-        if self.jh.removeUserFromData(userID) == 1:
+        if self.uh.removeUserFromData(userID) == 1:
             user = self.bot.get_user(int(userID))
             username = "No User"
             if user:
@@ -424,11 +426,11 @@ class Commanduser(commands.Cog, name="User Commands"):
             if bantime >= 0.1:
                 # Get member
                 user = self.bot.get_user(int(userID))
-                guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+                guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
                 member = guild.get_member(int(userID))
                 if user:
                     logchannel = self.bot.get_channel(
-                        int(self.jh.getFromConfig("logchannel"))
+                        int(self.ch.getFromConfig("logchannel"))
                     )
                     # Send messages
                     log_message = (
@@ -492,7 +494,7 @@ class Commanduser(commands.Cog, name="User Commands"):
         if not self.tban.hasTextBan(ctx.author.id):
             if self.tban.removeTextBan(userID):
                 logchannel = self.bot.get_channel(
-                    int(self.jh.getFromConfig("logchannel"))
+                    int(self.ch.getFromConfig("logchannel"))
                 )
                 user = self.bot.get_user(int(userID))
                 await self.utils.log(
@@ -526,7 +528,7 @@ class Commanduser(commands.Cog, name="User Commands"):
         role. When someone already has the role, it will be queued to the next Monday
         when no one gets the role.
         ""
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         role = find(lambda role: role.name == "star of the week", guild.roles)
         if role and userID.isdigit() and guild.get_member(int(userID)):
             user = self.bot.get_user(int(userID))
@@ -566,7 +568,7 @@ class Commanduser(commands.Cog, name="User Commands"):
         Gives the given user the 'star of the week' role when no one else has the
         role. When someone has the role do nothing.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         role = find(lambda role: role.name == "star of the week", guild.roles)
         if role and userID.isdigit() and guild.get_member(int(userID)):
             user = self.bot.get_user(int(userID))
@@ -639,17 +641,17 @@ class Commanduser(commands.Cog, name="User Commands"):
             if not userID.isdigit():
                 return
             userID = int(userID)
-        server = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        server = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         member = server.get_member(int(userID))
         if not member:
             return
-        self.jh.addNewDataEntry(userID)
+        self.uh.addNewDataEntry(userID)
         # Create Embeded
         avatar_url = member.avatar
-        level = self.jh.getUserLevel(userID)
-        voiceXP = self.jh.getUserVoice(userID)
-        textXP = self.jh.getUserText(userID)
-        textCount = self.jh.getUserTextCount(userID)
+        level = self.uh.getUserLevel(userID)
+        voiceXP = self.uh.getUserVoice(userID)
+        textXP = self.uh.getUserText(userID)
+        textCount = self.uh.getUserTextCount(userID)
         nextLevel = self.xpf.xpNeed(voiceXP, textXP)
         embed = discord.Embed(
             title=f"{member.nick}     ({member.name})", color=12008408
@@ -731,13 +733,13 @@ class Commanduser(commands.Cog, name="User Commands"):
     @commands.command(name='reclaimData')
     async def reclaimData(self, ctx, voice, text, textCount, code, hash):
         if isinstance(ctx.channel, discord.channel.DMChannel):
-            server = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+            server = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
             if server.get_member(ctx.author.id) != None:
                 if str(voice).isDigit() and str(text).isDigit() and str(textCount).isDigit() and str(code).isDigit():
                     if self.utils.hashDataWithCode(int(voice), int(text), int (textCount), int(code))[0] == hash:
-                        self.jh.setUserVoice(ctx.user.id, voice)
-                        self.jh.setUserText(ctx.user.id, text)
-                        self.jh.setUserTextCount(ctx.user.id, textCount)
+                        self.uh.setUserVoice(ctx.user.id, voice)
+                        self.uh.setUserText(ctx.user.id, text)
+                        self.uh.setUserTextCount(ctx.user.id, textCount)
                         await ctx.send("You got your data back. The level and level specific will be updated shortly.")
                     else:
                         await ctx.send(f"ERROR: hash does not match data.")

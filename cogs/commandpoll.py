@@ -9,7 +9,8 @@ from helpfunctions.decorators import (
 from helpfunctions.utils import Utils
 from datahandler.commandrights import read_rights_of
 from datahandler.poll import Poll
-from datahandler.jsonhandle import Jsonhandle
+from datahandler.configHandle import ConfigHandle
+from datahandler.userHandle import UserHandle
 
 
 def hasAnyRole(*items):
@@ -103,8 +104,9 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         super(Commandpoll, self).__init__()
         self.bot = bot
         self.poll = Poll()
-        self.jh = Jsonhandle()
-        self.utils = Utils(bot, jh=self.jh)
+        self.ch = ConfigHandle()
+        self.uh = UserHandle()
+        self.utils = Utils(bot, ch=self.ch, uh=self.uh)
         Commandpoll.utils = self.utils
 
     @commands.group(name="poll")
@@ -380,7 +382,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
             pollName = self.poll.getName(pollID)
             if (
                 len(self.poll.getOptions(pollID)) == 0
-                or self.jh.getPrivilegeLevel(ctx.author.id) >= 1
+                or self.ch.getPrivilegeLevel(ctx.author.id) >= 1
                 or self.utils.hasRole(ctx.author.id, "chairman")
             ):
                 if self.poll.removePoll(pollID):
@@ -390,7 +392,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
                         2,
                     )
                     channel = self.bot.get_channel(
-                        int(self.jh.getFromConfig("logchannel"))
+                        int(self.ch.getFromConfig("logchannel"))
                     )
                     await channel.send(
                         f'User {ctx.author.mention} removed the poll: "{pollName}".'
@@ -563,7 +565,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         self.poll.setMessageID(pollID, "", "")
         # Give voters XP
         for vote in self.poll.getVotes(pollID):
-            self.jh.addReactionXP(vote[0], 25)
+            self.uh.addReactionXP(vote[0], 25)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):

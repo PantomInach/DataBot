@@ -1,7 +1,7 @@
 import asyncio
 import discord
 from discord.ext import commands
-from datahandler.jsonhandle import Jsonhandle
+from datahandler.configHandle import ConfigHandle
 
 """
 Following functions are ment to be used as decorators, when not using @commands.command
@@ -19,8 +19,8 @@ def isBotOwner():
     def decorator(func):
         def wrapper(*args, **kwargs):
             # Wrapper for inputs in func
-            jh = Jsonhandle()
-            if jh.getPrivilegeLevel(args[1].author.id) >= 2:
+            ch = ConfigHandle()
+            if ch.getPrivilegeLevel(args[1].author.id) >= 2:
                 return func(*args, **kwargs)
             return sendCTX(args[1], "Not permitted")
 
@@ -40,8 +40,8 @@ def isBotMod():
     def decorator(func):
         def wrapper(*args, **kwargs):
             # Wrapper for inputs in func
-            jh = Jsonhandle()
-            if jh.getPrivilegeLevel(args[1].author.id) >= 1:
+            ch = ConfigHandle()
+            if ch.getPrivilegeLevel(args[1].author.id) >= 1:
                 return func(*args, **kwargs)
             return sendCTX(args[1], "Not permitted")
 
@@ -210,8 +210,8 @@ def isBotModCommand():
     """
 
     def predicate(ctx):
-        jh = Jsonhandle()
-        return jh.getPrivilegeLevel(ctx.author.id) >= 1
+        ch = ConfigHandle()
+        return ch.getPrivilegeLevel(ctx.author.id) >= 1
 
     return commands.check(predicate)
 
@@ -224,8 +224,8 @@ def isBotOwnerCommand():
     """
 
     def predicate(ctx):
-        jh = Jsonhandle()
-        return jh.getPrivilegeLevel(ctx.author.id) >= 2
+        ch = ConfigHandle()
+        return ch.getPrivilegeLevel(ctx.author.id) >= 2
 
     return commands.check(predicate)
 

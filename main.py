@@ -12,7 +12,7 @@ except ImportError:
 import os
 import asyncio
 
-from datahandler.jsonhandle import Jsonhandle
+from datahandler.configHandle import ConfigHandle
 
 
 async def load_extension(bot):
@@ -27,23 +27,23 @@ async def load_extension(bot):
 async def start_bot():
     print("[Startup] Prepare to start Bot...")
 
-    jh = Jsonhandle()
+    ch = ConfigHandle()
 
     intents = discord.Intents.all()
     intents.presences = True
     intents.members = True
     bot = commands.Bot(
-        command_prefix=jh.getFromConfig("command_prefix"), intents=intents
+        command_prefix=ch.getFromConfig("command_prefix"), intents=intents
     )
 
-    jh.config["log"] = "False"
-    jh.saveConfig()
+    ch.config["log"] = "False"
+    ch.saveConfig()
     print("[Startup] Set log to False.")
 
     await load_extension(bot)
 
     print("[Startup] Starting Bot...")
-    await bot.start(jh.getFromConfig("token"))
+    await bot.start(ch.getFromConfig("token"))
 
 
 if __name__ == "__main__":
