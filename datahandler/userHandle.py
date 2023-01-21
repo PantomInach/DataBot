@@ -3,6 +3,7 @@ import os
 import time
 
 from typing import Callable, Any, Tuple, Iterable, Optional
+from datahandler.configHandle import ConfigHandle
 
 
 class UserHandle(object):
@@ -19,6 +20,7 @@ class UserHandle(object):
             cls.datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
             # Reads in userdata.json
             cls.data = json.load(open(cls.datapath + "userdata.json"))
+            cls.ch = ConfigHandle()
         return cls._instance
 
     """
@@ -174,7 +176,7 @@ class UserHandle(object):
         amount -- How much XP will be added as an int. Also negative numbers are
             possible to remove XP.
         """
-        cooldownCon = self.getFromConfig("textCooldown")
+        cooldownCon = self.ch.getFromConfig("textCooldown")
         self.addTextMindCooldown(userID, amount, cooldownCon)
         self.saveData()
 
