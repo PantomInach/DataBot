@@ -4,7 +4,8 @@ import re
 from discord.utils import find
 
 from helpfunctions.xpfunk import Xpfunk
-from datahandler.jsonhandle import Jsonhandle
+from datahandler.configHandle import ConfigHandle
+from datahandler.userHandle import UserHandle
 
 # import hashlib
 
@@ -16,14 +17,16 @@ class Utils(object):
     This class holds multiple purpose commands for all classes.
     """
 
-    def __init__(self, bot, jh=None):
+    def __init__(self, bot, ch=None, uh=None):
         """
         param bot:	commands.Bot object.
-        param jh:	Jsonhandel object from datahandler.jsonhandel. When not given, a new instance will be created.
+        param ch:	ConfigHandle object from datahandler.configHandle. When not given, a new instance will be created.
+        param uh:	UserHandle object from datahandler.userHandle. When not given, a new instance will be created.
         """
         super(Utils, self).__init__()
         self.bot = bot
-        self.jh = jh if jh else Jsonhandle()
+        self.ch = ch if ch else ConfigHandle()
+        self.uh = uh if uh else UserHandle()
         self.xpf = Xpfunk()
 
     def hasRole(self, userID, role):
@@ -33,7 +36,7 @@ class Utils(object):
 
         Checks if a member has the role.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         member = guild.get_member(int(userID))
         return find(
             lambda r: r.name == role or r.id == role or str(r.id) == role,
@@ -47,7 +50,7 @@ class Utils(object):
 
         Checks if a member has all roles in roles.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         member = guild.get_member(int(userID))
         memberRoles = (
             set()
@@ -64,7 +67,7 @@ class Utils(object):
 
         Checks if a member has any one role of roles.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         member = guild.get_member(int(userID))
         return (
             sum(
@@ -82,7 +85,7 @@ class Utils(object):
 
         Gives the member with userID the role roleName.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         member = guild.get_member(int(userID))
         role = find(
             lambda r: r.id == roleName or str(r.id) == roleName or r.name == roleName,
@@ -103,7 +106,7 @@ class Utils(object):
 
         Gives the member with userID the roles roleNames.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         member = guild.get_member(int(userID))
         # Gets the roles to give by the role's name.
         rolesList = tuple(
@@ -118,7 +121,7 @@ class Utils(object):
         if len(rolesList) > 0:
             # Give roles
             await member.add_roles(*rolesList)
-            # Get newly given roles for message.
+            # Get newly given roles for the message.
             await self.log(
                 f"User {member.name} aka {member.nick} got roles {[role.name for role in rolesList]}.",
                 1,
@@ -131,7 +134,7 @@ class Utils(object):
 
         Removes the member with userID the role roleName.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         member = guild.get_member(int(userID))
         role = find(
             lambda r: r.id == roleName or str(r.id) == roleName or r.name == roleName,
@@ -154,7 +157,7 @@ class Utils(object):
 
         Removes the member with userID the roles roleNames.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         member = guild.get_member(int(userID))
         # Gets the roles to remove by the role's name.
         rolesList = tuple(
@@ -188,9 +191,9 @@ class Utils(object):
 
         Builds a string for the leaderboard on a given page with the right sorting.
         """
-        userIDs = self.jh.getSortedDataEntrys(page * 10, (page + 1) * 10, sortBy)
+        userIDs = self.uh.getSortedDataEntrys(page * 10, (page + 1) * 10, sortBy)
         rank = page * 10 + 1
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         leaderboard = f"**Leaderboard {guild.name}**\n```as"
         # Generate leaderboard string
         if not userIDs:
@@ -214,12 +217,12 @@ class Utils(object):
             nick = nick if len(nick) <= 12 else nick[:9] + "..."
             name = name if len(name) <= 22 else name[:19] + "..."
             # Get user data from userdata.json.
-            hours = self.jh.getUserHours(userID)
-            messages = self.jh.getUserTextCount(userID)
+            hours = self.uh.getUserHours(userID)
+            messages = self.uh.getUserTextCount(userID)
             xp = self.xpf.giveXP(
-                self.jh.getUserVoice(userID), self.jh.getUserText(userID)
+                self.uh.getUserVoice(userID), self.uh.getUserText(userID)
             )
-            level = self.jh.getUserLevel(userID)
+            level = self.uh.getUserLevel(userID)
             # Formatting for leaderboard.
             leaderboard += f"\n{' '*(4-len(str(rank)))}{rank}. {nick}{' '*(37-len(nick+name))}({name})   Hours: {' '*(6-len(str(hours)))}{hours}   Messages: {' '*(4-len(str(messages)))}{messages}   Exp: {' '*(6-len(str(xp)))}{xp}   Level: {' '*(3-len(str(level)))}{level}\n"
             rank += 1
@@ -300,7 +303,7 @@ class Utils(object):
         Sends all Mods on the guild string.
         !!! Not modular and sends it to COO !!!
         """
-        server = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        server = self.bot.get_guild(int(self.uh.getFromConfig("guild")))
         for user in server.members:
             if self.hasRole(user.id, "COO"):
                 await user.send(string, embed=embed)
@@ -328,8 +331,8 @@ class Utils(object):
 
         Sends all Users of the Bot with privilege level of level or higher the string.
         """
-        for x in self.jh.getInPrivilege():
-            if self.jh.getPrivilegeLevel(x) >= level:
+        for x in self.ch.getInPrivilege():
+            if self.ch.getPrivilegeLevel(x) >= level:
                 user = self.bot.get_user(int(x))
                 await user.send(string, delete_after=604800, embed=embed)
 
@@ -361,11 +364,17 @@ class Utils(object):
         with open(logfile, "a") as l:
             l.write(f"{message}\n")
 
-    def getJH(self):
+    def getUH(self):
         """
-        Returns the Jsonhandel object in self.jh.
+        Returns the UserHandle object in self.uh.
         """
-        return self.jh
+        return self.uh
+
+    def getCH(self):
+        """
+        Returns the ConfigHandle object in self.ch.
+        """
+        return self.ch
 
     """
 	Unsupported

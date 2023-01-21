@@ -12,7 +12,8 @@ from helpfunctions.decorators import (
     isNotInChannelOrDMCommand,
 )
 from helpfunctions.utils import Utils
-from datahandler.jsonhandle import Jsonhandle
+from datahandler.configHandle import ConfigHandle
+from datahandler.userHandle import UserHandle
 
 
 class Commandgiverole(commands.Cog):
@@ -55,8 +56,9 @@ class Commandgiverole(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.jh = Jsonhandle()
-        self.utils = Utils(bot, jh=self.jh)
+        self.ch = ConfigHandle()
+        self.uh = UserHandle()
+        self.utils = Utils(bot, ch=self.ch, uh=self.uh)
         self.datapath = (
             str(os.path.dirname(os.path.dirname(__file__))) + "/data/giveroles/"
         )
@@ -203,7 +205,7 @@ class Commandgiverole(commands.Cog):
             for role in remove
         ]
         # Also sorts out users, which discord.Reactions.users() can return.
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         remove_from_member = [
             member
             for reaction in message.reactions
@@ -358,7 +360,7 @@ class Commandgiverole(commands.Cog):
         Otherwise returns a Discord message object.
         """
         table_name = ctx.args[-1]
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         channel = guild.get_channel(channel_id)
         if not channel:
             message_to_send = (
@@ -450,7 +452,7 @@ class Commandgiverole(commands.Cog):
             for l in tupel:
                 for role in l:
                     roles.add(role)
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         guild_roles = {role.name for role in guild.roles}.union(
             {role.id for role in guild.roles}, {str(role.id) for role in guild.roles}
         )

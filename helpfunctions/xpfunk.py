@@ -1,6 +1,7 @@
 import random
 
-from datahandler.jsonhandle import Jsonhandle
+from datahandler.configHandle import ConfigHandle
+from datahandler.userHandle import UserHandle
 
 
 class Xpfunk(object):
@@ -10,13 +11,15 @@ class Xpfunk(object):
 
     def __init__(self):
         """
-        param jh:	Jsonhandel object passed when created.
+        param ch:	ConfigHandle object passed when created.
+        param uh:   UserHandle object passed when created.
 
         Creates object.
         """
         super(Xpfunk, self).__init__()
         # Read only
-        self.jh = Jsonhandle()
+        self.ch = ConfigHandle()
+        self.uh = UserHandle()
 
     def textXP(self, message):
         """
@@ -50,10 +53,10 @@ class Xpfunk(object):
 
         Returns all roles which user needs to have depending on his XP on the guild.
         """
-        roles = self.jh.getRoles()
-        rolesXPNeed = self.jh.getRolesXPNeed()
+        roles = self.ch.getRoles()
+        rolesXPNeed = self.ch.getRolesXPNeed()
         roleList = []
-        userLevel = int(self.jh.getUserLevel(userID))
+        userLevel = int(self.uh.getUserLevel(userID))
         # Goes through all roles XP limits in the config file.
         for i in range(len(roles)):
             if userLevel >= rolesXPNeed(i):

@@ -3,7 +3,8 @@ import traceback
 
 from discord.ext import tasks, commands
 
-from datahandler.jsonhandle import Jsonhandle
+from datahandler.configHandle import ConfigHandle
+from datahandler.userHandle import UserHandle
 from datahandler.sub import Sub
 from helpfunctions.utils import Utils
 from helpfunctions.decorators import isBotOwnerCommand
@@ -27,8 +28,9 @@ class Subroutine(commands.Cog):
     def __init__(self, bot):
         super(Subroutine, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandle()
-        self.utils = Utils(bot, jh=self.jh)
+        self.ch = ConfigHandle()
+        self.uh = UserHandle()
+        self.utils = Utils(bot, ch=self.ch, uh=self.uh)
         self.sub = Sub()
         self.xpf = Xpfunk()
         self.subRoutine.start()
@@ -73,7 +75,7 @@ class Subroutine(commands.Cog):
         """
         bufferTime = 120
 
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         currentTime = time.time()
 
         """
@@ -186,12 +188,12 @@ class Subroutine(commands.Cog):
 
         Gives user depending on the rules of addMembersOnlineVoiceXp voice XP.
         """
-        if self.jh.getFromConfig("log") == "False":
+        if self.ch.getFromConfig("log") == "False":
             return
         self.addMembersOnlineVoiceXp(guild)
         await self.levelAkk()
         await self.updateRoles()
-        self.jh.saveData()
+        self.uh.saveData()
 
     async def updateRoles(self):
         """
@@ -199,16 +201,16 @@ class Subroutine(commands.Cog):
         Also, members needs to have "✅". Another subserver (not yet implemented) are
         also ok.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         membersList = guild.members
         for member in membersList:
-            if self.jh.isInData(member.id):
+            if self.uh.isInData(member.id):
                 if self.utils.hasOneRole(member.id, {"✅"}):
                     # Give all roles user is qualified for even if he already has some
                     # roles.
-                    userLevel = self.jh.getUserLevel(member.id)
-                    rolesList = self.jh.getRoles()
-                    roleXPNeedList = self.jh.getRolesXPNeed()
+                    userLevel = self.uh.getUserLevel(member.id)
+                    rolesList = self.ch.getRoles()
+                    roleXPNeedList = self.ch.getRolesXPNeed()
                     i = len(
                         [level for level in roleXPNeedList if int(level) <= userLevel]
                     )
@@ -229,7 +231,7 @@ class Subroutine(commands.Cog):
         voiceChanels = [
             channel
             for channel in guild.voice_channels
-            if not self.jh.isInBlacklist(channel.id)
+            if not self.ch.isInBlacklist(channel.id)
         ]
         # Total all connected members
         for channel in voiceChanels:
@@ -242,7 +244,7 @@ class Subroutine(commands.Cog):
                     for member in membersInChannel
                     if not (member.voice.self_mute or member.bot)
                 ]
-                self.jh.addAllUserVoice(
+                self.uh.addAllUserVoice(
                     [member.id for member in membersNotMutedOrBot])
                 # Extra XP
                 membersStreamOrVideo = [
@@ -250,23 +252,23 @@ class Subroutine(commands.Cog):
                     for member in membersNotMutedOrBot
                     if (member.voice.self_video or member.voice.self_stream)
                 ]
-                self.jh.addAllUserText([member.id for member in membersStreamOrVideo])
+                self.uh.addAllUserText([member.id for member in membersStreamOrVideo])
 
     async def levelAkk(self):
         """
         Updates the level of all users in data
         """
-        for userID in self.jh.getUserIDsInData():
-            voice = self.jh.getUserVoice(userID)
-            text = self.jh.getUserText(userID)
-            oldLevel = self.jh.getUserLevel(userID)
+        for userID in self.uh.getUserIDsInData():
+            voice = self.uh.getUserVoice(userID)
+            text = self.uh.getUserText(userID)
+            oldLevel = self.uh.getUserLevel(userID)
             levelByXP = self.xpf.levelFunk(voice, text)
             # Check for level change
             if levelByXP != oldLevel:
-                self.jh.updateLevel(userID, levelByXP)
+                self.uh.updateLevel(userID, levelByXP)
                 # Write new level to channel
                 levelchannel = self.bot.get_channel(
-                    int(self.jh.getFromConfig("levelchannel"))
+                    int(self.ch.getFromConfig("levelchannel"))
                 )
                 user = self.bot.get_user(int(userID))
                 userMention = "Unknown user"

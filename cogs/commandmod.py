@@ -4,7 +4,8 @@ from discord.ext import commands
 from helpfunctions.decorators import isBotModCommand
 from helpfunctions.xpfunk import Xpfunk
 from helpfunctions.utils import Utils
-from datahandler.jsonhandle import Jsonhandle
+from datahandler.configHandle import ConfigHandle
+from datahandler.userHandle import UserHandle
 
 
 class Commandmod(commands.Cog, name="Bot Mod Commands"):
@@ -28,8 +29,9 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
     def __init__(self, bot):
         super(Commandmod, self).__init__()
         self.bot = bot
-        self.jh = Jsonhandle()
-        self.utils = Utils(bot, jh=self.jh)
+        self.ch = ConfigHandle()
+        self.uh = UserHandle()
+        self.utils = Utils(bot, ch=self.ch, uh=self.uh)
         self.xpf = Xpfunk()
 
     """
@@ -100,7 +102,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
 
         Adds channel to whitelist, so users can get XP in the channel.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         # This does not include threads
         channels = self.bot.guilds[0].text_channels
         # When channelID is not given, use ctx.channel.id.
@@ -115,7 +117,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
             message = f"Channel is not in the server {guild.name}"
             await self.utils.log(f"{message} from user {ctx.author}", 2)
 
-        elif self.jh.writeToWhitelist(channelID):
+        elif self.ch.writeToWhitelist(channelID):
             # Try to write in whitelist
             channelName = channel_to_add.name
             message = (
@@ -151,7 +153,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         if not channelID:
             channelID = ctx.channel.id
         # Try to remove from whitelist
-        if self.jh.removeFromWhitelist(channelID):
+        if self.ch.removeFromWhitelist(channelID):
             channelName = str(self.bot.get_channel(int(channelID)))
             message = (
                 "Removed "
@@ -229,12 +231,12 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
 
         Adds channel to whitelist, so users can not get XP in the channel.
         """
-        guild = self.bot.get_guild(int(self.jh.getFromConfig("guild")))
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         channels = self.bot.guilds[0].voice_channels
         # Test if channel is in Server
         if str(channelID) in [str(channel.id) for channel in channels]:
             # Try to write in Blacklist
-            if self.jh.writeToBalcklist(channelID):
+            if self.ch.writeToBalcklist(channelID):
                 channelName = str(self.bot.get_channel(int(channelID)))
                 message = (
                     "Added "
@@ -269,7 +271,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         # When channelID is not given, use ctx.channel.id.
         if not channelID:
             channelID = ctx.channel.id
-        if self.jh.removeFromBalcklist(channelID):
+        if self.ch.removeFromBalcklist(channelID):
             channelName = str(self.bot.get_channel(int(channelID)))
             message = (
                 "Removed "
@@ -313,20 +315,20 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
             TextXP: int,
             Messages: int.
         """
-        guild = str(self.bot.get_guild(int(self.jh.getFromConfig("guild"))))
+        guild = str(self.bot.get_guild(int(self.ch.getFromConfig("guild"))))
         message = f"Printing data of server {guild}:\n"
         # Sorts user by their usernames
         sortedData = sorted(
-            self.jh.data,
+            self.uh.data,
             key=lambda id: "a" + str(self.bot.get_user(int(id)).name).lower()
             if self.bot.get_user(int(id)) != None
             else "no user",
         )
         for userID in sortedData:
-            level = self.jh.getUserLevel(userID)
-            voiceXP = self.jh.getUserVoice(userID)
-            textXP = self.jh.getUserText(userID)
-            textCount = self.jh.getUserTextCount(userID)
+            level = self.uh.getUserLevel(userID)
+            voiceXP = self.uh.getUserVoice(userID)
+            textXP = self.uh.getUserText(userID)
+            textCount = self.uh.getUserTextCount(userID)
             user = self.bot.get_user(int(userID))
             username = "No User"
             # Handel not existing User IDs
