@@ -1,5 +1,7 @@
 __pycache__
 .vscode
+.mypy_cache
+.null-ls*
 
 # Local config files
 
