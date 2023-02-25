@@ -359,7 +359,12 @@ class TestUserHandle(unittest.TestCase):
 
     def test_create_object(self):
         self.assertEqual(UserHandle(), self.userHandler)
-        self.assertNotEqual(UserHandle(override_singelton=True), self.userHandler)
+        self.assertNotEqual(
+            UserHandle(load_from_json_if_not_init=False, override_singelton=True),
+            self.userHandler,
+        )
+        uh = UserHandle(data_path="test/data/", override_singelton=True)
+        self.assertEqual(len(uh.db), 10)
 
     def setUp(self):
         self.setup_time = time.time()
@@ -456,6 +461,8 @@ class TestUserHandle(unittest.TestCase):
     def tearDown(self):
         if os.path.isfile("test.sqlite"):
             os.remove("test.sqlite")
+        if os.path.isfile("data/userdata.sqlite"):
+            os.remove("data/userdata.sqlite")
         shutil.rmtree("test/data")
 
     def _populate_db_with_sorting_data(self):
