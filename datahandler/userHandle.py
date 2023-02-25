@@ -1,8 +1,11 @@
 import json
 import os
 import time
+import atexit
 
-from typing import Callable, Any, Tuple, Iterable, Optional
+from sqlitedict import SqliteDict
+
+from typing import Iterable
 from datahandler.configHandle import ConfigHandle
 
 
@@ -13,46 +16,56 @@ class UserHandle(object):
 
     _instance = None
 
-    def __new__(cls):
+    def __new__(
+        cls,
+        db_file_path=None,
+        override_singelton=False,
+        load_from_json_if_not_init=True,
+        data_path=None,
+    ):
         """Singelton pattern."""
-        if cls._instance is None:
+        if cls._instance is None or override_singelton:
             cls._instance = super(UserHandle, cls).__new__(cls)
-            cls.datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
-            # Reads in userdata.json
-            cls.data = json.load(open(cls.datapath + "userdata.json"))
+            if data_path:
+                cls.datapath = data_path
+            else:
+                cls.datapath = (
+                    str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
+                )
+            if not db_file_path:
+                cls.db_path = cls.datapath + "userdata.sqlite"
+            else:
+                cls.db_path = db_file_path
+
+            cls.db = SqliteDict(cls.db_path, outer_stack=False, autocommit=True)
+            if (
+                load_from_json_if_not_init
+                and not cls.db
+                and os.path.isfile(cls.datapath + "userdata.json")
+            ):
+                # When database is empty try to import the older json file storing the
+                # userdata. This ensures backwards compatablity with version <= 2.2.1.
+                with open(cls.datapath + "userdata.json", "r") as j:
+                    for key, value in json.load(j).items():
+                        cls.db[key] = value
+
             cls.ch = ConfigHandle()
+        atexit.register(UserHandle._cleanup, cls.db)
         return cls._instance
 
     """
         Functions to manipulate the userdata.json
     """
 
-    def _reloadData(func: Callable[["UserHandle", Any], Any]):
-        """
-        Type:   Decorator for functions in UserHandle using self.data
-
-        Reloads the data file and executes the function.
-        Mitigates race conditions and data corruption when creating multiple
-        UserHandle objects.
-        """
-
-        def decorator(self, *args, **kwargs):
-            self.data = json.load(open(self.datapath + "userdata.json"))
-            return func(self, *args, **kwargs)
-
-        return decorator
-
-    @_reloadData
-    def isInData(self, userID: Any) -> bool:
+    def isInData(self, userID: str | int) -> bool:
         """
         Tests if the user has an entry in userdata.json.
 
         Keyword arguments:
         userID -- Is the user ID from discord user as a string or int.
         """
-        return str(userID) in self.data.keys()
+        return str(userID) in self.db.keys()
 
-    @_reloadData
     def sortDataBy(self, sortBy: int):
         """
         Sorts userdata.json depending on sortBy.
@@ -62,16 +75,16 @@ class UserHandle(object):
             1 => Sort by voice
             2 => Sort by textcount
         """
-        sortMode = [[1, 1, 0], [0, 1, 0], [0, 0, 1]]
+        sortMask = [[1, 1, 0], [0, 1, 0], [0, 0, 1]]  # Sorting mask
         sortedData = sorted(
-            self.data,
-            key=lambda id: sortMode[sortBy][0] * self.getUserText(id)
-            + sortMode[sortBy][1] * self.getUserVoice(id)
-            + sortMode[sortBy][2] * self.getUserTextCount(id),
+            self.db,
+            key=lambda id: sortMask[sortBy][0] * self.getUserText(id)
+            + sortMask[sortBy][1] * self.getUserVoice(id)
+            + sortMask[sortBy][2] * self.getUserTextCount(id),
+            reverse=True,
         )
-        return sortedData[::-1]
+        return sortedData
 
-    @_reloadData
     def getSortedDataEntrys(self, entryBegin: int, entryEnd: int, sortBy: int):
         """
         Sorts Data by given parameter and returns the given entries.
@@ -86,26 +99,24 @@ class UserHandle(object):
             1 => Sort by voice
             2 => Sort by textcount
         """
-        l = len(self.data)
+        l = len(self.db)
         if entryBegin >= l:
             return []
         if entryEnd > l:
             entryEnd = l
         return self.sortDataBy(sortBy)[entryBegin:entryEnd]
 
-    @_reloadData
-    def addNewDataEntry(self, userID: Any):
+    def addNewDataEntry(self, userID: int | str):
         """
-
         Adds a new data entry with the userID.
 
         Format of new data entry:
             {
-                "Voice": "0",
-                "Text": "0",
-                "TextCount": "0",
+                "Voice": 0,
+                "Text": 0,
+                "TextCount": 0,
                 "Cooldown": float,
-                "Level": "0"
+                "Level": 0
             }
 
         Keyword arguments:
@@ -113,32 +124,32 @@ class UserHandle(object):
         """
         if not self.isInData(userID):
             t = time.time() - 60
-            self.data[str(userID)] = {
-                "Voice": "0",
-                "Text": "0",
-                "TextCount": "0",
+            self.db[str(userID)] = {
+                "Voice": 0,
+                "Text": 0,
+                "TextCount": 0,
                 "Cooldown": t,
-                "Level": "0",
+                "Level": 0,
             }
-            print(f"\tCreated userID-Entry: {userID, self.data[str(userID)]}")
-            self.saveData()
+            print(f"\tCreated userID-Entry: {userID, self.db[str(userID)]}")
 
-    @_reloadData
-    def removeUserFromData(self, userID: Any) -> bool:
+    def removeUserFromData(self, userID: int | str) -> bool:
         """
         Removes user entry with userID from userdata.json if it exists.
 
         Keyword arguments:
         userID -- Is the user ID from discord user as a string or int.
+
+        return -- True if userID was in the database.
         """
         if not self.isInData(userID):
             return False
-        del self.data[str(userID)]
-        self.saveData()
+        del self.db[str(userID)]
         return True
 
-    @_reloadData
-    def addTextMindCooldown(self, userID: Any, amount: int, cooldown: Any):
+    def addTextMindCooldown(
+        self, userID: int | str, amount: int, cooldown: int | str | float
+    ):
         """
         Adds XP for user in userdata.json by the amount in amount. Only add if user
         is not on cooldown.
@@ -150,23 +161,20 @@ class UserHandle(object):
         cooldown -- How long a user needs to wait before being able to get XP.
         """
         self.addNewDataEntry(userID)
-        cooldownTime = self.data[str(userID)]["Cooldown"]
-        cooldownCon = cooldown
+        cooldownTime = self.getCooldown(userID)
         self.addUserTextCount(userID)
         t = time.time()
-        deltat = t - float(cooldownTime)
+        delta_t = t - float(cooldownTime)
         # Check if cooldown is up
-        if deltat >= float(cooldownCon):
+        if delta_t >= float(cooldown):
             # Add XP
             self.addUserText(userID, amount)
             self.setCooldown(userID, t=t)
             print(f"\tUser {userID} gained {amount} TextXP")
         else:
-            print(f"\tUser {userID} is on Cooldown. CurrentTime: {deltat}")
-        self.saveData()
+            print(f"\tUser {userID} is on Cooldown. CurrentTime: {delta_t}")
 
-    @_reloadData
-    def addTextXP(self, userID: Any, amount: Any):
+    def addTextXP(self, userID: int | str, amount: int):
         """
         Adds XP for user in userdata.json by the amount in amount. Only add if user
         is not on cooldown of Texts.
@@ -176,12 +184,10 @@ class UserHandle(object):
         amount -- How much XP will be added as an int. Also negative numbers are
             possible to remove XP.
         """
-        cooldownCon = self.ch.getFromConfig("textCooldown")
-        self.addTextMindCooldown(userID, amount, cooldownCon)
-        self.saveData()
+        cooldown = self.ch.getFromConfig("textCooldown")
+        self.addTextMindCooldown(userID, amount, cooldown)
 
-    @_reloadData
-    def addReactionXP(self, userID: Any, amount: Any):
+    def addReactionXP(self, userID: int | str, amount: int | str):
         """
         Adds XP for user in userdata.json by the amount in amount. Only add if user
         is not on cooldown for Reactions.
@@ -192,10 +198,8 @@ class UserHandle(object):
             possible to remove XP.
         """
         self.addTextMindCooldown(userID, amount, 10)
-        self.saveData()
 
-    @_reloadData
-    def updateLevel(self, userID: Any, level: Any):
+    def updateLevel(self, userID: int | str, level: int | str):
         """
         Sets user level to level if he is in userdata.json.
 
@@ -204,11 +208,11 @@ class UserHandle(object):
         level -- Integer which level the user should get.
         """
         if self.isInData(userID):
-            self.data[str(userID)]["Level"] = level
-            self.saveData()
+            entry = self.db[str(userID)]
+            entry["Level"] = int(level)
+            self.db[str(userID)] = entry
 
-    @_reloadData
-    def addAllUserVoice(self, userIDs: Iterable[Any]):
+    def addAllUserVoice(self, userIDs: Iterable[int | str]):
         """
         Increments the voice XP of all users in userIDs by 1.
         If user not in userdata.json, than a new user entry will be added.
@@ -219,8 +223,7 @@ class UserHandle(object):
         for userID in userIDs:
             self.addUserVoice(userID)
 
-    @_reloadData
-    def addAllUserText(self, userIDs: Iterable[Any], amount=1):
+    def addAllUserText(self, userIDs: Iterable[int | str], amount: int | str = 1):
         """
         Increments the text XP of all users in userIDs by amount.
         If user not in userdata.json, a new user entry will be added.
@@ -232,28 +235,25 @@ class UserHandle(object):
         for userID in userIDs:
             self.addUserText(userID, amount)
 
-    @_reloadData
-    def getUserText(self, userID: Any) -> int:
+    def getUserText(self, userID: int | str) -> int:
         """
         Gets the text from userdata.json for user with userID.
 
         Keyword arguments:
         userID -- Is the user ID from discord user as a string or int
         """
-        return int(self.data[str(userID)]["Text"])
+        return int(self.db[str(userID)]["Text"])
 
-    @_reloadData
-    def getUserVoice(self, userID: Any) -> int:
+    def getUserVoice(self, userID: int | str) -> int:
         """
         Gets the voice from userdata.json for user with userID.
 
         Keyword arguments:
         userID:   Is the user ID from discord user as a string or int
         """
-        return int(self.data[str(userID)]["Voice"])
+        return int(self.db[str(userID)]["Voice"])
 
-    @_reloadData
-    def getUserHours(self, userID: Any) -> float:
+    def getUserHours(self, userID: int | str) -> float:
         """
         Gets the Hours from userdata.json for user with userID.
 
@@ -262,48 +262,40 @@ class UserHandle(object):
         """
         return round(self.getUserVoice(userID) / 30.0, 1)
 
-    @_reloadData
-    def getUserTextCount(self, userID: Any) -> int:
+    def getUserTextCount(self, userID: int | str) -> int:
         """
         Gets the TextCount from userdata.json for user with userID.
 
         Keyword arguments:
         userID -- Is the user ID from discord user as a string or int
         """
-        return int(self.data[str(userID)]["TextCount"])
+        return int(self.db[str(userID)]["TextCount"])
 
-    @_reloadData
-    def getCooldown(self, userID: Any):
+    def getCooldown(self, userID: int | str) -> float:
         """
         Gets the cooldown from userdata.json for user with userID.
 
         Keyword arguments:
         userID -- Is the user ID from discord user as a string or int.
         """
-        if self.isInData(userID):
-            return self.data[str(userID)]["Cooldown"]
+        return float(self.db[str(userID)]["Cooldown"])
 
-    @_reloadData
-    def getUserLevel(self, userID: Any) -> Optional[int]:
+    def getUserLevel(self, userID: int | str) -> int:
         """
         Keyword arguments:
         userID:   Is the user ID from discord user as a string or int
 
         Gets the level from userdata.json for user with userID.
         """
-        if self.isInData(userID):
-            return int(self.data[str(userID)]["Level"])
-        return None
+        return int(self.db[str(userID)]["Level"])
 
-    @_reloadData
-    def getUserIDsInData(self):
+    def getUserIDsInData(self) -> Iterable[int]:
         """
         Gets the userIDs in userdata.json.
         """
-        return self.data.keys()
+        return map(int, self.db.keys())
 
-    @_reloadData
-    def setCooldown(self, userID: Any, t=time.time()):
+    def setCooldown(self, userID: int | str, t: float | str | int = time.time()):
         """
         Sets the cooldown of a user in userdata.json.
 
@@ -312,11 +304,11 @@ class UserHandle(object):
         t -- Time to set the cooldown to. Default current time.
         """
         if self.isInData(userID):
-            self.data[str(userID)]["Cooldown"] = str(t)
-            self.saveData()
+            entry = self.db[str(userID)]
+            entry["Cooldown"] = float(t)
+            self.db[str(userID)] = entry
 
-    @_reloadData
-    def setUserVoice(self, userID: Any, voice: int):
+    def setUserVoice(self, userID: int | str, voice: int | str):
         """
         Sets a users Voice to voice in userdata.json.
 
@@ -325,11 +317,11 @@ class UserHandle(object):
         voice -- Integer to which the voice of a user is set to.
         """
         self.addNewDataEntry(userID)
-        self.data[str(userID)]["Voice"] = int(voice)
-        self.saveData()
+        entry = self.db[str(userID)]
+        entry["Voice"] = int(voice)
+        self.db[str(userID)] = entry
 
-    @_reloadData
-    def setUserText(self, userID: Any, text: str):
+    def setUserText(self, userID: int | str, text: str | int):
         """
         Sets the users text to text in userdata.json.
 
@@ -338,11 +330,11 @@ class UserHandle(object):
         text -- Integer to which the Text is set to.
         """
         self.addNewDataEntry(userID)
-        self.data[str(userID)]["Text"] = int(text)
-        self.saveData()
+        entry = self.db[str(userID)]
+        entry["Text"] = int(text)
+        self.db[str(userID)] = entry
 
-    @_reloadData
-    def setUserTextCount(self, userID: Any, textCount: int):
+    def setUserTextCount(self, userID: int | str, textCount: int | str):
         """
         Sets the users text count to textCount in userdata.json.
 
@@ -351,11 +343,11 @@ class UserHandle(object):
         textCount -- Integer to which the text count is set to.
         """
         self.addNewDataEntry(userID)
-        self.data[str(userID)]["TextCount"] = int(textCount)
-        self.saveData()
+        entry = self.db[str(userID)]
+        entry["TextCount"] = int(textCount)
+        self.db[str(userID)] = entry
 
-    @_reloadData
-    def addUserVoice(self, userID: Any, voice=1):
+    def addUserVoice(self, userID: int | str, voice: int | str = 1):
         """
         Adds voice to the users Voice in userdata.json.
 
@@ -364,13 +356,11 @@ class UserHandle(object):
         voice -- Integer to which is added to voice. Default is 1.
         """
         self.addNewDataEntry(userID)
-        self.data[str(userID)]["Voice"] = int(self.data[str(userID)]["Voice"]) + int(
-            voice
-        )
-        self.saveData()
+        entry = self.db[str(userID)]
+        entry["Voice"] += int(voice)
+        self.db[str(userID)] = entry
 
-    @_reloadData
-    def addUserText(self, userID: Any, text: str):
+    def addUserText(self, userID: int | str, text: str | int):
         """
         Adds text to the users text in userdata.json.
 
@@ -378,11 +368,11 @@ class UserHandle(object):
         userID --Is the user ID from discord user as a string or int
         """
         self.addNewDataEntry(userID)
-        self.data[str(userID)]["Text"] = int(self.data[str(userID)]["Text"]) + int(text)
-        self.saveData()
+        entry = self.db[str(userID)]
+        entry["Text"] += int(text)
+        self.db[str(userID)] = entry
 
-    @_reloadData
-    def addUserTextCount(self, userID: Any, count=1):
+    def addUserTextCount(self, userID: int | str, count: int | str = 1):
         """
         Adds count to the users TextCount in userdata.json.
 
@@ -391,15 +381,18 @@ class UserHandle(object):
         voice -- Integer to which is added to Voice. Default is 1.
         """
         self.addNewDataEntry(userID)
-        self.data[str(userID)]["TextCount"] = int(
-            self.data[str(userID)]["TextCount"]
-        ) + int(count)
-        self.saveData()
+        entry = self.db[str(userID)]
+        entry["TextCount"] += int(count)
+        self.db[str(userID)] = entry
 
-    def saveData(self):
+    @classmethod
+    def _cleanup(cls, db):
         """
-        Saves current userdata.json to disc and reads it again.
+        Method closing the database file, when the object is destroyed.
+        Is defined to be executed in the constructor with 'atexit'.
+
+        Keyword arguments:
+        db -- SqliteDict database object, which should be closed.
         """
-        with open(self.datapath + "userdata.json", "w") as f:
-            json.dump(self.data, f, indent=6)
-        self.data = json.load(open(self.datapath + "userdata.json"))
+        db.commit()
+        db.close()
