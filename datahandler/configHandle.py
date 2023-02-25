@@ -18,7 +18,8 @@ class ConfigHandle(object):
             cls._instance = super(ConfigHandle, cls).__new__(cls)
             cls.datapath = str(os.path.dirname(os.path.dirname(__file__))) + "/data/"
             # Reads in config.json
-            cls.config = json.load(open(cls.datapath + "config.json"))
+            with open(cls.datapath + "config.json", "r") as f:
+                cls.config = json.load(f)
         return cls._instance
 
     """
