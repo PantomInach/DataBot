@@ -50,13 +50,23 @@ class Commandlistener(commands.Cog):
         # Sends message to mods, when bot is online
         print("Now Online")
         await self.utils.sendModsMessage(
-            "Bot is now online.\nVersion:\tDiscordBot DataBot v2.3.1"
+            "Bot is now online.\nVersion:\tDiscordBot DataBot v2.4.0"
         )
         # Sets the bot's presence to "Online" or "Do not Disturb" to indicate if it's logging or not.
         if self.ch.getFromConfig("log") == "True":
-            await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(str(self.ch.getFromConfig("command_prefix")) + "help"))
-        else:    
-            await self.bot.change_presence(status=discord.Status.dnd, activity=discord.Game(str(self.ch.getFromConfig("command_prefix")) + "help"))
+            await self.bot.change_presence(
+                status=discord.Status.online,
+                activity=discord.Game(
+                    str(self.ch.getFromConfig("command_prefix")) + "help"
+                ),
+            )
+        else:
+            await self.bot.change_presence(
+                status=discord.Status.dnd,
+                activity=discord.Game(
+                    str(self.ch.getFromConfig("command_prefix")) + "help"
+                ),
+            )
 
     # When a member joins a guild
     @commands.Cog.listener()
@@ -263,7 +273,7 @@ class Commandlistener(commands.Cog):
                 if notFirstVoiceChannel:
                     lastChannel = max(
                         notFirstVoiceChannel,
-                        key=lambda c: int(c.name[len(channelWithoutNumber):]),
+                        key=lambda c: int(c.name[len(channelWithoutNumber) :]),
                     )
 
                     # Removes channel from blacklist if necessary
@@ -310,11 +320,11 @@ class Commandlistener(commands.Cog):
                     channel
                     for channel in allChannel
                     if after.channel.name[:nameIndex] in channel.name
-                    and channel.name[len(channelWithoutNumber):].isdigit()
+                    and channel.name[len(channelWithoutNumber) :].isdigit()
                 ]
                 # Get all numbers in the end of voiceChannelsWithName
                 numbersOfChannels = [
-                    int(channel.name[len(channelWithoutNumber):])
+                    int(channel.name[len(channelWithoutNumber) :])
                     for channel in voiceChanelsWithName
                 ]
                 lowestFreeID = min(
@@ -326,7 +336,7 @@ class Commandlistener(commands.Cog):
                 )
 
                 channelWithNumberBefore = find(
-                    lambda c: c.name[-len(str(lowestFreeID - 1)):]
+                    lambda c: c.name[-len(str(lowestFreeID - 1)) :]
                     == str(lowestFreeID - 1),
                     voiceChanelsWithName,
                 )

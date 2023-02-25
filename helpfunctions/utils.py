@@ -206,9 +206,7 @@ class Utils(object):
                 nick = "".join(
                     [c for c in member.display_name if c not in UNICODE_EMOJI["en"]]
                 )
-                name = "".join(
-                    [c for c in member.name if c not in UNICODE_EMOJI["en"]]
-                )
+                name = "".join([c for c in member.name if c not in UNICODE_EMOJI["en"]])
             else:
                 # When user is not in guild.
                 nick = "Not on guild"
@@ -237,9 +235,13 @@ class Utils(object):
         Determines the first rank number on leaderboard page. Used to identify the number of the current page.
         """
         leaderboard_search_pattern = re.compile("```as\n *[0-9]+\.")
-        leaderboard_search_match = leaderboard_search_pattern.search(str(leaderboard_page))
+        leaderboard_search_match = leaderboard_search_pattern.search(
+            str(leaderboard_page)
+        )
         # Check if match was found.
-        leaderboard_search_result = "" if not leaderboard_search_match else leaderboard_search_match.group(0)
+        leaderboard_search_result = (
+            "" if not leaderboard_search_match else leaderboard_search_match.group(0)
+        )
         pageFirstRank = int(str(leaderboard_search_result)[6:-1])
         return pageFirstRank
 

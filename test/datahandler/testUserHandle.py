@@ -15,8 +15,7 @@ class TestUserHandle(unittest.TestCase):
     def test_isInData(self):
         for i in range(1, 11):
             self.assertTrue(
-                self.userHandler.isInData(
-                    i), f"User with ID {i} should be in database."
+                self.userHandler.isInData(i), f"User with ID {i} should be in database."
             )
             self.assertTrue(
                 self.userHandler.isInData(str(i)),
@@ -26,8 +25,7 @@ class TestUserHandle(unittest.TestCase):
             self.userHandler.isInData(0), "User with ID 0 should not be in database."
         )
         self.assertFalse(
-            self.userHandler.isInData(
-                11), "User with ID 11 should not be in database."
+            self.userHandler.isInData(11), "User with ID 11 should not be in database."
         )
         self.assertFalse(
             self.userHandler.isInData(100),

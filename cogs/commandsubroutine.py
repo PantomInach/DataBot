@@ -235,8 +235,7 @@ class Subroutine(commands.Cog):
         ]
         # Total all connected members
         for channel in voiceChanels:
-            membersInChannel = [
-                member for member in channel.members if not member.bot]
+            membersInChannel = [member for member in channel.members if not member.bot]
             # Check if more than one person is in channel
             if len(membersInChannel) >= 2:
                 membersNotMutedOrBot = [
@@ -244,8 +243,7 @@ class Subroutine(commands.Cog):
                     for member in membersInChannel
                     if not (member.voice.self_mute or member.bot)
                 ]
-                self.uh.addAllUserVoice(
-                    [member.id for member in membersNotMutedOrBot])
+                self.uh.addAllUserVoice([member.id for member in membersNotMutedOrBot])
                 # Extra XP
                 membersStreamOrVideo = [
                     member

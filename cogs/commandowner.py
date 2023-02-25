@@ -74,11 +74,21 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
             guildName = str(self.bot.get_guild(guildID))
             await self.utils.log(f"Start to log users from Server:\n\t{guildName}", 2)
             # Sets the bot's presence to "Online" to indicate it's logging.
-            await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(str(self.ch.getFromConfig("command_prefix")) + "help"))
+            await self.bot.change_presence(
+                status=discord.Status.online,
+                activity=discord.Game(
+                    str(self.ch.getFromConfig("command_prefix")) + "help"
+                ),
+            )
         else:
             await ctx.send("Bot is logging. Logging state: True")
         # Sets the bot's presence to "Online" to indicate it's logging.
-        await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(str(self.ch.getFromConfig("command_prefix")) + "help"))
+        await self.bot.change_presence(
+            status=discord.Status.online,
+            activity=discord.Game(
+                str(self.ch.getFromConfig("command_prefix")) + "help"
+            ),
+        )
 
     @commands.command(
         name="stoplog",
@@ -96,7 +106,12 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
             self.ch.saveConfig()
             await self.utils.log(f"Stopped to log users from Server:\n\t{guildName}", 2)
             # Sets the bot's presence to "Do not Disturb" to indicate it's not logging.
-            await self.bot.change_presence(status=discord.Status.dnd, activity=discord.Game(str(self.ch.getFromConfig("command_prefix")) + "help"))
+            await self.bot.change_presence(
+                status=discord.Status.dnd,
+                activity=discord.Game(
+                    str(self.ch.getFromConfig("command_prefix")) + "help"
+                ),
+            )
         else:
             await ctx.send("Bot is NOT logging. Logging state: False")
 

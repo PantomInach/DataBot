@@ -132,9 +132,7 @@ def isNotInChannel(*items):
         def wrapper(*args, **kwargs):
             # Wrapper for inputs in func
             dm = isinstance(args[1].channel, discord.channel.DMChannel)
-            if dm or not (
-                args[1].channel.id in items or args[1].channel.name in items
-            ):
+            if dm or not (args[1].channel.id in items or args[1].channel.name in items):
                 return func(*args, **kwargs)
             return passFunc()
 
