@@ -56,6 +56,11 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
     async def ping(self, ctx):
         await ctx.send("pong pong")
 
+    @commands.command(name="test")
+    @isBotOwnerCommand()
+    async def test(self, ctx):
+        await ctx.send("Test", view=TestButton())
+
     # Starts to log the users in voice channels
     @commands.command(
         name="startlog",
@@ -193,6 +198,13 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
                 await self.bot.load_extension(ext)
                 reloadedExtensions.append(ext)
         await self.utils.log(f"Reloaded extensions: {', '.join(reloadedExtensions)}", 2)
+
+
+class TestButton(discord.ui.View):
+    @discord.ui.button(label="test", style=discord.ButtonStyle.primary)
+    async def button_callback(self, button, interaction):
+        print("Entered callback")
+        await interaction.response.send_message("Clicked")
 
 
 async def setup(bot):
