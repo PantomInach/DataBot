@@ -25,7 +25,9 @@ class Commandlistener(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        print("Ignoring exception in command {}:".format(ctx.command), file=sys.stderr)
+        print(
+            "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
+        )
         traceback.print_exception(
             type(error), error, error.__traceback__, file=sys.stderr
         )
@@ -259,7 +261,10 @@ class Commandlistener(commands.Cog):
             and before.channel.name[-1].isdigit()
         ):
             # Member left first channel
-            if before.channel.name[-1] == "1" and not before.channel.name[-2].isdigit():
+            if (
+                before.channel.name[-1] == "1"
+                and not before.channel.name[-2].isdigit()
+            ):
                 # Delete last channel, which has no user in it
 
                 channelWithoutNumber = before.channel.name[:-1]
@@ -371,9 +376,9 @@ class Commandlistener(commands.Cog):
         a = "" + message.content
 
         # Stops user from writting in levelchannel none command messages
-        if str(message.channel.id) == str(self.ch.getFromConfig("levelchannel")) and a[
-            0
-        ] != self.ch.getFromConfig("command_prefix"):
+        if str(message.channel.id) == str(
+            self.ch.getFromConfig("levelchannel")
+        ) and a[0] != self.ch.getFromConfig("command_prefix"):
             await message.delete()
             return
 
