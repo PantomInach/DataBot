@@ -11,6 +11,7 @@ from datahandler.sub import Sub
 from datahandler.configHandle import ConfigHandle
 from datahandler.userHandle import UserHandle
 from datahandler.commandrights import read_rights_of
+from button_views.leaderboard_buttons import LeaderboardButtons
 
 import datetime
 import time
@@ -258,7 +259,8 @@ class Commanduser(commands.Cog, name="User Commands"):
             self.uh.addNewDataEntry(userID)
         self.uh.setUserText(userID, amount)
         message += (
-            f"Set user {str(self.bot.get_user(int(userID)))} " + f"textXP to {amount}."
+            f"Set user {str(self.bot.get_user(int(userID)))} "
+            + f"textXP to {amount}."
         )
         log_message = (
             f"User {ctx.author} set user "
@@ -504,7 +506,9 @@ class Commanduser(commands.Cog, name="User Commands"):
                     f"User {ctx.author.mention} textunbaned {user.mention}"
                 )
             else:
-                await ctx.send(content="ERROR: User has no textban.", delete_after=3600)
+                await ctx.send(
+                    content="ERROR: User has no textban.", delete_after=3600
+                )
 
     """
     # When give star of the week should be queued
@@ -699,10 +703,12 @@ class Commanduser(commands.Cog, name="User Commands"):
         await self.utils.log(f"+top by {ctx.author}", 1)  # Notify Mods
         # Create leaderboard
         text = f"{self.utils.getLeaderboardPageBy(0,0)}{ctx.author.mention}"
-        message = await ctx.send(text, delete_after=86400)
-        reactionsarr = ["⏫", "⬅", "➡", "⏰", "💌"]
-        for emoji in reactionsarr:
-            await message.add_reaction(emoji)
+        message = await ctx.send(
+            text, view=LeaderboardButtons(self.utils), delete_after=86400
+        )
+        # reactionsarr = ["⏫", "⬅", "➡", "⏰", "💌"]
+        # for emoji in reactionsarr:
+        #     await message.add_reaction(emoji)
         await ctx.message.delete()
 
     @commands.command(name="quote", brief="Sends an unique inspirational quote.")
