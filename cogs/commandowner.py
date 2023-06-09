@@ -59,6 +59,7 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
     @commands.command(name="test")
     @isBotOwnerCommand()
     async def test(self, ctx):
+        # await ctx.send("Test", view=TestButton())
         await ctx.send("Test", view=TestButton())
 
     # Starts to log the users in voice channels
@@ -109,7 +110,9 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
             guildName = str(self.bot.get_guild(guildID))
             self.ch.config["log"] = "False"
             self.ch.saveConfig()
-            await self.utils.log(f"Stopped to log users from Server:\n\t{guildName}", 2)
+            await self.utils.log(
+                f"Stopped to log users from Server:\n\t{guildName}", 2
+            )
             # Sets the bot's presence to "Do not Disturb" to indicate it's not logging.
             await self.bot.change_presence(
                 status=discord.Status.dnd,
@@ -197,14 +200,20 @@ class Commandowner(commands.Cog, name="Bot Owner Commands"):
                 await self.bot.unload_extension(ext)
                 await self.bot.load_extension(ext)
                 reloadedExtensions.append(ext)
-        await self.utils.log(f"Reloaded extensions: {', '.join(reloadedExtensions)}", 2)
+        await self.utils.log(
+            f"Reloaded extensions: {', '.join(reloadedExtensions)}", 2
+        )
 
 
 class TestButton(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+
     @discord.ui.button(label="test", style=discord.ButtonStyle.primary)
-    async def button_callback(self, button, interaction):
+    async def button_callback(self, interaction, button):
         print("Entered callback")
-        await interaction.response.send_message("Clicked")
+        await interaction.response.send_message("Clicked", ephemeral=False)
+        print("After")
 
 
 async def setup(bot):
