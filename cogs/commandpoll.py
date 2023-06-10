@@ -12,6 +12,8 @@ from datahandler.poll import Poll
 from datahandler.configHandle import ConfigHandle
 from datahandler.userHandle import UserHandle
 
+from button_views.poll_buttons import PollView
+
 
 def hasAnyRole(*items):
     """
@@ -457,11 +459,11 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         if self.poll.getStatus(pollID) == "OPEN":
             # Send poll
             text = self.poll.pollString(pollID)
-            messageSend = await ctx.send(content=f"{text}{ctx.author.mention}")
-            reactionsarr = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣", "7⃣"]
-            for emoji in reactionsarr[: len(self.poll.getOptions(pollID))]:
-                await messageSend.add_reaction(emoji)
-            self.poll.setMessageID(pollID, messageSend.id, messageSend.channel.id)
+            button_amount = len(self.poll.getOptions(pollID))
+            pollView = PollView(button_amount, self.poll, pollID)
+            messageSend = await ctx.send(content=f"{text}{ctx.author.mention}", view=pollView)
+            self.poll.setMessageID(
+                pollID, messageSend.id, messageSend.channel.id)
             log_message = (
                 f"User {ctx.author.mention} opened the poll {pollID}"
                 + f" in channel {ctx.channel.name}."
@@ -513,8 +515,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
             return
         try:
             message = await channel.fetch_message(int(messageID))
-            await message.clear_reactions()
-            await message.edit(content=f"{self.poll.pollString(pollID)}")
+            await message.edit(content=f"{self.poll.pollString(pollID)}", view=None)
             # self.poll.setMessageID(pollID, '', '')
         except discord.NotFound:
             return
@@ -566,75 +567,6 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         # Give voters XP
         for vote in self.poll.getVotes(pollID):
             self.uh.addReactionXP(vote[0], 25)
-
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload):
-        """
-        param payload:  Gives context about the added reaction
-
-        Handles different bot interactions with the server via reactions.
-
-        First:
-                Handles leaderboard interactions for new page and new sorting.
-        Second:
-                Handles voting on polls.
-        Third:
-                Give role on data processing.
-        Forth: (Handle here)
-                Handles reactions on interest groups for member the get roles.
-        Fifth:
-                Give XP when a reaction is added.
-        Sixth:
-                Give role of giveRoles message.
-        """
-
-        # Ignore bot reactions
-        if self.bot.get_user(payload.user_id).bot:
-            return
-
-        userID = payload.user_id
-        channel = self.bot.get_channel(int(payload.channel_id))
-        message = await channel.fetch_message(int(payload.message_id))
-        [state, _] = Utils.getMessageState(message)
-        """
-        State (0,0): Normal message
-        State (1,x): Leaderboard sorted by XP on page x
-        State (2,x): Leaderboard sorted by Voice on page x
-        State (3,x): Leaderboard sorted by TextCount on page x
-        State (4,0): Poll
-        State (5,0): data protection declaration
-        State (6,0): giveRoles message
-        """
-
-        if state == 4:
-            # Number which option was voted. New reaction => -1
-            newVote = self.votedOption(message)
-
-            # Checks if user is allowed to vote and is valid
-            if self.utils.hasRole(userID, "employee") and newVote != -1:
-                # changes poll message
-                pollID = int(str(message.content)[6:10])
-                optionName = self.poll.getOptionByNumber(pollID, newVote + 1)
-                self.poll.addUserVote(pollID, userID, optionName)
-                await message.edit(content=f"{self.poll.pollString(pollID)}")
-
-            # Removes member vote
-            await message.remove_reaction(payload.emoji, payload.member)
-
-    """
-    """
-
-    def votedOption(self, message):
-        """
-        param message:  Discord Message object. Should be from a Poll.
-
-        Gets which option is voted for in a poll created by the Bot via the reactions.
-        """
-        reactions = message.reactions
-        i = 0
-        while reactions[i].count == 1:
-            i += 1
-        return i
 
 
 async def setup(bot):
