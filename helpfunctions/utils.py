@@ -2,14 +2,20 @@ import os
 import datetime
 import re
 from discord.utils import find
+from discord.ui import View
 
 from helpfunctions.xpfunk import Xpfunk
 from datahandler.configHandle import ConfigHandle
 from datahandler.userHandle import UserHandle
 
+from button_views.leaderboard_buttons import LeaderboardButtons
+
 # import hashlib
 
 from emoji import UNICODE_EMOJI
+from typing import Union
+
+NUMBER_OF_USERS_PER_PAGE = 3
 
 
 class Utils(object):
@@ -191,8 +197,11 @@ class Utils(object):
 
         Builds a string for the leaderboard on a given page with the right sorting.
         """
-        userIDs = self.uh.getSortedDataEntrys(page * 10, (page + 1) * 10, sortBy)
-        rank = page * 10 + 1
+        user_per_page = NUMBER_OF_USERS_PER_PAGE
+        userIDs = self.uh.getSortedDataEntrys(
+            page * user_per_page, (page + 1) * user_per_page, sortBy
+        )
+        rank = page * user_per_page + 1
         guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         leaderboard = f"**Leaderboard {guild.name}**\n```as"
         # Generate leaderboard string
@@ -206,7 +215,9 @@ class Utils(object):
                 nick = "".join(
                     [c for c in member.display_name if c not in UNICODE_EMOJI["en"]]
                 )
-                name = "".join([c for c in member.name if c not in UNICODE_EMOJI["en"]])
+                name = "".join(
+                    [c for c in member.name if c not in UNICODE_EMOJI["en"]]
+                )
             else:
                 # When user is not in guild.
                 nick = "Not on guild"
@@ -246,7 +257,9 @@ class Utils(object):
         return pageFirstRank
 
     @staticmethod
-    def getMessageState(message):
+    def getMessageState(
+        message, view: Union[None, View, LeaderboardButtons, object] = None
+    ):
         """
         param message:	String of a message in Discord.
 
@@ -272,12 +285,9 @@ class Utils(object):
         state = 0
 
         # Check for leaderboard
-        if reactionstr == "⏫⬅➡⏰💌":
-            state = 1
-        elif reactionstr == "⏫⬅➡💌🌟":
-            state = 2
-        elif reactionstr == "⏫⬅➡⏰🌟":
-            state = 3
+        if view and isinstance(view, LeaderboardButtons):
+            print("Is view")
+            state = view.sorted_by.value + 1
 
         # Check for poll via the start of the message string.
         elif textBeginn == "```md" and reactionstr[0:2] == "1⃣":
@@ -297,7 +307,8 @@ class Utils(object):
 
         # Is leaderboard and now find the page of it.
         pageFirstRank = Utils._get_leaderboard_pageFirstRank(message.content)
-        return (state, pageFirstRank // 10)
+        print("getMessageState:", state, pageFirstRank)
+        return (state, pageFirstRank // NUMBER_OF_USERS_PER_PAGE)
 
     async def sendServerModMessage(self, string, embed=None):
         """

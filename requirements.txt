@@ -1,4 +1,4 @@
 discord.py==2.1.0
 emoji==1.6.3
-requests==2.22.0
+requests==2.31.0
 sqlitedict==2.1.0
