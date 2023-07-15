@@ -34,7 +34,6 @@ class VoteForButton(Button):
         super().__init__(*args, **kwargs)
 
     async def callback(self, interaction: discord.Interaction):
-        print("Callback for option", self.option)
         await self._vote_for_option(interaction.user, self.option, interaction.message)
         option_text = self.poll.getOptionByNumber(self.pollID, self.option + 1)
         await interaction.response.send_message(
