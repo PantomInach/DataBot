@@ -26,10 +26,8 @@ class LeaderboardButtons(discord.ui.View):
     ):
         print("Invoking leaderboard button 'Go to page one'")
         message = interaction.message
-        print(message)
         if message:
             _, page = self.utils.getMessageState(message, view=self)
-            print("First", page)
             if page != 0:
                 leaderboard_text = self._getLeaderBoard(0, self.sorted_by)
                 try:
@@ -94,7 +92,6 @@ class LeaderboardButtons(discord.ui.View):
                 print(e)
         else:
             print("Error: Leaderboard button should have have a message")
-        print("Ending next")
         await interaction.response.defer(ephemeral=False)
 
     # @discord.ui.button(label="Sort by", row=1, disabled=True, style=discord.ButtonStyle.secondary)
@@ -147,7 +144,6 @@ class LeaderboardButtons(discord.ui.View):
                     print(e)
         else:
             print("Error: Leaderboard button should have have a message")
-        print("Ending time")
         await interaction.response.defer(ephemeral=False)
 
     @discord.ui.button(
@@ -172,11 +168,8 @@ class LeaderboardButtons(discord.ui.View):
                     print(e)
         else:
             print("Error: Leaderboard button should have have a message")
-        print("Ending message")
         await interaction.response.defer(ephemeral=False)
 
     def _getLeaderBoard(self, page: int, sortBy: SortedByEnum) -> str:
-        # print("GetLeaderBoard:", sortBy, sortBy.value)
         leaderboard_text = self.utils.getLeaderboardPageBy(page, sortBy.value)
-        # print("GetLeaderBoard:", leaderboard_text)
         return leaderboard_text

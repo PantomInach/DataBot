@@ -15,7 +15,7 @@ from button_views.leaderboard_buttons import LeaderboardButtons
 from emoji import UNICODE_EMOJI
 from typing import Union
 
-NUMBER_OF_USERS_PER_PAGE = 3
+NUMBER_OF_USERS_PER_PAGE = 10
 
 
 class Utils(object):
@@ -286,7 +286,6 @@ class Utils(object):
 
         # Check for leaderboard
         if view and isinstance(view, LeaderboardButtons):
-            print("Is view")
             state = view.sorted_by.value + 1
 
         # Check for poll via the start of the message string.
@@ -307,7 +306,6 @@ class Utils(object):
 
         # Is leaderboard and now find the page of it.
         pageFirstRank = Utils._get_leaderboard_pageFirstRank(message.content)
-        print("getMessageState:", state, pageFirstRank)
         return (state, pageFirstRank // NUMBER_OF_USERS_PER_PAGE)
 
     async def sendServerModMessage(self, string, embed=None):
