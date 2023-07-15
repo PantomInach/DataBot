@@ -319,7 +319,7 @@ class Commandmod(commands.Cog, name="Bot Mod Commands"):
         message = f"Printing data of server {guild}:\n"
         # Sorts user by their usernames
         sortedData = sorted(
-            self.uh.data,
+            self.uh.db,
             key=lambda id: "a" + str(self.bot.get_user(int(id)).name).lower()
             if self.bot.get_user(int(id)) != None
             else "no user",
