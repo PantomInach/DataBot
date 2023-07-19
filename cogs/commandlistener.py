@@ -226,7 +226,6 @@ class Commandlistener(commands.Cog):
                     and self.ch.getFromConfig("log") == "True"
                 ):
                     self.uh.addReactionXP(payload.user_id, self.xpf.randomRange(1, 5))
-                    self.uh.saveData()
 
     # When a user changes his voice state
     @commands.Cog.listener()
@@ -391,7 +390,6 @@ class Commandlistener(commands.Cog):
                 if name.endswith("jpg") or name.endswith("png"):
                     # Gives XP when picture is in message
                     self.uh.addTextXP(userID, self.xpf.randomRange(20, 40))
-                    self.uh.saveData()
                     return
 
         # When Message is a String
@@ -403,7 +401,6 @@ class Commandlistener(commands.Cog):
             # Give XP when message is not a command
             if self.ch.isInWhitelist(message.channel.id):
                 self.uh.addTextXP(message.author.id, self.xpf.textXP(a))
-                self.uh.saveData()
 
         # Sends BotOwner commands, which are triggering the bot
         if len(a) > 0 and a[0] == self.ch.getFromConfig("command_prefix"):
