@@ -37,7 +37,7 @@ class UserHandle(object):
             else:
                 cls.db_path = db_file_path
 
-            cls.db = SqliteDict(cls.db_path, outer_stack=False, autocommit=True)
+            cls.db = SqliteDict(cls.db_path, outer_stack=True, autocommit=True)
             if (
                 load_from_json_if_not_init
                 and not cls.db
@@ -50,7 +50,7 @@ class UserHandle(object):
                         cls.db[key] = value
 
             cls.ch = ConfigHandle()
-        atexit.register(UserHandle._cleanup, cls.db)
+            atexit.register(UserHandle._cleanup, cls.db)
         return cls._instance
 
     """
@@ -357,7 +357,7 @@ class UserHandle(object):
         """
         self.addNewDataEntry(userID)
         entry = self.db[str(userID)]
-        entry["Voice"] += int(voice)
+        entry["Voice"] = int(entry["Voice"]) + int(voice)
         self.db[str(userID)] = entry
 
     def addUserText(self, userID: int | str, text: str | int):
@@ -369,7 +369,7 @@ class UserHandle(object):
         """
         self.addNewDataEntry(userID)
         entry = self.db[str(userID)]
-        entry["Text"] += int(text)
+        entry["Text"] = int(entry["Text"]) + int(text)
         self.db[str(userID)] = entry
 
     def addUserTextCount(self, userID: int | str, count: int | str = 1):
@@ -382,7 +382,7 @@ class UserHandle(object):
         """
         self.addNewDataEntry(userID)
         entry = self.db[str(userID)]
-        entry["TextCount"] += int(count)
+        entry["TextCount"] = int(entry["TextCount"]) + int(count)
         self.db[str(userID)] = entry
 
     @classmethod
@@ -394,5 +394,6 @@ class UserHandle(object):
         Keyword arguments:
         db -- SqliteDict database object, which should be closed.
         """
+        print("[UserHandle] Closing Databank")
         db.commit()
         db.close()

@@ -191,8 +191,7 @@ class Commanduser(commands.Cog, name="User Commands"):
                 + f" VoiceXP: {voice} TextXP: {text} TextCount: {textCount}"
             )
         else:
-            user = self.bot.get_user(int(userID))
-            message = f"User was not found in data. Created user: {user.mention}"
+            message = "User was not found in data."
         await ctx.send(message)
 
     @userSetParent.command(name="voice", brief="Sets users voicexp")
