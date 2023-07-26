@@ -82,21 +82,24 @@ class Subroutine(commands.Cog):
         Remove role subroutine:
             Continuously removes the role in a given interval starting on the offset.
         """
-        await self.removeRoleSubroutineFunction(currentTime, bufferTime, guild)
+        try:
+            await self.removeRoleSubroutineFunction(currentTime, bufferTime, guild)
 
-        """
-        Give role once:
-            Gives a member a role when the time window is hit.
-            The time window is defined with an offset and interval.
-            If the interval hit beginning on the offset, the role is given once.
-        """
-        await self.giveRoleOnceSubroutineFunction(currentTime)
+            """
+            Give role once:
+                Gives a member a role when the time window is hit.
+                The time window is defined with an offset and interval.
+                If the interval hit beginning on the offset, the role is given once.
+            """
+            await self.giveRoleOnceSubroutineFunction(currentTime)
 
-        """
-        GiveOnlineUserXP:
-            Gives user depending on the rules of addMembersOnlineVoiceXp voice XP.
-        """
-        await self.giveOnlineUserXPSubroutineFunction(guild.id)
+            """
+            GiveOnlineUserXP:
+                Gives user depending on the rules of addMembersOnlineVoiceXp voice XP.
+            """
+            await self.giveOnlineUserXPSubroutineFunction(guild.id)
+        except Exception as e:
+            self.utils.log(f"Caugth ERROR in subroutine:\n{str(e)}", 1)
 
     @subRoutine.before_loop
     async def beforSubroutineStart(self):
@@ -195,7 +198,6 @@ class Subroutine(commands.Cog):
         self.addMembersOnlineVoiceXp(guild)
         await self.levelAkk()
         await self.updateRoles()
-        self.uh.saveData()
 
     async def updateRoles(self):
         """
