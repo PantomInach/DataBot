@@ -19,7 +19,7 @@ class LeaderboardButtons(discord.ui.View):
     #     await interaction.response.defer(ephemeral=False)
 
     @discord.ui.button(
-        label="First", row=0, style=discord.ButtonStyle.primary, emoji="⏫"
+        label="TOP", row=0, style=discord.ButtonStyle.primary, emoji="⏫"
     )
     async def go_to_page_one(
         self, interaction: discord.Interaction, button: discord.ui.Button
@@ -42,7 +42,7 @@ class LeaderboardButtons(discord.ui.View):
         await interaction.response.defer(ephemeral=False)
 
     @discord.ui.button(
-        label="Previous", row=0, style=discord.ButtonStyle.primary, emoji="⬅️"
+        label="UP", row=0, style=discord.ButtonStyle.primary, emoji="⬅️"
     )
     async def previous_page(
         self, interaction: discord.Interaction, button: discord.ui.Button
@@ -66,7 +66,7 @@ class LeaderboardButtons(discord.ui.View):
         await interaction.response.defer(ephemeral=False)
 
     @discord.ui.button(
-        label="Next", row=0, style=discord.ButtonStyle.primary, emoji="➡️"
+        label="DOWN", row=0, style=discord.ButtonStyle.primary, emoji="➡️"
     )
     async def next_page(
         self, interaction: discord.Interaction, button: discord.ui.Button
@@ -99,7 +99,7 @@ class LeaderboardButtons(discord.ui.View):
     #     await interaction.response.defer(ephemeral=False)
 
     @discord.ui.button(
-        label="Exp", row=1, style=discord.ButtonStyle.primary, emoji="🌟"
+        label="EXP", row=1, style=discord.ButtonStyle.primary, emoji="🌟"
     )
     async def sort_by_xp(
         self, interaction: discord.Interaction, button: discord.ui.Button
@@ -123,7 +123,7 @@ class LeaderboardButtons(discord.ui.View):
         await interaction.response.defer(ephemeral=False)
 
     @discord.ui.button(
-        label="Time", row=1, style=discord.ButtonStyle.primary, emoji="⏰"
+        label="TIME", row=1, style=discord.ButtonStyle.primary, emoji="⏰"
     )
     async def sort_by_time(
         self, interaction: discord.Interaction, button: discord.ui.Button
@@ -147,7 +147,7 @@ class LeaderboardButtons(discord.ui.View):
         await interaction.response.defer(ephemeral=False)
 
     @discord.ui.button(
-        label="Messages", row=1, style=discord.ButtonStyle.primary, emoji="💌"
+        label="TEXT", row=1, style=discord.ButtonStyle.primary, emoji="💌"
     )
     async def sort_by_messages(
         self, interaction: discord.Interaction, button: discord.ui.Button

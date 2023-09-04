@@ -187,6 +187,39 @@ class Utils(object):
                 1,
             )
 
+    @staticmethod
+    def roundScientificUnitless(number: str | float | int) -> str:
+        """
+        Rounds input number to a value with 4 digits and uses symbols of the unit prefixes in the metric system to do so.
+
+        Keyword arguments:
+        number -- Is an random number as a string, float or int.
+        """
+        if len(str(number)) > 7:
+            number = str(number)[:-6] + 'M'
+        elif len(str(number)) > 6:
+           number = str(round(float(number)/1000000,1)) + 'M'
+        elif len(str(number)) > 4:
+           number = str(number)[:-3] + 'k' 
+        return number
+
+    @staticmethod
+    def roundScientificTime(hours: float) -> str:
+        """
+        Rounds input hours to a value never higher than 5 digits and uses symbols of the unit prefixes in the metric system to do so.
+
+        Keyword arguments:
+        hours -- Is an time value as a float.
+        """
+        if int(str(hours)[:-2])/24 >= 1000: 
+            hours = str(round(hours/24/365,1)) + 'a'
+        elif int(str(hours)[:-2]) >= 1000: 
+            hours = str(round(hours/24,1)) + 'd'
+        else:
+            hours = str(hours) + 'h'
+        hours = hours if len(hours) <= 5 else hours[:-3] + hours[-1]
+        return hours
+
     def getLeaderboardPageBy(self, page, sortBy):
         """
         param page:	Which page of the leaderboard is shown. Begins with page 0. A page contains 10 entries by default.
@@ -220,11 +253,11 @@ class Utils(object):
                 )
             else:
                 # When user is not in guild.
-                nick = "Not on guild"
+                nick = "Left"
                 name = f"ID: {userID}"
             # Check length of nick + name
             nick = nick if len(nick) <= 12 else nick[:9] + "..."
-            name = name if len(name) <= 22 else name[:19] + "..."
+            name = name if len(name + nick) <= 26 else name[:23-len(nick)] + "..."
             # Get user data from userdata.json.
             hours = self.uh.getUserHours(userID)
             messages = self.uh.getUserTextCount(userID)
@@ -232,8 +265,12 @@ class Utils(object):
                 self.uh.getUserVoice(userID), self.uh.getUserText(userID)
             )
             level = self.uh.getUserLevel(userID)
+            # Formatting data
+            hours = Utils.roundScientificTime(hours)
+            messages = Utils.roundScientificUnitless(messages)
+            xp = Utils.roundScientificUnitless(xp)
             # Formatting for leaderboard.
-            leaderboard += f"\n{' '*(4-len(str(rank)))}{rank}. {nick}{' '*(37-len(nick+name))}({name})   Hours: {' '*(6-len(str(hours)))}{hours}   Messages: {' '*(4-len(str(messages)))}{messages}   Exp: {' '*(6-len(str(xp)))}{xp}   Level: {' '*(3-len(str(level)))}{level}\n"
+            leaderboard += f"\n{' '*(4-len(str(rank)))}{rank}. {nick}{' '*(29-len(nick+name))}({name})   TIME: {' '*(5-len(str(hours)))}{hours}   TEXT: {' '*(4-len(str(messages)))}{messages}   EXP: {' '*(4-len(str(xp)))}{xp}   LVL: {' '*(3-len(str(level)))}{level}\n"
             rank += 1
         leaderboard += f"```"
         return leaderboard
