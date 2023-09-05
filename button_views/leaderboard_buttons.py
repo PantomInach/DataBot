@@ -42,7 +42,7 @@ class LeaderboardButtons(discord.ui.View):
         await interaction.response.defer(ephemeral=False)
 
     @discord.ui.button(
-        label="UP", row=0, style=discord.ButtonStyle.primary, emoji="⬅️"
+        label="UP", row=0, style=discord.ButtonStyle.primary, emoji="⬆"
     )
     async def previous_page(
         self, interaction: discord.Interaction, button: discord.ui.Button
@@ -66,7 +66,7 @@ class LeaderboardButtons(discord.ui.View):
         await interaction.response.defer(ephemeral=False)
 
     @discord.ui.button(
-        label="DOWN", row=0, style=discord.ButtonStyle.primary, emoji="➡️"
+        label="DOWN", row=0, style=discord.ButtonStyle.primary, emoji="⬇"
     )
     async def next_page(
         self, interaction: discord.Interaction, button: discord.ui.Button
