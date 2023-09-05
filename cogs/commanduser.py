@@ -661,15 +661,15 @@ class Commanduser(commands.Cog, name="User Commands"):
         )
         embed.set_thumbnail(url=avatar_url)
         embed.add_field(
-            name="HOURS", value=f"{round(int(voiceXP)/30.0,1)}", inline=True
+            name="TIME", value=f"{round(int(voiceXP)/30.0,1)}", inline=True
         )
-        embed.add_field(name="MESSAGES", value=f"{str(textCount)}", inline=True)
+        embed.add_field(name="TEXT", value=f"{str(textCount)}", inline=True)
         embed.add_field(
-            name="EXPERIENCE",
+            name="EXP",
             value=f"{str(int(voiceXP)+int(textXP))}/{nextLevel}",
             inline=True,
         )
-        embed.add_field(name="LEVEL", value=f"{level}", inline=True)
+        embed.add_field(name="LVL", value=f"{level}", inline=True)
         # Send Embeded
         content = ""
         if userID != ctx.author.id:
