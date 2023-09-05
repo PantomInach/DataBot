@@ -254,11 +254,11 @@ class Utils(object):
                 )
             else:
                 # When user is not in guild.
-                nick = "Left"
+                nick = "-X-"
                 name = f"ID: {userID}"
             # Check length of nick + name
             nick = nick if len(nick) <= 12 else nick[:9] + "..."
-            name = name if len(name + nick) <= 26 else name[:23-len(nick)] + "..."
+            name = name if len(name + nick) <= 25 else name[:22-len(nick)] + "..."
             # Get user data from userdata.json.
             hours = self.uh.getUserHours(userID)
             messages = self.uh.getUserTextCount(userID)
@@ -271,7 +271,7 @@ class Utils(object):
             messages = Utils.roundScientificUnitless(messages)
             xp = Utils.roundScientificUnitless(xp)
             # Formatting for leaderboard.
-            leaderboard += f"\n{' '*(4-len(str(rank)))}{rank}. {nick}{' '*(29-len(nick+name))}({name})   TIME: {' '*(5-len(str(hours)))}{hours}   TEXT: {' '*(4-len(str(messages)))}{messages}   EXP: {' '*(4-len(str(xp)))}{xp}   LVL: {' '*(3-len(str(level)))}{level}\n"
+            leaderboard += f"\n{' '*(4-len(str(rank)))}{rank}. {nick}{' '*(28-len(nick+name))}({name})   TIME: {' '*(5-len(str(hours)))}{hours}   TEXT: {' '*(4-len(str(messages)))}{messages}   EXP: {' '*(4-len(str(xp)))}{xp}   LVL: {' '*(3-len(str(level)))}{level}\n"
             rank += 1
         leaderboard += f"```"
         return leaderboard
