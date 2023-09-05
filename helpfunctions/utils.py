@@ -1,6 +1,7 @@
 import os
 import datetime
 import re
+import math
 from discord.utils import find
 from discord.ui import View
 
@@ -211,13 +212,13 @@ class Utils(object):
         Keyword arguments:
         hours -- Is an time value as a float.
         """
-        if int(str(hours)[:-2])/24 >= 1000: 
+        if math.floor(hours) >= 24 * 1000: 
             hours = str(round(hours/24/365,1)) + 'a'
-        elif int(str(hours)[:-2]) >= 1000: 
+        elif math.floor(hours) >= 1000:
             hours = str(round(hours/24,1)) + 'd'
         else:
             hours = str(hours) + 'h'
-        hours = hours if len(hours) <= 5 else hours[:-3] + hours[-1]
+        hours = hours if len(hours) <= 5 else str(math.floor(float(hours[:-1]))) + hours[-1]
         return hours
 
     def getLeaderboardPageBy(self, page, sortBy):
