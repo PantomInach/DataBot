@@ -16,7 +16,7 @@ class PollView(discord.ui.View):
         self.button_amount: int = button_amount
         self.poll: Poll = poll
         self.pollID: int = pollID
-        super().__init__()
+        super().__init__(timeout=None)
         for i in range(button_amount):
             self.add_item(self._create_button(i))
 
