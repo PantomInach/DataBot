@@ -12,7 +12,7 @@ class LeaderboardButtons(discord.ui.View):
     def __init__(self, utils):
         self.sorted_by = SortedByEnum.XP
         self.utils = utils
-        super().__init__()
+        super().__init__(timeout=None)
 
     # @discord.ui.button(label="Page:", row=0, disabled=True, style=discord.ButtonStyle.secondary)
     # async def page_spacer(self, interaction: discord.Interaction, button: discord.ui.Button):
