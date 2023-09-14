@@ -208,7 +208,7 @@ class Commanduser(commands.Cog, name="User Commands"):
 
     @userParent.group(name="inc", brief="Group of user inc commands.")
     @isBotModCommand()
-    async def userDecParent(self, ctx):
+    async def userIncParent(self, ctx):
         """
         This command is used to increase the voicexp, textxp, textcount of users by a given amount.
         Commands:
@@ -336,7 +336,9 @@ class Commanduser(commands.Cog, name="User Commands"):
             self.uh.addNewDataEntry(userID)
         else:
             voiceXP = self.uh.getUserVoice(userID)
-            voiceXP -= amount
+            if int(amount) > voiceXP:
+                amount = voiceXP
+            voiceXP -= int(amount)
             self.uh.setUserVoice(userID, voiceXP)
             message += (
                 f"Decreases user {str(self.bot.get_user(int(userID)))} voiceXP by {amount}. VoiceXP is set to {voiceXP}."
@@ -376,7 +378,7 @@ class Commanduser(commands.Cog, name="User Commands"):
             )
             self.uh.addNewDataEntry(userID)
         voiceXP = self.uh.getUserVoice(userID)
-        voiceXP += amount
+        voiceXP += int(amount)
         self.uh.setUserVoice(userID, voiceXP)
         message += (
             f"Increases user {str(self.bot.get_user(int(userID)))} voiceXP by {amount}. VoiceXP is set to {voiceXP}."
@@ -456,9 +458,9 @@ class Commanduser(commands.Cog, name="User Commands"):
             self.uh.addNewDataEntry(userID)
         else:
             textXP = self.uh.getUserText(userID)
-            if amount > textXP:
+            if int(amount) > textXP:
                 amount = textXP 
-            textXP -= amount 
+            textXP -= int(amount)
             self.uh.setUserText(userID, textXP)
             message += (
                 f"Decrease user {str(self.bot.get_user(int(userID)))} "
@@ -499,7 +501,7 @@ class Commanduser(commands.Cog, name="User Commands"):
             )
             self.uh.addNewDataEntry(userID)
         textXP = self.uh.getUserText(userID)
-        textXP += amount 
+        textXP += int(amount) 
         self.uh.setUserText(userID, textXP)
         message += (
             f"Increase user {str(self.bot.get_user(int(userID)))} "
@@ -579,9 +581,9 @@ class Commanduser(commands.Cog, name="User Commands"):
             self.uh.addNewDataEntry(userID)
         else:
             textCount = self.uh.getUserTextCount(userID)
-            if amount > textCount:
+            if int(amount) > textCount:
                 amount = textCount
-            textCount -= amount
+            textCount -= int(amount)
             self.uh.setUserTextCount(userID, textCount)
             message += (
                 f"Decreases user {str(self.bot.get_user(int(userID)))} TextCount by {amount}. TextCount is set to {textCount}."
@@ -621,7 +623,7 @@ class Commanduser(commands.Cog, name="User Commands"):
             )
             self.uh.addNewDataEntry(userID)
         textCount = self.uh.getUserTextCount(userID)
-        textCount += amount
+        textCount += int(amount)
         self.uh.setUserTextCount(userID, textCount)
         message += (
             f"Increases user {str(self.bot.get_user(int(userID)))} TextCount by {amount}. TextCount is set to {textCount}."
