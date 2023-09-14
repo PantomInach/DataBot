@@ -45,9 +45,13 @@ class Commanduser(commands.Cog, name="User Commands"):
     commands.
 
     Commands:
-            user dec [User ID]
+            user dec tc [User ID] [amount]
+            user dec text [User ID] [amount]
+            user dec voice [User ID] [amount]
             user get [User ID]
-            user inc [User ID]
+            user inc tc [User ID] [amount]
+            user inc text [User ID] [amount]
+            user inc voice [User ID] [amount]
             user rm [User ID]
             user set tc [User ID] [amount]
             user set text [User ID] [amount]
