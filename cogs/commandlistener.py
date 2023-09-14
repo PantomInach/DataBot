@@ -52,7 +52,7 @@ class Commandlistener(commands.Cog):
         # Sends message to mods, when bot is online
         print("Now Online")
         await self.utils.sendModsMessage(
-            "Bot is now online.\nVersion:\tDiscordBot DataBot v2.6.2"
+            "Bot is now online.\nVersion:\tDiscordBot DataBot v2.6.4"
         )
         # Sets the bot's presence to "Online" or "Do not Disturb" to indicate if it's logging or not.
         if self.ch.getFromConfig("log") == "True":

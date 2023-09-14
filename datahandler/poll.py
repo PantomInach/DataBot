@@ -478,7 +478,7 @@ class Poll(object):
             datum = str(self.getDate(pollID))[:10]
             status = str(self.getStatus(pollID))
             sumVotes = str(self.getSumVotes(pollID))
-            text = f"```md\n{' '*(3-len(str(pollID)))}{pollID} {name}{' '*(72-len(name))}      Date: {datum}     Status: {status}{' '*(9-len(status))}     Votes:{' '*(5-len(sumVotes))}{sumVotes}\n```\n"
+            text = f"```md\n{' '*(3-len(str(pollID)))}{pollID} {name}{' '*(28-len(name))}   Date: {datum}   Status: {status}{' '*(9-len(status))}   Votes: {' '*(5-len(sumVotes))}{sumVotes}\n```\n"
             return text
         return ""
 
@@ -506,5 +506,5 @@ class Poll(object):
                 optionName = str(option[0])
                 optionVotes = str(option[1])
                 optionNumber = str(option[2])
-                message += f"```md\n     {optionNumber}. {optionName}{' '*(112-len(optionName))}     Votes: {' '*(4-len(optionVotes))}{optionVotes}\n```\n"
+                message += f"```md\n     {optionNumber}. {optionName}{' '*(64-len(optionName))}   Votes: {' '*(4-len(optionVotes))}{optionVotes}\n```\n"
         return message
