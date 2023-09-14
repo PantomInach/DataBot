@@ -192,7 +192,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         Sends an overview of the poll.
         """
         message = ""
-        if len(pollName) <= 71:
+        if len(pollName) <= 27:
             pollID = self.poll.newPoll(pollName)
             datum = self.poll.getDate(pollID)
             status = self.poll.getStatus(pollID)
@@ -288,7 +288,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         """
         message = ""
         if self.poll.isAPollID(pollID):
-            if len(optionName) <= 112:
+            if len(optionName) <= 70:
                 if not self.poll.optionAdd(pollID, str(optionName), 0):
                     message = (
                         "ERROR: Option Name is already taken or poll is "
