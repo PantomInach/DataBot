@@ -45,7 +45,13 @@ class Commanduser(commands.Cog, name="User Commands"):
     commands.
 
     Commands:
+            user dec tc [User ID] [amount]
+            user dec text [User ID] [amount]
+            user dec voice [User ID] [amount]
             user get [User ID]
+            user inc tc [User ID] [amount]
+            user inc text [User ID] [amount]
+            user inc voice [User ID] [amount]
             user rm [User ID]
             user set tc [User ID] [amount]
             user set text [User ID] [amount]
@@ -89,9 +95,11 @@ class Commanduser(commands.Cog, name="User Commands"):
         Used to manage users via the bot.
 
         Commands:
+                user dec:   Can decrease the exp specific data of a user.
                 user get:   Gives an overview of stored data from the user.
+                user inc:   Can increase the exp specific data of a user.
                 user rm:    Removes the user data from the stored data.
-                user set:   Can set the ex specific data of a user.
+                user set:   Can set the exp specific data of a user.
                 user star:  Gives user 'star of the week' role.
                 user tb:    Manages text bans of users.
 
@@ -165,6 +173,80 @@ class Commanduser(commands.Cog, name="User Commands"):
         embed.set_footer(text="For more help run '+help user set'")
         await ctx.send(embed=embed, delete_after=3600)
 
+    @userParent.group(name="dec", brief="Group of user dec commands.")
+    @isBotModCommand()
+    async def userDecParent(self, ctx):
+        """
+        This command is used to decrease the voicexp, textxp, textcount of users by a given amount.
+        Commands:
+                user dec tc     => decreases textcount
+                user dec voice  => decreases voicexp
+                user dec text   => decreases textxp
+
+        Can only be used by bot mods aka user with a privilege level of 1 or higher.
+
+        More info can be found via 'help [command]'.
+
+        All commands in the list below can be executed in this channel.
+        """
+        """
+        param ctx:  Discord Context object. Automatically passed.
+
+        Is the parent command for the 'user dec' command.
+        When invoked without a sub command an error will be sent. The error message
+        will be deleted after an hour.
+        """
+        if ctx.invoked_subcommand is not None:
+            return
+        title = (
+            "You need to specify a sub command. Possible sub commands:"
+            + " voice, text, tc"
+        )
+        embed = discord.Embed(
+            title=title,
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(text="For more help run '+help user dec'")
+        await ctx.send(embed=embed, delete_after=3600)
+
+    @userParent.group(name="inc", brief="Group of user inc commands.")
+    @isBotModCommand()
+    async def userIncParent(self, ctx):
+        """
+        This command is used to increase the voicexp, textxp, textcount of users by a given amount.
+        Commands:
+                user inc tc     => increases textcount
+                user inc voice  => increases voicexp
+                user inc text   => increases textxp
+
+        Can only be used by bot mods aka user with a privilege level of 1 or higher.
+
+        More info can be found via 'help [command]'.
+
+        All commands in the list below can be executed in this channel.
+        """
+        """
+        param ctx:  Discord Context object. Automatically passed.
+
+        Is the parent command for the 'user inc' command.
+        When invoked without a sub command an error will be sent. The error message
+        will be deleted after an hour.
+        """
+        if ctx.invoked_subcommand is not None:
+            return
+        title = (
+            "You need to specify a sub command. Possible sub commands:"
+            + " voice, text, tc"
+        )
+        embed = discord.Embed(
+            title=title,
+            color=0xA40000,
+        )
+        embed.set_author(name="Invalid command")
+        embed.set_footer(text="For more help run '+help user inc'")
+        await ctx.send(embed=embed, delete_after=3600)
+
     @userParent.command(name="get", brief="Gets brief user data.")
     @isBotModCommand()
     async def getUserData(self, ctx, userID):
@@ -232,6 +314,89 @@ class Commanduser(commands.Cog, name="User Commands"):
         )
         await ctx.send(message)
 
+    @userDecParent.command(name="voice", brief="Decreases users voicexp")
+    async def decVoiceXP(self, ctx, userID, amount):
+        """
+        Decreases users voice xp by given amount via 'user dec voice [User ID] [amount]'.
+        An integer is needed for the amount.
+
+        Can only be used by bot mods aka user with a privilage level of 1 or higher.
+        """
+        """
+        Command: poll dec voice [userID] [amount]
+
+        param ctx:  Discord Context object.
+        param userID:   Is the user ID from discord user as a string or int
+        param amount:   Integer
+
+        Decreases member Voice XP by amount.
+        """
+        message = ""
+        if not self.uh.isInData(userID):
+            message = (
+                "User was not found in data. Created user: "
+                + f"{self.bot.get_user(int(userID))}\n"
+            )
+            self.uh.addNewDataEntry(userID)
+        else:
+            voiceXP = self.uh.getUserVoice(userID)
+            if int(amount) > voiceXP:
+                amount = voiceXP
+            voiceXP -= int(amount)
+            self.uh.setUserVoice(userID, voiceXP)
+            message += (
+                f"Decreases user {str(self.bot.get_user(int(userID)))} voiceXP by {amount}. VoiceXP is set to {voiceXP}."
+            )
+            log_message = (
+                f"User {ctx.author} decreases user "
+                + f"{str(self.bot.get_user(int(userID)))} voiceXP by {amount} to {voiceXP}."
+            )
+            await self.utils.log(
+                log_message,
+                2,
+            )
+        await ctx.send(message)
+
+    @userIncParent.command(name="voice", brief="Increases users voicexp")
+    async def incVoiceXP(self, ctx, userID, amount):
+        """
+        Increases users voice xp by given amount via 'user inc voice [User ID] [amount]'.
+        An integer is needed for the amount.
+
+        Can only be used by bot mods aka user with a privilage level of 1 or higher.
+        """
+        """
+        Command: poll dec voice [userID] [amount]
+
+        param ctx:  Discord Context object.
+        param userID:   Is the user ID from discord user as a string or int
+        param amount:   Integer
+
+        Increases member Voice XP by amount.
+        """
+        message = ""
+        if not self.uh.isInData(userID):
+            message = (
+                "User was not found in data. Created user: "
+                + f"{self.bot.get_user(int(userID))}\n"
+            )
+            self.uh.addNewDataEntry(userID)
+        voiceXP = self.uh.getUserVoice(userID)
+        voiceXP += int(amount)
+        self.uh.setUserVoice(userID, voiceXP)
+        message += (
+            f"Increases user {str(self.bot.get_user(int(userID)))} voiceXP by {amount}. VoiceXP is set to {voiceXP}."
+        )
+        log_message = (
+            f"User {ctx.author} increases user "
+            + f"{str(self.bot.get_user(int(userID)))} voiceXP by {amount} to {voiceXP}."
+        )
+        await self.utils.log(
+            log_message,
+            2,
+        )
+        await ctx.send(message)
+
     @userSetParent.command(name="text", brief="Sets users textxp.")
     async def setTextXP(self, ctx, userID, amount):
         """
@@ -271,6 +436,91 @@ class Commanduser(commands.Cog, name="User Commands"):
         )
         await ctx.send(message)
 
+    @userDecParent.command(name="text", brief="Decreases users textxp.")
+    async def decTextXP(self, ctx, userID, amount):
+        """
+        Decreases users text XP by given amount via 'user dec text [userID] [amount]'.
+        An integer is needed for the amount.
+
+        Can only be used by bot mods aka user with a privilage level of 1 or higher.
+        """
+        """
+        Command: poll dec text <userID> <amount>
+
+        param ctx:  Discord Context object.
+        param userID:   Is the userID from discord user as a string or int
+        param amount:   Integer
+
+        Decreases member Text XP by amount.
+        """
+        message = ""
+        if not self.uh.isInData(userID):
+            message = (
+                "User was not in data."
+                + f" Created user: {self.bot.get_user(int(userID))}\n"
+            )
+            self.uh.addNewDataEntry(userID)
+        else:
+            textXP = self.uh.getUserText(userID)
+            if int(amount) > textXP:
+                amount = textXP 
+            textXP -= int(amount)
+            self.uh.setUserText(userID, textXP)
+            message += (
+                f"Decrease user {str(self.bot.get_user(int(userID)))} "
+                + f"textXP by {amount}. TextXP is set to {textXP}."
+            )
+            log_message = (
+                f"User {ctx.author} decreases user "
+                + f"{str(self.bot.get_user(int(userID)))} textXP by {amount} to {textXP}."
+            )
+            await self.utils.log(
+                log_message,
+                2,
+            )
+        await ctx.send(message)
+
+    @userIncParent.command(name="text", brief="Increases users textxp.")
+    async def incTextXP(self, ctx, userID, amount):
+        """
+        Increases users text XP by given amount via 'user dec text [userID] [amount]'.
+        An integer is needed for the amount.
+
+        Can only be used by bot mods aka user with a privilage level of 1 or higher.
+        """
+        """
+        Command: poll inc text <userID> <amount>
+
+        param ctx:  Discord Context object.
+        param userID:   Is the userID from discord user as a string or int
+        param amount:   Integer
+
+        Decreases member Text XP by amount.
+        """
+        message = ""
+        if not self.uh.isInData(userID):
+            message = (
+                "User was not in data."
+                + f" Created user: {self.bot.get_user(int(userID))}\n"
+            )
+            self.uh.addNewDataEntry(userID)
+        textXP = self.uh.getUserText(userID)
+        textXP += int(amount) 
+        self.uh.setUserText(userID, textXP)
+        message += (
+            f"Increase user {str(self.bot.get_user(int(userID)))} "
+            + f"textXP by {amount}. TextXP is set to {textXP}."
+        )
+        log_message = (
+            f"User {ctx.author} increases user "
+            + f"{str(self.bot.get_user(int(userID)))} textXP by {amount} to {textXP}."
+        )
+        await self.utils.log(
+            log_message,
+            2,
+        )
+        await ctx.send(message)
+
     @userSetParent.command(name="tc", brief="Sets users text count")
     async def setTextCount(self, ctx, userID, amount):
         """
@@ -302,6 +552,89 @@ class Commanduser(commands.Cog, name="User Commands"):
         log_message = (
             f"User {ctx.author} set user "
             + f"{str(self.bot.get_user(int(userID)))} textCount to {amount}."
+        )
+        await self.utils.log(
+            log_message,
+            2,
+        )
+        await ctx.send(message)
+
+    @userDecParent.command(name="tc", brief="Decreases users text count")
+    async def decTextCount(self, ctx, userID, amount):
+        """
+        Decreases users text count by given amount via 'user dec tc [userID] [amount]'.
+        An integer is needed for the amount.
+
+        Can only be used by bot mods aka user with a privilege level of 1 or higher.
+        """
+        """
+        Command: poll dec tc [userID] [amount]
+
+        param ctx:  Discord Context object.
+        param userID:   Is the user ID from discord user as a string or int
+        param amount:   Integer
+
+        Sets member text count to amount.
+        """
+        message = ""
+        if not self.uh.isInData(userID):
+            message = (
+                "User was not found in data. Created user: "
+                + f"{self.bot.get_user(int(userID))}\n"
+            )
+            self.uh.addNewDataEntry(userID)
+        else:
+            textCount = self.uh.getUserTextCount(userID)
+            if int(amount) > textCount:
+                amount = textCount
+            textCount -= int(amount)
+            self.uh.setUserTextCount(userID, textCount)
+            message += (
+                f"Decreases user {str(self.bot.get_user(int(userID)))} TextCount by {amount}. TextCount is set to {textCount}."
+            )
+            log_message = (
+                f"User {ctx.author} decreases user "
+                + f"{str(self.bot.get_user(int(userID)))} textCount by {amount} to {textCount}."
+            )
+            await self.utils.log(
+                log_message,
+                2,
+            )
+        await ctx.send(message)
+
+    @userIncParent.command(name="tc", brief="Increases users text count")
+    async def incTextCount(self, ctx, userID, amount):
+        """
+        Increases users text count by given amount via 'user dec tc [userID] [amount]'.
+        An integer is needed for the amount.
+
+        Can only be used by bot mods aka user with a privilege level of 1 or higher.
+        """
+        """
+        Command: poll dec tc [userID] [amount]
+
+        param ctx:  Discord Context object.
+        param userID:   Is the user ID from discord user as a string or int
+        param amount:   Integer
+
+        Sets member text count to amount.
+        """
+        message = ""
+        if not self.uh.isInData(userID):
+            message = (
+                "User was not found in data. Created user: "
+                + f"{self.bot.get_user(int(userID))}\n"
+            )
+            self.uh.addNewDataEntry(userID)
+        textCount = self.uh.getUserTextCount(userID)
+        textCount += int(amount)
+        self.uh.setUserTextCount(userID, textCount)
+        message += (
+            f"Increases user {str(self.bot.get_user(int(userID)))} TextCount by {amount}. TextCount is set to {textCount}."
+        )
+        log_message = (
+            f"User {ctx.author} increases user "
+            + f"{str(self.bot.get_user(int(userID)))} textCount by {amount} to {textCount}."
         )
         await self.utils.log(
             log_message,
