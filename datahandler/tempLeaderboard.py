@@ -14,7 +14,7 @@ class XPTypes(Enum):
     TEXT = 2
 
 
-class TempPoll(object):
+class TempLeaderboard(object):
     _instance = None
 
     def __new__(
@@ -24,7 +24,7 @@ class TempPoll(object):
         timeFrame=TIME_FRAME,
     ):
         if cls._instance is None or overrideSingelton:
-            cls._instance = super(TempPoll, cls).__new__(cls)
+            cls._instance = super(TempLeaderboard, cls).__new__(cls)
             cls.timeFrame = timeFrame
             if not dbFilePath:
                 cls.dbPath = cls.datapath + "temp_userdata.sqlite"
@@ -33,7 +33,7 @@ class TempPoll(object):
 
             cls.db = SqliteDict(cls.dbPath, outer_stack=True, autocommit=True)
 
-            atexit.register(TempPoll._cleanup, cls.db)
+            atexit.register(TempLeaderboard._cleanup, cls.db)
         return cls._instance
 
     def userInDB(self, user: int | str) -> bool:
@@ -100,6 +100,6 @@ class TempPoll(object):
         Keyword arguments:
         db -- SqliteDict database object, which should be closed.
         """
-        print("[TempPoll] Closing Databank")
+        print("[TempLeaderboard] Closing Databank")
         db.commit()
         db.close()

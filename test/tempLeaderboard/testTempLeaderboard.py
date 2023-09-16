@@ -4,7 +4,7 @@ import time
 import os
 import shutil
 
-from datahandler.tempPoll import TempPoll, XPTypes
+from datahandler.tempLeaderboard import TempLeaderboard, XPTypes
 
 
 class TestUserHandle(unittest.TestCase):
@@ -35,7 +35,7 @@ class TestUserHandle(unittest.TestCase):
                 db[key] = value
             db.commit()
 
-        self.tempPoll = TempPoll(
+        self.tempPoll = TempLeaderboard(
             "test/data/test.sqlite",
             True,
             30,
