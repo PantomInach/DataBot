@@ -35,7 +35,7 @@ class TempLeaderboard(object):
             cls._instance = super(TempLeaderboard, cls).__new__(cls)
             cls.timeFrame = timeFrame
             if not dbFilePath:
-                cls.dbPath = cls.datapath + "temp_userdata.sqlite"
+                cls.dbPath = "data/temp_userdata.sqlite"
             else:
                 cls.dbPath = dbFilePath
 
