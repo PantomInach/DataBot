@@ -16,6 +16,7 @@ class XPTypes(Enum):
 
 
 class SortBy(Enum):
+    NULL = (0, 0, 0, 0)
     VOICE_TEXT = (0, 1, 1, 0)
     VOICE = (0, 1, 0, 0)
     TEXTCOUNT = (0, 0, 0, 1)
@@ -119,15 +120,15 @@ class TempLeaderboard(object):
         ), key=lambda tup: TempLeaderboard._applySortMask(sortBy, tup[1]), reverse=True)
         return list(sortedData)
 
-    @ staticmethod
+    @staticmethod
     def _applySortMask(sortBy: SortBy, data: Dict[XPTypes, int]) -> int:
         return sum((x * y for x, y in zip(data.values(), sortBy.value)))
 
-    @ staticmethod
+    @staticmethod
     def _oldestAllowedTime(timeFrame: int) -> int:
         return time() - (86400 * timeFrame)
 
-    @ classmethod
+    @classmethod
     def _cleanup(cls, db):
         """
         Method closing the database file, when the object is destroyed.
