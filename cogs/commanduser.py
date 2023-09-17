@@ -1012,7 +1012,7 @@ class Commanduser(commands.Cog, name="User Commands"):
 
     @commands.command(name="top", brief="Sends an interactive rank list.")
     @isInChannelCommand(*channel_userLeaderboard)
-    async def leaderboard(self, ctx):
+    async def leaderboard(self, ctx, *args):
         """
         Spawns an interactive leaderboard in the "⏫level" via the command 'top'.
         Displays the first 10 member with the highest XP total.
@@ -1032,15 +1032,13 @@ class Commanduser(commands.Cog, name="User Commands"):
 
         Creates a leaderboard and posts it with the emojis to manipulate it.
         """
-        await self.utils.log(f"+top by {ctx.author}", 1)  # Notify Mods
+        await self.utils.log(f"+top {args} by {ctx.author}", 1)  # Notify Mods
         # Create leaderboard
         text = f"{self.utils.getLeaderboardPageBy(0,0)}{ctx.author.mention}"
-        message = await ctx.send(
-            text, view=LeaderboardButtons(self.utils), delete_after=86400
+        timeFrame = None if len(args) == 0 or not str(args[0]).isdigit() else args[0]
+        await ctx.send(
+            text, view=LeaderboardButtons(self.utils, timeFrame=timeFrame), delete_after=86400
         )
-        # reactionsarr = ["⏫", "⬅", "➡", "⏰", "💌"]
-        # for emoji in reactionsarr:
-        #     await message.add_reaction(emoji)
         await ctx.message.delete()
 
     @commands.command(name="quote", brief="Sends an unique inspirational quote.")

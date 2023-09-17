@@ -1,6 +1,8 @@
 import discord
 from enum import Enum
 
+from datahandler.tempLeaderboard import SortBy
+
 
 class SortedByEnum(Enum):
     XP = 0
@@ -9,8 +11,9 @@ class SortedByEnum(Enum):
 
 
 class LeaderboardButtons(discord.ui.View):
-    def __init__(self, utils):
+    def __init__(self, utils, timeFrame=None):
         self.sorted_by = SortedByEnum.XP
+        self.timeFrame = timeFrame
         self.utils = utils
         super().__init__(timeout=None)
 
@@ -171,5 +174,23 @@ class LeaderboardButtons(discord.ui.View):
         await interaction.response.defer(ephemeral=False)
 
     def _getLeaderBoard(self, page: int, sortBy: SortedByEnum) -> str:
+        if self.timeFrame:
+            return self._getTempLeaderBoard(page, sortBy)
+        else:
+            return self._getLeaderBoard(page, sortBy)
+
+    def _getTotalLeaderBoard(self, page: int, sortBy: SortedByEnum) -> str:
         leaderboard_text = self.utils.getLeaderboardPageBy(page, sortBy.value)
+        return leaderboard_text
+
+    def _getTempLeaderBoard(self, page: int, sortByEnum: SortedByEnum) -> str:
+        if sortByEnum == SortedByEnum.XP:
+            sortBy = SortBy.VOICE_TEXT
+        elif sortByEnum == SortedByEnum.VOICE:
+            sortBy == SortBy.VOICE
+        elif sortByEnum == SortedByEnum.MESSAGES:
+            sortBy == SortBy.TEXTCOUNT
+        else:
+            sortBy = SortBy.NULL
+        leaderboard_text = self.utils.getTempLeaderboardPageBy(page, sortBy, self.timeFrame)
         return leaderboard_text
