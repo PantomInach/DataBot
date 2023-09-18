@@ -11,7 +11,7 @@ from datahandler.sub import Sub
 from datahandler.configHandle import ConfigHandle
 from datahandler.userHandle import UserHandle
 from datahandler.commandrights import read_rights_of
-from button_views.leaderboard_buttons import LeaderboardButtons
+from button_views.leaderboard_buttons import LeaderboardButtons, SortBy
 
 import datetime
 import time
@@ -1034,11 +1034,16 @@ class Commanduser(commands.Cog, name="User Commands"):
         """
         await self.utils.log(f"+top {args} by {ctx.author}", 1)  # Notify Mods
         # Create leaderboard
-        text = f"{self.utils.getLeaderboardPageBy(0,0)}{ctx.author.mention}"
-        timeFrame = None if len(args) == 0 or not str(args[0]).isdigit() else args[0]
-        await ctx.send(
-            text, view=LeaderboardButtons(self.utils, timeFrame=timeFrame), delete_after=86400
-        )
+        if len(args) > 0 and str(args[0]).isdigit():
+            timeFrame = int(args[0])
+            text = self.utils.getTempLeaderboardPageBy(0, SortBy.VOICE_TEXT, timeFrame=timeFrame)
+        else:
+            timeFrame = None
+            text = self.utils.getLeaderboardPageBy(0, 0)
+        if text:
+            await ctx.send(
+                text + str(ctx.author.mention), view=LeaderboardButtons(self.utils, timeFrame=timeFrame), delete_after=86400
+            )
         await ctx.message.delete()
 
     @commands.command(name="quote", brief="Sends an unique inspirational quote.")

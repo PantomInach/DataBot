@@ -187,9 +187,9 @@ class LeaderboardButtons(discord.ui.View):
         if sortByEnum == SortedByEnum.XP:
             sortBy = SortBy.VOICE_TEXT
         elif sortByEnum == SortedByEnum.VOICE:
-            sortBy == SortBy.VOICE
+            sortBy = SortBy.VOICE
         elif sortByEnum == SortedByEnum.MESSAGES:
-            sortBy == SortBy.TEXTCOUNT
+            sortBy = SortBy.TEXTCOUNT
         else:
             sortBy = SortBy.NULL
         leaderboard_text = self.utils.getTempLeaderboardPageBy(page, sortBy, self.timeFrame)

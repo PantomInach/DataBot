@@ -15,7 +15,7 @@ from button_views.leaderboard_buttons import LeaderboardButtons
 # import hashlib
 
 from emoji import UNICODE_EMOJI
-from typing import Union, Dict
+from typing import Union, Dict, Tuple
 
 NUMBER_OF_USERS_PER_PAGE = 10
 
@@ -241,14 +241,14 @@ class Utils(object):
         """
         userPerPage = NUMBER_OF_USERS_PER_PAGE
         firstUserOnLeaderBoard = page * userPerPage
-        userIDs: Dict[str, Dict[XPTypes, int]] = self.tempLeaderboard.getAllUserSummedDataInTimeFrame(timeFrame=timeFrame)[firstUserOnLeaderBoard: firstUserOnLeaderBoard + userPerPage]
+        userIDs: Tuple[Tuple[str, Dict[XPTypes, int]]] = self.tempLeaderboard.sortDataWindowBy(sortBy, window=timeFrame)[firstUserOnLeaderBoard: firstUserOnLeaderBoard + userPerPage]
         rank = page * userPerPage + 1
         guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         leaderboard = f"**Leaderboard {guild.name} of the last {timeFrame} days**\n```as"
         # Generate leaderboard string
         if not userIDs:
             return ""
-        for userID, value in userIDs.items():
+        for userID, value in userIDs:
             nick, name = Utils._getUserNameNickCombo(userID, guild)
             # Formatting data
             other, voice, text, textcount, *_ = value.values()
