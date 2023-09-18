@@ -21,9 +21,7 @@ class LeaderboardButtons(discord.ui.View):
     # async def page_spacer(self, interaction: discord.Interaction, button: discord.ui.Button):
     #     await interaction.response.defer(ephemeral=False)
 
-    @discord.ui.button(
-        label="TOP", row=0, style=discord.ButtonStyle.primary, emoji="⏫"
-    )
+    @discord.ui.button(label="TOP", row=0, style=discord.ButtonStyle.primary, emoji="⏫")
     async def go_to_page_one(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
@@ -44,9 +42,7 @@ class LeaderboardButtons(discord.ui.View):
             print("Error: Leaderboard button should have have a message")
         await interaction.response.defer(ephemeral=False)
 
-    @discord.ui.button(
-        label="UP", row=0, style=discord.ButtonStyle.primary, emoji="⬆"
-    )
+    @discord.ui.button(label="UP", row=0, style=discord.ButtonStyle.primary, emoji="⬆")
     async def previous_page(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
@@ -101,9 +97,7 @@ class LeaderboardButtons(discord.ui.View):
     # async def sort_by_spacer(self, interaction: discord.Interaction, button: discord.ui.Button):
     #     await interaction.response.defer(ephemeral=False)
 
-    @discord.ui.button(
-        label="EXP", row=1, style=discord.ButtonStyle.primary, emoji="🌟"
-    )
+    @discord.ui.button(label="EXP", row=1, style=discord.ButtonStyle.primary, emoji="🌟")
     async def sort_by_xp(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
@@ -192,5 +186,7 @@ class LeaderboardButtons(discord.ui.View):
             sortBy = SortBy.TEXTCOUNT
         else:
             sortBy = SortBy.NULL
-        leaderboard_text = self.utils.getTempLeaderboardPageBy(page, sortBy, self.timeFrame)
+        leaderboard_text = self.utils.getTempLeaderboardPageBy(
+            page, sortBy, self.timeFrame
+        )
         return leaderboard_text

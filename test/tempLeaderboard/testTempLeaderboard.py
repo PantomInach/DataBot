@@ -29,7 +29,7 @@ class TestUserHandle(unittest.TestCase):
                 (self.validTime, XPTypes.VOICE, 13),
                 (self.setupTime, XPTypes.TEXT, 14),
                 (self.setupTime, XPTypes.TEXT, 15),
-            ]
+            ],
         }
         os.makedirs("test/data/", exist_ok=True)
         with SqliteDict("test/data/test.sqlite") as db:
@@ -62,32 +62,95 @@ class TestUserHandle(unittest.TestCase):
                 (self.validTime, XPTypes.VOICE, 13),
                 (self.setupTime, XPTypes.TEXT, 14),
                 (self.setupTime, XPTypes.TEXT, 15),
-            ]}
+            ],
+        }
         self.tempLeaderboard.removeAllOutdatedEntries()
-        self.assertEqual(tuple(expect.items()),
-                         tuple(self.tempLeaderboard.db.items()))
+        self.assertEqual(tuple(expect.items()), tuple(self.tempLeaderboard.db.items()))
 
     def test_getAllUserSummedData(self):
         expect = {
-            "1": {XPTypes.OTHER: 0, XPTypes.TEXT: 11, XPTypes.VOICE: 7, XPTypes.TEXTCOUNT: 0},
-            "2": {XPTypes.OTHER: 0, XPTypes.TEXT: 29, XPTypes.VOICE: 25, XPTypes.TEXTCOUNT: 0},
+            "1": {
+                XPTypes.OTHER: 0,
+                XPTypes.TEXT: 11,
+                XPTypes.VOICE: 7,
+                XPTypes.TEXTCOUNT: 0,
+            },
+            "2": {
+                XPTypes.OTHER: 0,
+                XPTypes.TEXT: 29,
+                XPTypes.VOICE: 25,
+                XPTypes.TEXTCOUNT: 0,
+            },
         }
         self.assertEqual(expect, self.tempLeaderboard.getAllUserSummedData())
 
     def test_sortDataWindowBy(self):
         expect = [
-            ("2", {XPTypes.OTHER: 0, XPTypes.TEXT: 29, XPTypes.VOICE: 25, XPTypes.TEXTCOUNT: 0}),
-            ("1", {XPTypes.OTHER: 0, XPTypes.TEXT: 11, XPTypes.VOICE: 7, XPTypes.TEXTCOUNT: 0}),
+            (
+                "2",
+                {
+                    XPTypes.OTHER: 0,
+                    XPTypes.TEXT: 29,
+                    XPTypes.VOICE: 25,
+                    XPTypes.TEXTCOUNT: 0,
+                },
+            ),
+            (
+                "1",
+                {
+                    XPTypes.OTHER: 0,
+                    XPTypes.TEXT: 11,
+                    XPTypes.VOICE: 7,
+                    XPTypes.TEXTCOUNT: 0,
+                },
+            ),
         ]
-        self.assertEqual(expect, self.tempLeaderboard.sortDataWindowBy(SortBy.VOICE_TEXT))
+        self.assertEqual(
+            expect, self.tempLeaderboard.sortDataWindowBy(SortBy.VOICE_TEXT)
+        )
         expect = [
-            ("2", {XPTypes.OTHER: 0, XPTypes.TEXT: 29, XPTypes.VOICE: 0, XPTypes.TEXTCOUNT: 0}),
-            ("1", {XPTypes.OTHER: 0, XPTypes.TEXT: 11, XPTypes.VOICE: 1, XPTypes.TEXTCOUNT: 0}),
+            (
+                "2",
+                {
+                    XPTypes.OTHER: 0,
+                    XPTypes.TEXT: 29,
+                    XPTypes.VOICE: 0,
+                    XPTypes.TEXTCOUNT: 0,
+                },
+            ),
+            (
+                "1",
+                {
+                    XPTypes.OTHER: 0,
+                    XPTypes.TEXT: 11,
+                    XPTypes.VOICE: 1,
+                    XPTypes.TEXTCOUNT: 0,
+                },
+            ),
         ]
-        self.assertEqual(expect, self.tempLeaderboard.sortDataWindowBy(SortBy.VOICE_TEXT, window=10))
+        self.assertEqual(
+            expect, self.tempLeaderboard.sortDataWindowBy(SortBy.VOICE_TEXT, window=10)
+        )
         expect = [
-            ("1", {XPTypes.OTHER: 0, XPTypes.TEXT: 11, XPTypes.VOICE: 1, XPTypes.TEXTCOUNT: 0}),
-            ("2", {XPTypes.OTHER: 0, XPTypes.TEXT: 29, XPTypes.VOICE: 0, XPTypes.TEXTCOUNT: 0}),
+            (
+                "1",
+                {
+                    XPTypes.OTHER: 0,
+                    XPTypes.TEXT: 11,
+                    XPTypes.VOICE: 1,
+                    XPTypes.TEXTCOUNT: 0,
+                },
+            ),
+            (
+                "2",
+                {
+                    XPTypes.OTHER: 0,
+                    XPTypes.TEXT: 29,
+                    XPTypes.VOICE: 0,
+                    XPTypes.TEXTCOUNT: 0,
+                },
+            ),
         ]
-        self.assertEqual(expect, self.tempLeaderboard.sortDataWindowBy(SortBy.VOICE, window=10))
-
+        self.assertEqual(
+            expect, self.tempLeaderboard.sortDataWindowBy(SortBy.VOICE, window=10)
+        )

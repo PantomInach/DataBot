@@ -75,9 +75,9 @@ class TempLeaderboard(object):
         self.addUser(user)
         self.db[str(user)] = list(
             filter(
-                lambda entry: entry[0] > TempLeaderboard._oldestAllowedTime(
-                    self.timeFrame),
-                self.db[str(user)]
+                lambda entry: entry[0]
+                > TempLeaderboard._oldestAllowedTime(self.timeFrame),
+                self.db[str(user)],
             )
         )
 
@@ -93,31 +93,49 @@ class TempLeaderboard(object):
     def getUserSummedData(self, user: int | str) -> Dict[XPTypes, int] | None:
         return self.getUserSummedDataInTimeFrame(user, TIME_FRAME)
 
-    def getUserSummedDataInTimeFrame(self, user: int | str, timeFrame: int) -> Dict[XPTypes, int] | None:
+    def getUserSummedDataInTimeFrame(
+        self, user: int | str, timeFrame: int
+    ) -> Dict[XPTypes, int] | None:
         self.removeOutdatedUserEntries(user)
         if not self.userInDB(user):
             return None
         entries = self.db[str(user)]
         res = {}
         for xpType in XPTypes:
-            total = sum(map(lambda entry: entry[2], filter(
-                lambda entry: entry[1] == xpType and entry[0] > self._oldestAllowedTime(
-                    timeFrame), entries
-            )))
+            total = sum(
+                map(
+                    lambda entry: entry[2],
+                    filter(
+                        lambda entry: entry[1] == xpType
+                        and entry[0] > self._oldestAllowedTime(timeFrame),
+                        entries,
+                    ),
+                )
+            )
             res[xpType] = total
         return res
 
     def getAllUserSummedData(self) -> Dict[str, Dict[XPTypes, int]]:
         return self.getAllUserSummedDataInTimeFrame(self.timeFrame)
 
-    def getAllUserSummedDataInTimeFrame(self, timeFrame: int) -> Dict[str, Dict[XPTypes, int]]:
-        return {user: self.getUserSummedDataInTimeFrame(user, timeFrame) for user in self.db.keys()}
+    def getAllUserSummedDataInTimeFrame(
+        self, timeFrame: int
+    ) -> Dict[str, Dict[XPTypes, int]]:
+        return {
+            user: self.getUserSummedDataInTimeFrame(user, timeFrame)
+            for user in self.db.keys()
+        }
 
-    def sortDataWindowBy(self, sortBy: SortBy, window: None | int = None) -> Tuple[Tuple[str, Dict[XPTypes, int]]]:
+    def sortDataWindowBy(
+        self, sortBy: SortBy, window: None | int = None
+    ) -> Tuple[Tuple[str, Dict[XPTypes, int]]]:
         if window is None:
             window = self.timeFrame
-        sortedData = sorted(self.getAllUserSummedDataInTimeFrame(window).items(
-        ), key=lambda tup: TempLeaderboard._applySortMask(sortBy, tup[1]), reverse=True)
+        sortedData = sorted(
+            self.getAllUserSummedDataInTimeFrame(window).items(),
+            key=lambda tup: TempLeaderboard._applySortMask(sortBy, tup[1]),
+            reverse=True,
+        )
         return list(sortedData)
 
     @staticmethod

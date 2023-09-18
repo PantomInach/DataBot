@@ -12,6 +12,7 @@ class PollView(discord.ui.View):
 
     Note that after a bot restart the polls need to be reopened.
     """
+
     def __init__(self, button_amount: int, poll: Poll, pollID: int):
         self.button_amount: int = button_amount
         self.poll: Poll = poll
@@ -22,7 +23,12 @@ class PollView(discord.ui.View):
 
     def _create_button(self, vote_for_option: int) -> Button:
         button = VoteForButton(
-            vote_for_option, self.poll, self.pollID, style=discord.ButtonStyle.primary, emoji=POLL_EMOJIS[vote_for_option])
+            vote_for_option,
+            self.poll,
+            self.pollID,
+            style=discord.ButtonStyle.primary,
+            emoji=POLL_EMOJIS[vote_for_option],
+        )
         return button
 
 
@@ -39,7 +45,7 @@ class VoteForButton(Button):
         await interaction.response.send_message(
             f"You voted for option {self.option + 1}: '{option_text}'.",
             ephemeral=True,
-            delete_after=60
+            delete_after=60,
         )
 
     async def _vote_for_option(self, user, option, message):

@@ -97,8 +97,7 @@ class Utils(object):
         guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         member = guild.get_member(int(userID))
         role = find(
-            lambda r: r.id == roleName or str(
-                r.id) == roleName or r.name == roleName,
+            lambda r: r.id == roleName or str(r.id) == roleName or r.name == roleName,
             guild.roles,
         )
         if role:
@@ -121,8 +120,7 @@ class Utils(object):
         # Gets the roles to give by the role's name.
         rolesList = tuple(
             find(
-                lambda role: str(
-                    role.id) == r or role.id == r or role.name == r,
+                lambda role: str(role.id) == r or role.id == r or role.name == r,
                 list(set(guild.roles) - set(member.roles)),
             )
             for r in roleNames
@@ -148,8 +146,7 @@ class Utils(object):
         guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
         member = guild.get_member(int(userID))
         role = find(
-            lambda r: r.id == roleName or str(
-                r.id) == roleName or r.name == roleName,
+            lambda r: r.id == roleName or str(r.id) == roleName or r.name == roleName,
             member.roles,
         )
         if role:
@@ -174,8 +171,7 @@ class Utils(object):
         # Gets the roles to remove by the role's name.
         rolesList = tuple(
             find(
-                lambda role: str(
-                    role.id) == r or role.id == r or role.name == r,
+                lambda role: str(role.id) == r or role.id == r or role.name == r,
                 member.roles,
             )
             for r in roleNames
@@ -203,11 +199,11 @@ class Utils(object):
         number -- Is an random number as a string, float or int.
         """
         if len(str(number)) > 7:
-            number = str(number)[:-6] + 'M'
+            number = str(number)[:-6] + "M"
         elif len(str(number)) > 6:
-            number = str(round(float(number)/1000000, 1)) + 'M'
+            number = str(round(float(number) / 1000000, 1)) + "M"
         elif len(str(number)) > 4:
-            number = str(number)[:-3] + 'k'
+            number = str(number)[:-3] + "k"
         return number
 
     @staticmethod
@@ -219,13 +215,14 @@ class Utils(object):
         hours -- Is an time value as a float.
         """
         if math.floor(hours) >= 24 * 1000:
-            hours = str(round(hours/24/365, 1)) + 'a'
+            hours = str(round(hours / 24 / 365, 1)) + "a"
         elif math.floor(hours) >= 1000:
-            hours = str(round(hours/24, 1)) + 'd'
+            hours = str(round(hours / 24, 1)) + "d"
         else:
-            hours = str(hours) + 'h'
-        hours = hours if len(hours) <= 5 else str(
-            math.floor(float(hours[:-1]))) + hours[-1]
+            hours = str(hours) + "h"
+        hours = (
+            hours if len(hours) <= 5 else str(math.floor(float(hours[:-1]))) + hours[-1]
+        )
         return hours
 
     def getTempLeaderboardPageBy(self, page, sortBy, timeFrame: int):
@@ -241,10 +238,16 @@ class Utils(object):
         """
         userPerPage = NUMBER_OF_USERS_PER_PAGE
         firstUserOnLeaderBoard = page * userPerPage
-        userIDs: Tuple[Tuple[str, Dict[XPTypes, int]]] = self.tempLeaderboard.sortDataWindowBy(sortBy, window=timeFrame)[firstUserOnLeaderBoard: firstUserOnLeaderBoard + userPerPage]
+        userIDs: Tuple[
+            Tuple[str, Dict[XPTypes, int]]
+        ] = self.tempLeaderboard.sortDataWindowBy(sortBy, window=timeFrame)[
+            firstUserOnLeaderBoard : firstUserOnLeaderBoard + userPerPage
+        ]
         rank = page * userPerPage + 1
         guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
-        leaderboard = f"**Leaderboard {guild.name} of the last {timeFrame} days**\n```as"
+        leaderboard = (
+            f"**Leaderboard {guild.name} of the last {timeFrame} days**\n```as"
+        )
         # Generate leaderboard string
         if not userIDs:
             return ""
@@ -313,8 +316,7 @@ class Utils(object):
         )
         # Check if match was found.
         leaderboard_search_result = (
-            "" if not leaderboard_search_match else leaderboard_search_match.group(
-                0)
+            "" if not leaderboard_search_match else leaderboard_search_match.group(0)
         )
         pageFirstRank = int(str(leaderboard_search_result)[6:-1])
         return pageFirstRank
@@ -434,8 +436,7 @@ class Utils(object):
         if withDate:
             message = str(datetime.datetime.now()) + ":\n" + message
         message = "\n" + message
-        logfile = str(os.path.dirname(
-            os.path.dirname(__file__))) + "/data/log.txt"
+        logfile = str(os.path.dirname(os.path.dirname(__file__))) + "/data/log.txt"
         with open(logfile, "a") as l:
             l.write(f"{message}\n")
 
@@ -448,17 +449,14 @@ class Utils(object):
             nick = "".join(
                 [c for c in member.display_name if c not in UNICODE_EMOJI["en"]]
             )
-            name = "".join(
-                [c for c in member.name if c not in UNICODE_EMOJI["en"]]
-            )
+            name = "".join([c for c in member.name if c not in UNICODE_EMOJI["en"]])
         else:
             # When user is not in guild.
             nick = "-X-"
             name = f"ID: {userID}"
         # Check length of nick + name
         nick = nick if len(nick) <= 12 else nick[:9] + "..."
-        name = name if len(
-            name + nick) <= 25 else name[:22-len(nick)] + "..."
+        name = name if len(name + nick) <= 25 else name[: 22 - len(nick)] + "..."
         return (nick, name)
 
     def getUH(self):
