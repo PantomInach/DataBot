@@ -1,6 +1,8 @@
 import discord
 from enum import Enum
 
+from datahandler.tempLeaderboard import SortBy
+
 
 class SortedByEnum(Enum):
     XP = 0
@@ -9,8 +11,9 @@ class SortedByEnum(Enum):
 
 
 class LeaderboardButtons(discord.ui.View):
-    def __init__(self, utils):
+    def __init__(self, utils, timeFrame=None):
         self.sorted_by = SortedByEnum.XP
+        self.timeFrame = timeFrame
         self.utils = utils
         super().__init__(timeout=None)
 
@@ -18,9 +21,7 @@ class LeaderboardButtons(discord.ui.View):
     # async def page_spacer(self, interaction: discord.Interaction, button: discord.ui.Button):
     #     await interaction.response.defer(ephemeral=False)
 
-    @discord.ui.button(
-        label="TOP", row=0, style=discord.ButtonStyle.primary, emoji="⏫"
-    )
+    @discord.ui.button(label="TOP", row=0, style=discord.ButtonStyle.primary, emoji="⏫")
     async def go_to_page_one(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
@@ -41,9 +42,7 @@ class LeaderboardButtons(discord.ui.View):
             print("Error: Leaderboard button should have have a message")
         await interaction.response.defer(ephemeral=False)
 
-    @discord.ui.button(
-        label="UP", row=0, style=discord.ButtonStyle.primary, emoji="⬆"
-    )
+    @discord.ui.button(label="UP", row=0, style=discord.ButtonStyle.primary, emoji="⬆")
     async def previous_page(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
@@ -98,9 +97,7 @@ class LeaderboardButtons(discord.ui.View):
     # async def sort_by_spacer(self, interaction: discord.Interaction, button: discord.ui.Button):
     #     await interaction.response.defer(ephemeral=False)
 
-    @discord.ui.button(
-        label="EXP", row=1, style=discord.ButtonStyle.primary, emoji="🌟"
-    )
+    @discord.ui.button(label="EXP", row=1, style=discord.ButtonStyle.primary, emoji="🌟")
     async def sort_by_xp(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
@@ -171,5 +168,25 @@ class LeaderboardButtons(discord.ui.View):
         await interaction.response.defer(ephemeral=False)
 
     def _getLeaderBoard(self, page: int, sortBy: SortedByEnum) -> str:
+        if self.timeFrame:
+            return self._getTempLeaderBoard(page, sortBy)
+        else:
+            return self._getLeaderBoard(page, sortBy)
+
+    def _getTotalLeaderBoard(self, page: int, sortBy: SortedByEnum) -> str:
         leaderboard_text = self.utils.getLeaderboardPageBy(page, sortBy.value)
+        return leaderboard_text
+
+    def _getTempLeaderBoard(self, page: int, sortByEnum: SortedByEnum) -> str:
+        if sortByEnum == SortedByEnum.XP:
+            sortBy = SortBy.VOICE_TEXT
+        elif sortByEnum == SortedByEnum.VOICE:
+            sortBy = SortBy.VOICE
+        elif sortByEnum == SortedByEnum.MESSAGES:
+            sortBy = SortBy.TEXTCOUNT
+        else:
+            sortBy = SortBy.NULL
+        leaderboard_text = self.utils.getTempLeaderboardPageBy(
+            page, sortBy, self.timeFrame
+        )
         return leaderboard_text

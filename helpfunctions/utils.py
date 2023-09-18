@@ -8,13 +8,14 @@ from discord.ui import View
 from helpfunctions.xpfunk import Xpfunk
 from datahandler.configHandle import ConfigHandle
 from datahandler.userHandle import UserHandle
+from datahandler.tempLeaderboard import XPTypes, TempLeaderboard
 
 from button_views.leaderboard_buttons import LeaderboardButtons
 
 # import hashlib
 
 from emoji import UNICODE_EMOJI
-from typing import Union
+from typing import Union, Dict, Tuple
 
 NUMBER_OF_USERS_PER_PAGE = 10
 
@@ -35,6 +36,7 @@ class Utils(object):
         self.ch = ch if ch else ConfigHandle()
         self.uh = uh if uh else UserHandle()
         self.xpf = Xpfunk()
+        self.tempLeaderboard = TempLeaderboard()
 
     def hasRole(self, userID, role):
         """
@@ -197,11 +199,11 @@ class Utils(object):
         number -- Is an random number as a string, float or int.
         """
         if len(str(number)) > 7:
-            number = str(number)[:-6] + 'M'
+            number = str(number)[:-6] + "M"
         elif len(str(number)) > 6:
-           number = str(round(float(number)/1000000,1)) + 'M'
+            number = str(round(float(number) / 1000000, 1)) + "M"
         elif len(str(number)) > 4:
-           number = str(number)[:-3] + 'k' 
+            number = str(number)[:-3] + "k"
         return number
 
     @staticmethod
@@ -212,14 +214,55 @@ class Utils(object):
         Keyword arguments:
         hours -- Is an time value as a float.
         """
-        if math.floor(hours) >= 24 * 1000: 
-            hours = str(round(hours/24/365,1)) + 'a'
+        if math.floor(hours) >= 24 * 1000:
+            hours = str(round(hours / 24 / 365, 1)) + "a"
         elif math.floor(hours) >= 1000:
-            hours = str(round(hours/24,1)) + 'd'
+            hours = str(round(hours / 24, 1)) + "d"
         else:
-            hours = str(hours) + 'h'
-        hours = hours if len(hours) <= 5 else str(math.floor(float(hours[:-1]))) + hours[-1]
+            hours = str(hours) + "h"
+        hours = (
+            hours if len(hours) <= 5 else str(math.floor(float(hours[:-1]))) + hours[-1]
+        )
         return hours
+
+    def getTempLeaderboardPageBy(self, page, sortBy, timeFrame: int):
+        """
+        param page:	Which page of the leaderboard is shown. Begins with page 0. A page contains 10 entries by default.
+        param sortBy:
+                        0 => Sort by voice + text
+                        1 => Sort by voice
+                        2 => Sort by textcount
+        param timeFrame: How far the temporary leaderboard should look back in days.
+
+        Builds a string for the leaderboard on a given page with the right sorting.
+        """
+        userPerPage = NUMBER_OF_USERS_PER_PAGE
+        firstUserOnLeaderBoard = page * userPerPage
+        userIDs: Tuple[
+            Tuple[str, Dict[XPTypes, int]]
+        ] = self.tempLeaderboard.sortDataWindowBy(sortBy, window=timeFrame)[
+            firstUserOnLeaderBoard : firstUserOnLeaderBoard + userPerPage
+        ]
+        rank = page * userPerPage + 1
+        guild = self.bot.get_guild(int(self.ch.getFromConfig("guild")))
+        leaderboard = (
+            f"**Leaderboard {guild.name} of the last {timeFrame} days**\n```as"
+        )
+        # Generate leaderboard string
+        if not userIDs:
+            return ""
+        for userID, value in userIDs:
+            nick, name = Utils._getUserNameNickCombo(userID, guild)
+            # Formatting data
+            other, voice, text, textcount, *_ = value.values()
+            hours = Utils.roundScientificTime(UserHandle.voiceToHours(voice))
+            messages = Utils.roundScientificUnitless(textcount)
+            xp = Utils.roundScientificUnitless(self.xpf.giveXP(voice, text))
+            # Formatting for leaderboard.
+            leaderboard += f"\n{' '*(4-len(str(rank)))}{rank}. {nick}{' '*(28-len(nick+name))}({name})   TIME: {' '*(5-len(str(hours)))}{hours}   TEXT: {' '*(4-len(str(messages)))}{messages}   EXP: {' '*(4-len(str(xp)))}{xp}\n"
+            rank += 1
+        leaderboard += f"```"
+        return leaderboard
 
     def getLeaderboardPageBy(self, page, sortBy):
         """
@@ -242,23 +285,7 @@ class Utils(object):
         if not userIDs:
             return ""
         for userID in userIDs:
-            member = guild.get_member(int(userID))
-            # When user is not in guild, member is None.
-            if member != None:
-                # Filter out Emojis in names
-                nick = "".join(
-                    [c for c in member.display_name if c not in UNICODE_EMOJI["en"]]
-                )
-                name = "".join(
-                    [c for c in member.name if c not in UNICODE_EMOJI["en"]]
-                )
-            else:
-                # When user is not in guild.
-                nick = "-X-"
-                name = f"ID: {userID}"
-            # Check length of nick + name
-            nick = nick if len(nick) <= 12 else nick[:9] + "..."
-            name = name if len(name + nick) <= 25 else name[:22-len(nick)] + "..."
+            nick, name = Utils._getUserNameNickCombo(userID, guild)
             # Get user data from userdata.json.
             hours = self.uh.getUserHours(userID)
             messages = self.uh.getUserTextCount(userID)
@@ -412,6 +439,25 @@ class Utils(object):
         logfile = str(os.path.dirname(os.path.dirname(__file__))) + "/data/log.txt"
         with open(logfile, "a") as l:
             l.write(f"{message}\n")
+
+    @staticmethod
+    def _getUserNameNickCombo(userID: int | str, guild) -> (str, str):
+        member = guild.get_member(int(userID))
+        # When user is not in guild, member is None.
+        if member is not None:
+            # Filter out Emojis in names
+            nick = "".join(
+                [c for c in member.display_name if c not in UNICODE_EMOJI["en"]]
+            )
+            name = "".join([c for c in member.name if c not in UNICODE_EMOJI["en"]])
+        else:
+            # When user is not in guild.
+            nick = "-X-"
+            name = f"ID: {userID}"
+        # Check length of nick + name
+        nick = nick if len(nick) <= 12 else nick[:9] + "..."
+        name = name if len(name + nick) <= 25 else name[: 22 - len(nick)] + "..."
+        return (nick, name)
 
     def getUH(self):
         """

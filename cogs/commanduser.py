@@ -11,7 +11,7 @@ from datahandler.sub import Sub
 from datahandler.configHandle import ConfigHandle
 from datahandler.userHandle import UserHandle
 from datahandler.commandrights import read_rights_of
-from button_views.leaderboard_buttons import LeaderboardButtons
+from button_views.leaderboard_buttons import LeaderboardButtons, SortBy
 
 import datetime
 import time
@@ -344,9 +344,7 @@ class Commanduser(commands.Cog, name="User Commands"):
                 amount = voiceXP
             voiceXP -= int(amount)
             self.uh.setUserVoice(userID, voiceXP)
-            message += (
-                f"Decreases user {str(self.bot.get_user(int(userID)))} voiceXP by {amount}. VoiceXP is set to {voiceXP}."
-            )
+            message += f"Decreases user {str(self.bot.get_user(int(userID)))} voiceXP by {amount}. VoiceXP is set to {voiceXP}."
             log_message = (
                 f"User {ctx.author} decreases user "
                 + f"{str(self.bot.get_user(int(userID)))} voiceXP by {amount} to {voiceXP}."
@@ -384,9 +382,7 @@ class Commanduser(commands.Cog, name="User Commands"):
         voiceXP = self.uh.getUserVoice(userID)
         voiceXP += int(amount)
         self.uh.setUserVoice(userID, voiceXP)
-        message += (
-            f"Increases user {str(self.bot.get_user(int(userID)))} voiceXP by {amount}. VoiceXP is set to {voiceXP}."
-        )
+        message += f"Increases user {str(self.bot.get_user(int(userID)))} voiceXP by {amount}. VoiceXP is set to {voiceXP}."
         log_message = (
             f"User {ctx.author} increases user "
             + f"{str(self.bot.get_user(int(userID)))} voiceXP by {amount} to {voiceXP}."
@@ -423,8 +419,7 @@ class Commanduser(commands.Cog, name="User Commands"):
             self.uh.addNewDataEntry(userID)
         self.uh.setUserText(userID, amount)
         message += (
-            f"Set user {str(self.bot.get_user(int(userID)))} "
-            + f"textXP to {amount}."
+            f"Set user {str(self.bot.get_user(int(userID)))} " + f"textXP to {amount}."
         )
         log_message = (
             f"User {ctx.author} set user "
@@ -463,7 +458,7 @@ class Commanduser(commands.Cog, name="User Commands"):
         else:
             textXP = self.uh.getUserText(userID)
             if int(amount) > textXP:
-                amount = textXP 
+                amount = textXP
             textXP -= int(amount)
             self.uh.setUserText(userID, textXP)
             message += (
@@ -505,7 +500,7 @@ class Commanduser(commands.Cog, name="User Commands"):
             )
             self.uh.addNewDataEntry(userID)
         textXP = self.uh.getUserText(userID)
-        textXP += int(amount) 
+        textXP += int(amount)
         self.uh.setUserText(userID, textXP)
         message += (
             f"Increase user {str(self.bot.get_user(int(userID)))} "
@@ -589,9 +584,7 @@ class Commanduser(commands.Cog, name="User Commands"):
                 amount = textCount
             textCount -= int(amount)
             self.uh.setUserTextCount(userID, textCount)
-            message += (
-                f"Decreases user {str(self.bot.get_user(int(userID)))} TextCount by {amount}. TextCount is set to {textCount}."
-            )
+            message += f"Decreases user {str(self.bot.get_user(int(userID)))} TextCount by {amount}. TextCount is set to {textCount}."
             log_message = (
                 f"User {ctx.author} decreases user "
                 + f"{str(self.bot.get_user(int(userID)))} textCount by {amount} to {textCount}."
@@ -629,9 +622,7 @@ class Commanduser(commands.Cog, name="User Commands"):
         textCount = self.uh.getUserTextCount(userID)
         textCount += int(amount)
         self.uh.setUserTextCount(userID, textCount)
-        message += (
-            f"Increases user {str(self.bot.get_user(int(userID)))} TextCount by {amount}. TextCount is set to {textCount}."
-        )
+        message += f"Increases user {str(self.bot.get_user(int(userID)))} TextCount by {amount}. TextCount is set to {textCount}."
         log_message = (
             f"User {ctx.author} increases user "
             + f"{str(self.bot.get_user(int(userID)))} textCount by {amount} to {textCount}."
@@ -838,9 +829,7 @@ class Commanduser(commands.Cog, name="User Commands"):
                     f"User {ctx.author.mention} textunbaned {user.mention}"
                 )
             else:
-                await ctx.send(
-                    content="ERROR: User has no textban.", delete_after=3600
-                )
+                await ctx.send(content="ERROR: User has no textban.", delete_after=3600)
 
     """
     # When give star of the week should be queued
@@ -993,9 +982,7 @@ class Commanduser(commands.Cog, name="User Commands"):
             title=f"{member.nick}     ({member.name})", color=12008408
         )
         embed.set_thumbnail(url=avatar_url)
-        embed.add_field(
-            name="TIME", value=f"{round(int(voiceXP)/30.0,1)}", inline=True
-        )
+        embed.add_field(name="TIME", value=f"{round(int(voiceXP)/30.0,1)}", inline=True)
         embed.add_field(name="TEXT", value=f"{str(textCount)}", inline=True)
         embed.add_field(
             name="EXP",
@@ -1012,7 +999,7 @@ class Commanduser(commands.Cog, name="User Commands"):
 
     @commands.command(name="top", brief="Sends an interactive rank list.")
     @isInChannelCommand(*channel_userLeaderboard)
-    async def leaderboard(self, ctx):
+    async def leaderboard(self, ctx, *args):
         """
         Spawns an interactive leaderboard in the "⏫level" via the command 'top'.
         Displays the first 10 member with the highest XP total.
@@ -1032,15 +1019,22 @@ class Commanduser(commands.Cog, name="User Commands"):
 
         Creates a leaderboard and posts it with the emojis to manipulate it.
         """
-        await self.utils.log(f"+top by {ctx.author}", 1)  # Notify Mods
+        await self.utils.log(f"+top {args} by {ctx.author}", 1)  # Notify Mods
         # Create leaderboard
-        text = f"{self.utils.getLeaderboardPageBy(0,0)}{ctx.author.mention}"
-        message = await ctx.send(
-            text, view=LeaderboardButtons(self.utils), delete_after=86400
-        )
-        # reactionsarr = ["⏫", "⬅", "➡", "⏰", "💌"]
-        # for emoji in reactionsarr:
-        #     await message.add_reaction(emoji)
+        if len(args) > 0 and str(args[0]).isdigit():
+            timeFrame = int(args[0])
+            text = self.utils.getTempLeaderboardPageBy(
+                0, SortBy.VOICE_TEXT, timeFrame=timeFrame
+            )
+        else:
+            timeFrame = None
+            text = self.utils.getLeaderboardPageBy(0, 0)
+        if text:
+            await ctx.send(
+                text + str(ctx.author.mention),
+                view=LeaderboardButtons(self.utils, timeFrame=timeFrame),
+                delete_after=86400,
+            )
         await ctx.message.delete()
 
     @commands.command(name="quote", brief="Sends an unique inspirational quote.")

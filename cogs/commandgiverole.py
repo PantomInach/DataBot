@@ -344,9 +344,7 @@ class Commandgiverole(commands.Cog):
             table_temp = self.get_table_content(table_name)
             table_mid = table_temp["messageid"]
             table_cid = table_temp["channelid"]
-            if str(channel_id) == str(table_cid) and str(message_id) == str(
-                table_mid
-            ):
+            if str(channel_id) == str(table_cid) and str(message_id) == str(table_mid):
                 table_content = table_temp
                 break
         return table_content

@@ -461,9 +461,10 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
             text = self.poll.pollString(pollID)
             button_amount = len(self.poll.getOptions(pollID))
             pollView = PollView(button_amount, self.poll, pollID)
-            messageSend = await ctx.send(content=f"{text}{ctx.author.mention}", view=pollView)
-            self.poll.setMessageID(
-                pollID, messageSend.id, messageSend.channel.id)
+            messageSend = await ctx.send(
+                content=f"{text}{ctx.author.mention}", view=pollView
+            )
+            self.poll.setMessageID(pollID, messageSend.id, messageSend.channel.id)
             log_message = (
                 f"User {ctx.author.mention} opened the poll {pollID}"
                 + f" in channel {ctx.channel.name}."

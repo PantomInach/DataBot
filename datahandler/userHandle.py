@@ -7,6 +7,7 @@ from sqlitedict import SqliteDict
 
 from typing import Iterable
 from datahandler.configHandle import ConfigHandle
+from datahandler.tempLeaderboard import TempLeaderboard, XPTypes
 
 
 class UserHandle(object):
@@ -50,6 +51,7 @@ class UserHandle(object):
                         cls.db[key] = value
 
             cls.ch = ConfigHandle()
+            cls.tempLeaderboard = TempLeaderboard()
             atexit.register(UserHandle._cleanup, cls.db)
         return cls._instance
 
@@ -260,7 +262,7 @@ class UserHandle(object):
         Keyword arguments:
         userID -- Is the user ID from discord user as a string or int.
         """
-        return round(self.getUserVoice(userID) / 30.0, 1)
+        return UserHandle.voiceToHours(self.getUserVoice(str(userID)))
 
     def getUserTextCount(self, userID: int | str) -> int:
         """
@@ -359,6 +361,7 @@ class UserHandle(object):
         entry = self.db[str(userID)]
         entry["Voice"] = int(entry["Voice"]) + int(voice)
         self.db[str(userID)] = entry
+        self.tempLeaderboard.addEntry(userID, XPTypes.VOICE, int(voice))
 
     def addUserText(self, userID: int | str, text: str | int):
         """
@@ -371,6 +374,7 @@ class UserHandle(object):
         entry = self.db[str(userID)]
         entry["Text"] = int(entry["Text"]) + int(text)
         self.db[str(userID)] = entry
+        self.tempLeaderboard.addEntry(userID, XPTypes.TEXT, int(text))
 
     def addUserTextCount(self, userID: int | str, count: int | str = 1):
         """
@@ -384,6 +388,11 @@ class UserHandle(object):
         entry = self.db[str(userID)]
         entry["TextCount"] = int(entry["TextCount"]) + int(count)
         self.db[str(userID)] = entry
+        self.tempLeaderboard.addEntry(userID, XPTypes.TEXTCOUNT, int(count))
+
+    @staticmethod
+    def voiceToHours(voice: int) -> int:
+        return round(voice / 30.0, 1)
 
     @classmethod
     def _cleanup(cls, db):
