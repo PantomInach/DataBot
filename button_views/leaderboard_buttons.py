@@ -70,28 +70,32 @@ class LeaderboardButtons(discord.ui.View):
     async def next_page(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        message = interaction.message
-        if message:
-            _, page = self.utils.getMessageState(message, view=self)
-            page += 1
-            leaderboard_text = self._getLeaderBoard(page, self.sorted_by)
-            while leaderboard_text == "":
-                if page <= -1:
-                    print("Error: Can't get leaderboard with content")
-                    await interaction.response.defer(ephemeral=False)
-                    return
-                page -= 1
+        try:
+            message = interaction.message
+            if message:
+                _, page = self.utils.getMessageState(message, view=self)
+                page += 1
                 leaderboard_text = self._getLeaderBoard(page, self.sorted_by)
-            try:
-                await message.edit(content=leaderboard_text, view=self)
-            except Exception as e:
-                await interaction.response.send_message(
-                    "Internal Bot ERROR", ephemeral=True
-                )
-                print(e)
-        else:
-            print("Error: Leaderboard button should have have a message")
-        await interaction.response.defer(ephemeral=False)
+                while leaderboard_text == "":
+                    if page <= -1:
+                        print("Error: Can't get leaderboard with content")
+                        await interaction.response.defer(ephemeral=False)
+                        return
+                    page -= 1
+                    leaderboard_text = self._getLeaderBoard(page, self.sorted_by)
+                try:
+                    await message.edit(content=leaderboard_text, view=self)
+                except Exception as e:
+                    await interaction.response.send_message(
+                        "Internal Bot ERROR", ephemeral=True
+                    )
+                    print(e)
+            else:
+                print("Error: Leaderboard button should have have a message")
+            await interaction.response.defer(ephemeral=False)
+        except Exception:
+            import traceback
+            print(traceback.format_exc())
 
     # @discord.ui.button(label="Sort by", row=1, disabled=True, style=discord.ButtonStyle.secondary)
     # async def sort_by_spacer(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -171,7 +175,7 @@ class LeaderboardButtons(discord.ui.View):
         if self.timeFrame:
             return self._getTempLeaderBoard(page, sortBy)
         else:
-            return self._getLeaderBoard(page, sortBy)
+            return self._getTotalLeaderBoard(page, sortBy)
 
     def _getTotalLeaderBoard(self, page: int, sortBy: SortedByEnum) -> str:
         leaderboard_text = self.utils.getLeaderboardPageBy(page, sortBy.value)
