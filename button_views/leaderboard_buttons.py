@@ -171,7 +171,7 @@ class LeaderboardButtons(discord.ui.View):
         if self.timeFrame:
             return self._getTempLeaderBoard(page, sortBy)
         else:
-            return self._getLeaderBoard(page, sortBy)
+            return self._getTotalLeaderBoard(page, sortBy)
 
     def _getTotalLeaderBoard(self, page: int, sortBy: SortedByEnum) -> str:
         leaderboard_text = self.utils.getLeaderboardPageBy(page, sortBy.value)
