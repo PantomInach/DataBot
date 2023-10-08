@@ -153,7 +153,7 @@ class UserHandle(object):
         self, userID: int | str, amount: int, cooldown: int | str | float
     ):
         """
-        Adds XP for user in userdata.json by the amount in amount. Only add if user
+        Adds XP for user text in userdata.json by the amount in amount and increases textcount. Only add if user
         is not on cooldown.
 
         Keyword arguments:
@@ -165,6 +165,32 @@ class UserHandle(object):
         self.addNewDataEntry(userID)
         cooldownTime = self.getCooldown(userID)
         self.addUserTextCount(userID)
+        t = time.time()
+        delta_t = t - float(cooldownTime)
+        # Check if cooldown is up
+        if delta_t >= float(cooldown):
+            # Add XP
+            self.addUserText(userID, amount)
+            self.setCooldown(userID, t=t)
+            print(f"\tUser {userID} gained {amount} TextXP")
+        else:
+            print(f"\tUser {userID} is on Cooldown. CurrentTime: {delta_t}")
+
+    def addReactionMindCooldown(
+        self, userID: int | str, amount: int, cooldown: int | str | float
+    ):
+        """
+        Adds XP for user reaction in userdata.json by the amount in amount. Only add if user
+        is not on cooldown.
+
+        Keyword arguments:
+        userID -- Is the user ID from discord user as a string or int
+        amount -- How much XP will be added as an int. Also negative numbers are
+            possible to remove XP.
+        cooldown -- How long a user needs to wait before being able to get XP.
+        """
+        self.addNewDataEntry(userID)
+        cooldownTime = self.getCooldown(userID)
         t = time.time()
         delta_t = t - float(cooldownTime)
         # Check if cooldown is up
@@ -199,7 +225,7 @@ class UserHandle(object):
         amount -- How much XP will be added as an int. Also negative numbers are
             possible to remove XP.
         """
-        self.addTextMindCooldown(userID, amount, 10)
+        self.addReactionMindCooldown(userID, amount, 10)
 
     def updateLevel(self, userID: int | str, level: int | str):
         """
