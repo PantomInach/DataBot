@@ -567,7 +567,7 @@ class Commandpoll(commands.Cog, name="Poll Commands"):
         self.poll.setMessageID(pollID, "", "")
         # Give voters XP
         for vote in self.poll.getVotes(pollID):
-            self.uh.addReactionXP(vote[0], 25)
+            self.uh.addTextXP(vote[0], 25)
 
 
 async def setup(bot):

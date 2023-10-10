@@ -149,60 +149,22 @@ class UserHandle(object):
         del self.db[str(userID)]
         return True
 
-    def addTextMindCooldown(
-        self, userID: int | str, amount: int, cooldown: int | str | float
-    ):
+    def checkUserCooldown(self, userID: int | str, cooldown: int | str | float):
         """
-        Adds XP for user text in userdata.json by the amount in amount and increases textcount. Only add if user
-        is not on cooldown.
+        Checks if the users time since his last message is higher than the cooldown value.
 
         Keyword arguments:
-        userID -- Is the user ID from discord user as a string or int
-        amount -- How much XP will be added as an int. Also negative numbers are
-            possible to remove XP.
-        cooldown -- How long a user needs to wait before being able to get XP.
+        userID -- Is the user ID from discord user as a string or int 
+        cooldown -- Is the time in seconds the user has to wait to get TextXP for this
+            interaction.
         """
-        self.addNewDataEntry(userID)
-        cooldownTime = self.getCooldown(userID)
-        self.addUserTextCount(userID)
-        t = time.time()
-        delta_t = t - float(cooldownTime)
-        # Check if cooldown is up
-        if delta_t >= float(cooldown):
-            # Add XP
-            self.addUserText(userID, amount)
-            self.setCooldown(userID, t=t)
-            print(f"\tUser {userID} gained {amount} TextXP")
-        else:
-            print(f"\tUser {userID} is on Cooldown. CurrentTime: {delta_t}")
-
-    def addReactionMindCooldown(
-        self, userID: int | str, amount: int, cooldown: int | str | float
-    ):
-        """
-        Adds XP for user reaction in userdata.json by the amount in amount. Only add if user
-        is not on cooldown.
-
-        Keyword arguments:
-        userID -- Is the user ID from discord user as a string or int
-        amount -- How much XP will be added as an int. Also negative numbers are
-            possible to remove XP.
-        cooldown -- How long a user needs to wait before being able to get XP.
-        """
-        self.addNewDataEntry(userID)
         cooldownTime = self.getCooldown(userID)
         t = time.time()
         delta_t = t - float(cooldownTime)
         # Check if cooldown is up
-        if delta_t >= float(cooldown):
-            # Add XP
-            self.addUserText(userID, amount)
-            self.setCooldown(userID, t=t)
-            print(f"\tUser {userID} gained {amount} TextXP")
-        else:
-            print(f"\tUser {userID} is on Cooldown. CurrentTime: {delta_t}")
+        return delta_t >= float(cooldown)
 
-    def addTextXP(self, userID: int | str, amount: int):
+    def addTextMindCooldown(self, userID: int | str, amount: int):
         """
         Adds XP for user in userdata.json by the amount in amount. Only add if user
         is not on cooldown of Texts.
@@ -213,9 +175,16 @@ class UserHandle(object):
             possible to remove XP.
         """
         cooldown = self.ch.getFromConfig("textCooldown")
-        self.addTextMindCooldown(userID, amount, cooldown)
+        self.addNewDataEntry(userID)
+        self.addUserTextCount(userID)
+        if self.checkUserCooldown(userID, cooldown):
+            # Add XP
+            self.addTextXP(userID, amount)
+            self.setCooldown(userID, t=time.time())
+        else:
+            print(f"\tUser {userID} is on Cooldown.")
 
-    def addReactionXP(self, userID: int | str, amount: int | str):
+    def addReactionMindCooldown(self, userID: int | str, amount: int | str):
         """
         Adds XP for user in userdata.json by the amount in amount. Only add if user
         is not on cooldown for Reactions.
@@ -225,7 +194,26 @@ class UserHandle(object):
         amount -- How much XP will be added as an int. Also negative numbers are
             possible to remove XP.
         """
-        self.addReactionMindCooldown(userID, amount, 10)
+        cooldown = 10
+        self.addNewDataEntry(userID)
+        if self.checkUserCooldown(userID, cooldown):
+            # Add XP
+            self.addTextXP(userID, amount)
+            self.setCooldown(userID, t=time.time())
+        else:
+            print(f"\tUser {userID} is on Cooldown.")
+
+    def addTextXP(self, userID: int | str, amount: int):
+        """
+        Adds XP for user in userdata.json by the amount in amount.
+
+        Keyword arguments:
+        userID -- Is the user ID from discord user as a string or int
+        amount -- How much XP will be added as an int. Also negative numbers are
+            possible to remove XP.
+        """
+        self.addUserText(userID, amount)
+        print(f"\tUser {userID} gained {amount} TextXP")
 
     def updateLevel(self, userID: int | str, level: int | str):
         """
