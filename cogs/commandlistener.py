@@ -50,7 +50,7 @@ class Commandlistener(commands.Cog):
         # Sends message to mods, when bot is online
         print("Now Online")
         await self.utils.sendModsMessage(
-            "Bot is now online.\nVersion:\tDiscordBot DataBot v2.7.1"
+            "Bot is now online.\nVersion:\tDiscordBot DataBot v2.7.2"
         )
         # Sets the bot's presence to "Online" or "Do not Disturb" to indicate if it's logging or not.
         if self.ch.getFromConfig("log") == "True":
@@ -223,7 +223,7 @@ class Commandlistener(commands.Cog):
                     not (message.author.bot or payload.member.bot)
                     and self.ch.getFromConfig("log") == "True"
                 ):
-                    self.uh.addReactionXP(payload.user_id, self.xpf.randomRange(1, 5))
+                    self.uh.addReactionMindCooldown(payload.user_id, self.xpf.randomRange(1, 5))
 
     # When a user changes his voice state
     @commands.Cog.listener()
@@ -384,7 +384,7 @@ class Commandlistener(commands.Cog):
                 name = attachment.filename
                 if name.endswith("jpg") or name.endswith("png"):
                     # Gives XP when picture is in message
-                    self.uh.addTextXP(userID, self.xpf.randomRange(20, 40))
+                    self.uh.addTextMindCooldown(userID, self.xpf.randomRange(20, 40))
                     return
 
         # When Message is a String
@@ -395,7 +395,7 @@ class Commandlistener(commands.Cog):
         ):
             # Give XP when message is not a command
             if self.ch.isInWhitelist(message.channel.id):
-                self.uh.addTextXP(message.author.id, self.xpf.textXP(a))
+                self.uh.addTextMindCooldown(message.author.id, self.xpf.textXP(a))
 
         # Sends BotOwner commands, which are triggering the bot
         if len(a) > 0 and a[0] == self.ch.getFromConfig("command_prefix"):

@@ -176,35 +176,59 @@ class TestUserHandle(unittest.TestCase):
         self.assertFalse("9" in self.userHandler.db.keys())
 
     def test_addTextMindCooldown(self):
+        def setTextCooldown(cooldown: int):
+            def returnTextCooldown(*args):
+                return cooldown
+
+            return returnTextCooldown    
+
+        self.userHandler.ch.getFromConfig = setTextCooldown(20)
         self.userHandler.db["1"] = {
             "Text": 0,
             "TextCount": 0,
             "Cooldown": 0,
         }
-        self.userHandler.addTextMindCooldown(1, 10, 60)
+        self.userHandler.addTextMindCooldown(1, 10)
         self.assertEqual(self.userHandler.db["1"]["Text"], 10)
         self.assertEqual(self.userHandler.db["1"]["TextCount"], 1)
         self.assertTrue(self.userHandler.db["1"]["Cooldown"] >= self.setup_time)
 
         # Test that cooldown does not increase when message is send while on cooldown
+        self.userHandler.ch.getFromConfig = setTextCooldown(6000000)
         test_time = time.time()
         self.userHandler.db["1"] = {
             "Text": 0,
             "TextCount": 0,
             "Cooldown": test_time,
         }
-        self.userHandler.addTextMindCooldown(1, 10, 6000000)
+        self.userHandler.addTextMindCooldown(1, 10)
         self.assertEqual(self.userHandler.db["1"]["Cooldown"], test_time)
         self.assertEqual(self.userHandler.db["1"]["Text"], 0)
         self.assertEqual(self.userHandler.db["1"]["TextCount"], 1)
 
-    def test_addTextXP(self):
-        def addTextMindCooldown(*args):
-            self.userHandler._dummy = args
+    def test_addReactionMindCooldown(self):
+        test_time = time.time() - 11
+        self.userHandler.db["1"] = {
+            "Text": 0,
+            "TextCount": 0,
+            "Cooldown": test_time,
+        }
+        self.userHandler.addReactionMindCooldown(1, 10)
+        self.assertEqual(self.userHandler.db["1"]["Text"], 10)
+        self.assertEqual(self.userHandler.db["1"]["TextCount"], 0)
+        self.assertTrue(self.userHandler.db["1"]["Cooldown"] >= self.setup_time)
 
-        self.userHandler.addTextMindCooldown = addTextMindCooldown
-        self.userHandler.addTextXP("1", 10)
-        self.assertEqual(self.userHandler._dummy, ("1", 10, 60))
+        # Test that cooldown does not increase when message is send while on cooldown
+        test_time = time.time() - 9
+        self.userHandler.db["1"] = {
+            "Text": 0,
+            "TextCount": 0,
+            "Cooldown": test_time,
+        }
+        self.userHandler.addReactionMindCooldown(1, 10)
+        self.assertEqual(self.userHandler.db["1"]["Cooldown"], test_time)
+        self.assertEqual(self.userHandler.db["1"]["Text"], 0)
+        self.assertEqual(self.userHandler.db["1"]["TextCount"], 0)
 
     def test_updateLevel(self):
         self.userHandler.updateLevel("1", "1")
