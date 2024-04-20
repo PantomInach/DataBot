@@ -1051,7 +1051,7 @@ class Commanduser(commands.Cog, name="User Commands"):
 
         Sends a AI generated quote from inspirobot.me
         """
-        url = Inspiro.getPictureUrl()
+        url = await Inspiro.getPictureUrlAsync()
         # Create Embeded
         embed = discord.Embed(color=12008408)
         embed.set_image(url=url)
