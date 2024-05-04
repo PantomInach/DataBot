@@ -101,7 +101,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
             Can only be done by users with at least the role 'COO'.
     """
 
-    roles_subCreate = read_rights_of("subRreate", "roles")
+    roles_subCreate = read_rights_of("subCreate", "roles")
     roles_subRemove = read_rights_of("subRemove", "roles")
     roles_subCreateCode = read_rights_of("subCreateCode", "roles")
 
