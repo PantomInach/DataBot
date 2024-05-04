@@ -342,7 +342,7 @@ class Commandsubserver(commands.Cog, name="Subserver Commands"):
             description="(User connected / User online / User total)",
             color=12008408,
         )
-        embed.set_thumbnail(url=guild.icon_url)
+        embed.set_thumbnail(url=guild.icon.url)
         info_dict = self.get_subserver_user_amount_info()
         for subserver_name in info_dict.keys():
             (user_connected, user_online, user_total) = info_dict[subserver_name]
