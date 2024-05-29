@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "databot"
+version = "3.0.0"
+description = "Discord Bot to track users on guilde and other guilde features."
+readme = "README.md"
+requires-python = ">=3.12"
+# license = {file = "LICENSE.txt"}
+# keywords = ["sample", "setuptools", "development"]
+
+authors = [
+  {name = "Aaron Neugebauer", email = "aaron@ralf-saalmueller.de" }
+]
+
+# This should be your name or the names of the organization who currently
+# maintains the project, and a valid email address corresponding to the name
+# listed.
+# maintainers = [
+#   {name = "A. Great Maintainer", email = "maintainer@example.com" }
+# ]
+
+# classifiers = [
+#   # How mature is this project? Common values are
+#   #   3 - Alpha
+#   #   4 - Beta
+#   #   5 - Production/Stable
+#   "Development Status :: 3 - Alpha",
+#
+#   # Indicate who your project is intended for
+#   "Intended Audience :: Developers",
+#   "Topic :: Software Development :: Build Tools",
+#
+#   # Pick your license as you wish
+#   "License :: OSI Approved :: MIT License",
+#
+#   # Specify the Python versions you support here. In particular, ensure
+#   # that you indicate you support Python 3. These classifiers are *not*
+#   # checked by "pip install". See instead "requires-python" key in this file.
+#   "Programming Language :: Python :: 3",
+#   "Programming Language :: Python :: 3.8",
+#   "Programming Language :: Python :: 3.9",
+#   "Programming Language :: Python :: 3.10",
+#   "Programming Language :: Python :: 3.11",
+#   "Programming Language :: Python :: 3.12",
+#   "Programming Language :: Python :: 3 :: Only",
+# ]
+
+dependencies = [
+  "discord.py==2.3.2",
+  "requests==2.31.0",
+  # "sqlitedict==2.1.0",
+]
+
+[project.optional-dependencies]
+dev = []
+test = []
+
+[project.urls]
+"Homepage" = "https://github.com/PantomInach/DataBot"
+"Bug Reports" = "https://github.com/PantomInach/DataBot/issue"
+"Source" = "https://github.com/PantomInach/DataBot"
+
+[project.scripts]
+runbot = "databot:run_bot"
+runmain = "databot:main"
+
+[tool.black]
+line-length = 120
+target-version = ['py312']
