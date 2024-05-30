@@ -1,11 +1,11 @@
-from discord.ext.commands import Bot
 import discord
 import os
 import asyncio
-from databot import config
 import logging
+from discord.ext.commands import Bot
 
-from .features import quote
+from databot import config
+from databot.features import quote
 
 log = logging.getLogger(__name__)
 

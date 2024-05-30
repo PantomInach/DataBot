@@ -3,8 +3,9 @@ import logging
 
 from discord import Embed, channel
 from discord.ext import commands
-from ..command_checks import in_channel
-from ..config import quotes_enabled, quotes_allowed_channel, quotes_allow_in_dms
+
+from databot.command_checks import in_channel
+from databot.config import quotes_enabled, quotes_allow_in_dms, quotes_allowed_channel
 
 log = logging.getLogger(__name__)
 
