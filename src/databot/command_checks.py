@@ -68,3 +68,18 @@ def in_channel(channel: None | tuple[int | str], allow_in_dms: bool):
         return result
 
     return commands.check(predicate)
+
+
+def is_in_guild(guild_id: int):
+    """
+    Checks if a the user invoking the command is in the given guild.
+
+    Parameters:
+        guild_id: int
+            Id of the guild.
+    """
+
+    async def predicate(ctx):
+        return ctx.guild and ctx.guild.id == guild_id
+
+    return commands.check(predicate)
