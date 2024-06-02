@@ -1,6 +1,7 @@
 import logging
 import discord
 from discord.ext import commands
+from databot.config import owner_id
 
 log = logging.getLogger(__name__)
 
@@ -81,5 +82,16 @@ def is_in_guild(guild_id: int):
 
     async def predicate(ctx):
         return ctx.guild and ctx.guild.id == guild_id
+
+    return commands.check(predicate)
+
+
+def is_owner():
+    """
+    Checks if the user invoking the command is the owner of the bot.
+    """
+
+    def predicate(ctx):
+        return ctx.author.id == owner_id
 
     return commands.check(predicate)
