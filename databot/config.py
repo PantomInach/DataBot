@@ -14,6 +14,7 @@ General config
 token: str = ""
 command_prefix: str = "+"
 guild_id: int = 0
+owner_id: int = 0
 
 """
 Quotes

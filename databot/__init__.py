@@ -4,8 +4,8 @@ import asyncio
 import logging
 from discord.ext.commands import Bot
 
-from databot import config
-from databot.features import quote
+from .config import log_file, command_prefix, token
+from .features import quote, dynamic_channel
 
 log = logging.getLogger(__name__)
 
@@ -13,12 +13,13 @@ log = logging.getLogger(__name__)
 async def start_bot(bot: Bot):
     log.info("[StartUp] Starting Bot...")
     await load_cogs(bot)
-    await bot.start(config.token)
+    await bot.start(token)
 
 
 async def load_cogs(bot: Bot):
     log.info("Loading cogs:")
     await quote.setup(bot)
+    await dynamic_channel.setup(bot)
 
 
 def run_bot():
@@ -33,7 +34,7 @@ def run_bot():
     ch = logging.StreamHandler()
     ch.setFormatter(logging.Formatter(log_format))
     logger.addHandler(ch)
-    fh = logging.FileHandler(config.log_file, mode="a")
+    fh = logging.FileHandler(log_file, mode="a")
     fh.setFormatter(logging.Formatter(log_format))
     logger.addHandler(fh)
 
@@ -41,7 +42,7 @@ def run_bot():
     intents.presences = True
     intents.members = True
 
-    bot: Bot = Bot(config.command_prefix, intents=intents)
+    bot: Bot = Bot(command_prefix, intents=intents)
 
     asyncio.run(start_bot(bot))
 
