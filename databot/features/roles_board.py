@@ -24,9 +24,18 @@ class RolesBoard(commands.Cog, name="Roles Board"):
 
     def __init__(self, bot: commands.Bot):
         self.bot: commands.Bot = bot
+        self.singel_roles_boards: list[SingleRolesBoard, ...] = None
 
-    def load_roles_boards(self, path: str):
-        pass
+    async def load_roles_boards(self):
+        log.debug("Files in given path: %s", os.listdir(roles_board_config_folder_path))
+        self.singel_roles_boards = [
+            await SingleRolesBoard.single_roles_board_loads(
+                os.path.join(roles_board_config_folder_path, file), self.bot
+            )
+            for file in os.listdir(roles_board_config_folder_path)
+            if file.endswith(".json")
+        ]
+
 
     async def reload_roles_board(self, _):
         pass
@@ -243,8 +252,8 @@ def _is_reaction_response_type(obj) -> (bool, str):
 
 
 async def setup(bot: commands.Bot):
-    if roles_board_enabled:
-        log.info("Loaded 'Roles Board'.")
-        await bot.add_cog(RolesBoard(bot))
-    else:
-        log.info("Did not Loaded 'Roles Board' since they are not enabled.")
+    if not roles_board_enabled:
+        raise commands.ExtensionError("Cog 'roles_board' is disabled in the config.")
+    roles_board = RolesBoard(bot)
+    await roles_board.load_roles_boards()
+    await bot.add_cog(roles_board)
