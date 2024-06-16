@@ -4,22 +4,10 @@ import asyncio
 import logging
 from discord.ext.commands import Bot
 
-from .config import log_file, command_prefix, token
-from .features import quote, dynamic_channel
+from .databot import DataBot
+from .config import log_file, command_prefix
 
 log = logging.getLogger(__name__)
-
-
-async def start_bot(bot: Bot):
-    log.info("[StartUp] Starting Bot...")
-    await load_cogs(bot)
-    await bot.start(token)
-
-
-async def load_cogs(bot: Bot):
-    log.info("Loading cogs:")
-    await quote.setup(bot)
-    await dynamic_channel.setup(bot)
 
 
 def run_bot():
@@ -30,7 +18,7 @@ def run_bot():
     logger.setLevel(logging.DEBUG)
     # logger.setLevel(logging.INFO)
 
-    log_format: str = "%(asctime)s |[%(levelname)s]| %(filename)s@%(funcName)s: %(message)s"
+    log_format: str = "%(asctime)s [%(levelname)s] %(filename)s@%(funcName)s: %(message)s"
     ch = logging.StreamHandler()
     ch.setFormatter(logging.Formatter(log_format))
     logger.addHandler(ch)
@@ -38,13 +26,8 @@ def run_bot():
     fh.setFormatter(logging.Formatter(log_format))
     logger.addHandler(fh)
 
-    intents = discord.Intents.all()
-    intents.presences = True
-    intents.members = True
-
-    bot: Bot = Bot(command_prefix, intents=intents)
-
-    asyncio.run(start_bot(bot))
+    bot = DataBot(prefix=command_prefix)
+    bot.run()
 
 
 def main():

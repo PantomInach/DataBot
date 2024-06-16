@@ -20,7 +20,7 @@ class QuotesCogs(commands.Cog, name="Quote Commands"):
     def __init__(self, bot: commands.Bot):
         self.bot: commands.Bot = bot
 
-    @commands.command(name="quote", brief="Sends an unique inspirational quote.")
+    @commands.hybrid_command(name="quote", brief="Sends an unique inspirational quote.")
     @in_channel(quotes_allowed_channel, quotes_allow_in_dms)
     async def get_quote(self, ctx: commands.Context):
         """
@@ -51,8 +51,6 @@ async def get_picture_url():
 
 
 async def setup(bot: commands.Bot):
-    if quotes_enabled:
-        log.info("Loaded 'QuotesCogs'.")
-        await bot.add_cog(QuotesCogs(bot))
-    else:
-        log.info("Did not Loaded 'QuotesCogs' since they are not enabled.")
+    if not quotes_enabled:
+        raise commands.ExtensionError("Cog 'quote' is disabled in the config.")
+    await bot.add_cog(QuotesCogs(bot))

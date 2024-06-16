@@ -312,8 +312,6 @@ async def _create_next_free_dynamic_channel_if_needed(channel: discord.VoiceChan
 
 
 async def setup(bot: commands.Bot):
-    if dynamic_channel_enabled:
-        log.info("Loaded 'Dynamic Channel'.")
-        await bot.add_cog(DynamicChannelCog(bot))
-    else:
-        log.info("Did not Loaded 'Dynamic Channel' since they are not enabled.")
+    if not dynamic_channel_enabled:
+        raise commands.ExtensionError("Cog 'dynamic_channel' is disabled in the config.")
+    await bot.add_cog(DynamicChannelCog(bot))
