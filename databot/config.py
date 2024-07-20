@@ -27,3 +27,9 @@ quotes_allow_in_dms: bool = True
 Dynamic Channel
 """
 dynamic_channel_enabled: bool = True
+
+"""
+Roles Board
+"""
+roles_board_enabled: bool = True
+roles_board_config_folder_path: str = "databot/roles_boards"
