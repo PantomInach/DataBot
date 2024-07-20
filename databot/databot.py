@@ -42,16 +42,19 @@ class DataBot(commands.Bot):
                 await self.load_extension(module_name)
                 loaded_files.append(module_name)
                 log.info("Loaded module '%s'.", module_name)
+            except commands.NoEntryPointError:
+                log.warning("Did not load extension '%s' since it has no setup function.", module_name)
+                not_loaded_modules.append(module_name)
             except commands.ExtensionError as cee:
-                log.error("Failed to load extension '%s':\n%s", module_name, cee)
+                log.error("Failed to load extension '%s': %s", module_name, _get_traceback(cee))
                 not_loaded_modules.append(module_name)
         return loaded_files, not_loaded_modules
 
     async def on_error(self, event_method: str, *args, **kwargs):
-        log.error("Error occured in method '%s'\n%s", event_method, traceback.format_exc())
+        log.error("Error occured in method '%s: %s", event_method, traceback.format_exc())
 
     async def on_command_error(self, context, exception):
-        log.error("Command error occured context=%s, exception=%s", context, exception)
+        log.error("Command error occured context=%s, exception=%s", context, _get_traceback(exception))
 
     async def on_ready(self):
         log.info("Bot is ready!")
@@ -84,3 +87,8 @@ class DataBot(commands.Bot):
     @property
     def uptime(self) -> datetime.timedelta:
         return datetime.datetime.utcnow() - self._uptime
+
+
+def _get_traceback(exception: Exception) -> str:
+    return "".join(traceback.format_exception(type(exception), exception, exception.__traceback__))
+    # return "".join(traceback.format_tb(exception.__traceback__))
