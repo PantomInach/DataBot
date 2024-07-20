@@ -62,6 +62,16 @@ class TextSingelRolesBoard(unittest.IsolatedAsyncioTestCase):
         }
         single_roles_board: SingleRolesBoard = await SingleRolesBoard.single_roles_board_loads(valid_config, MockBot())
         self.assertFalse(single_roles_board.posted)
+        self.assertEqual(single_roles_board.channel_id, 0)
+
+        valid_config: dict = {
+            TEXT: "Sample text",
+            CHANNELID: 0,
+            MESSAGEID: 0,
+            REACTIONS: {"E1": [[123], [123]], "E2": [[123], [123]]},
+        }
+        single_roles_board: SingleRolesBoard = await SingleRolesBoard.single_roles_board_loads(valid_config, MockBot())
+        self.assertFalse(single_roles_board.posted)
 
         invalid_config: dict = {
             TEXT: "Sample text",
