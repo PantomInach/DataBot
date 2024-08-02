@@ -56,7 +56,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = []
+dev = [
+    "black",
+    "isort",
+]
 test = []
 
 [project.urls]
