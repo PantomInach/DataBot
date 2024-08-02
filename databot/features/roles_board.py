@@ -24,6 +24,7 @@ REACTIONS: str = "reactions"
 
 ROLES_BOARDS_PATH: str = "roles_boards/"
 
+
 class RolesBoard(commands.Cog, name="Roles Board"):
     """ """
 
@@ -59,7 +60,7 @@ class RolesBoard(commands.Cog, name="Roles Board"):
     @is_owner()
     async def reload_roles_boards(self, ctx: commands.Context):
         await self.load_roles_boards()
-        posted_boards_path: list[str] = self.update_roles_boards()
+        posted_boards_path: list[str] = await self.update_roles_boards()
         response_message: str = "Updated active roles boards: " + ", ".join(posted_boards_path)
         log.info(response_message)
         await self.list_roles_board(ctx)
@@ -75,19 +76,19 @@ class RolesBoard(commands.Cog, name="Roles Board"):
 
         if board is None:
             await ctx.send(f"Can't find board with name '{roles_board_name}'. Configured boards: {[b.get_name() for b in self.single_roles_boards]}.", ephemeral=True)
-            log.info(f"User '{ctx.author.name}' tried to post non-existant roles board '{roles_board_name}'.")
+            log.info("User '%s' tried to post non-existant roles board '%s'.", ctx.author.name, roles_board_name)
             return
 
         if board.posted:
             await ctx.send(f"Roles board is already posted in channel '{board.message.channel.name}'.", ephemeral=True)
-            log.info(f"User '{ctx.author.name}' tried to repost roles board '{roles_board_name}'.")
+            log.info("User '%s' tried to repost roles board '%s'.", ctx.author.name, roles_board_name)
             return
 
         message: discord.Message = await ctx.message.channel.send(board.text)
         for reaction in board.responses.keys():
             await message.add_reaction(reaction)
         board.update_posted_status(message)
-        log.info(f"User '{ctx.author.name}' posted roles board '{roles_board_name}' in channel '{ctx.message.channel.name}'.")
+        log.info(f"User '%s' posted roles board '%s' in channel '{ctx.message.channel.name}'.", ctx.author.name, roles_board_name)
 
     @post_roles_board.autocomplete("roles_board_name")
     async def post_autocomplete(self, _: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
@@ -140,7 +141,7 @@ class RolesBoard(commands.Cog, name="Roles Board"):
         guild: discord.Guild = self.bot.get_guild(payload.guild_id)
         member: discord.Member = guild.get_member(payload.user_id)
         await member.add_roles(*[role for role in guild.roles if role.id in roles_add])
-        log.info(f"Member '{member.name}' added the reaction '{str(payload.emoji)}' to the roles board with path '{board.path}'. Added the roles '{str(roles_add)}'.")
+        log.info("Member '%s' added the reaction '%s' to the roles board with path '%s'. Added the roles '%s'.", member.name, str(payload.emoji), board.path, str(roles_add))
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
@@ -164,7 +165,7 @@ class RolesBoard(commands.Cog, name="Roles Board"):
         guild: discord.Guild = self.bot.get_guild(payload.guild_id)
         member: discord.Member = guild.get_member(payload.user_id)
         await member.remove_roles(*[role for role in guild.roles if role.id in roles_remove])
-        log.info(f"Member '{member.name}' removed his reaction '{str(payload.emoji)}' form the roles board with path '{board.path}'. Removed his roles '{str(roles_remove)}'.")
+        log.info("Member '%s' removed his reaction '%s' form the roles board with path '%s'. Removed his roles '%s'.", member.name, str(payload.emoji), board.path, str(roles_remove))
 
     @commands.Cog.listener()
     async def on_raw_reaction_clear(self, payload: discord.RawReactionClearEvent):
@@ -179,7 +180,7 @@ class RolesBoard(commands.Cog, name="Roles Board"):
         message: discord.Message = board_and_message[1]
         for reaction in board.responses.keys():
             await message.add_reaction(reaction)
-            log.info(f"All reactions from roles board with path '{board.path}' were removed. Readded them.")
+            log.info("All reactions from roles board with path '%s' were removed. Readded them.", board.path)
 
     @commands.Cog.listener()
     async def on_raw_reaction_clear_emoji(self, payload: discord.RawReactionClearEmojiEvent):
@@ -194,7 +195,7 @@ class RolesBoard(commands.Cog, name="Roles Board"):
         message: discord.Message = board_and_message[1]
         if str(payload.emoji) in board.responses.keys():
             await message.add_reaction(payload.emoji)
-            log.info(f"Reaction '{str(payload.emoji)}' from roles board with path '{board.path}' was removed. Readded it.")
+            log.info("Reaction '%s' from roles board with path '%s' was removed. Readded it.", str(payload.emoji), board.path)
 
     @commands.Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
@@ -203,7 +204,7 @@ class RolesBoard(commands.Cog, name="Roles Board"):
             if board.message_id != payload.message_id:
                 continue
             board.unposted()
-            log.info(f"Roles board with path '{board.path}' was deleted from its channel. Updated the config file.")
+            log.info("Roles board with path '%s' was deleted from its channel. Updated the config file.", board.path)
             break
 
     async def _find_single_roles_board_and_message(
