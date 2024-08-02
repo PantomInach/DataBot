@@ -91,11 +91,10 @@ class RolesBoard(commands.Cog, name="Roles Board"):
 
     @post_roles_board.autocomplete("roles_board_name")
     async def post_autocomplete(self, _: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
-        roles_boards_name: list[str] = [b.get_name().lower() for b in self.single_roles_boards]
-        log.debug("Roles board post autocomplete for current: '%s' -> %s", current, [name for name in roles_boards_name if current.lower() in roles_boards_name])
         return [
-            discord.app_commands.Choice(name=name, value=name)
-            for name in roles_boards_name if current.lower() in roles_boards_name
+            discord.app_commands.Choice(name=b.get_name(), value=b.get_name())
+            for b in self.single_roles_boards
+            if current.lower() in b.get_name() and not b.posted
         ]
 
     @roles_board.command(name="list", brief="Lists all roles boards.")
