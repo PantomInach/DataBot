@@ -1,14 +1,13 @@
-import logging
-import discord
 import json
+import logging
 import os
-
-from discord.ext import commands
-
 from typing import Optional
 
-from databot.config import roles_board_enabled, roles_board_config_folder_path
+import discord
+from discord.ext import commands
+
 from databot.command_checks import is_owner
+from databot.config import roles_board_config_folder_path, roles_board_enabled
 
 log = logging.getLogger(__name__)
 
@@ -24,10 +23,50 @@ REACTIONS: str = "reactions"
 
 ROLES_BOARDS_PATH: str = "roles_boards/"
 
+ROLES_BOARDS_DESCRIPTION: str = """
+Manages tables where user can get roles.
 
-class RolesBoard(commands.Cog, name="Roles Board"):
-    """ """
+Via a table, a member can get multiple roles via reacting to an emoji on a table.
+When removing a reaction, specified roles will be removed from the member.
 
+Config:
+        Each roles table is a separate json file in the folder 'roles_board' by default.
+        JSON:
+                {
+                        "text": "Text from table",
+                        "channelid": channelid of message,
+                        "messageid": messageid of table,
+                        "reactions":{
+                                "Emoji":[[Roles, to, give], [Roles, to, remove]],
+                                "Emoji2":[[Roles, to, give], [Roles, to, remove]]
+                        }
+                }
+        The roles can be the id or str(id) of a role.
+        Channelid and messageid must be an integer.
+        If the board is not posted, set the channelid and messageid to 0.
+"""
+
+RB_HELP: str = """
+Manages tables where user can get roles.
+
+Via a table, a member can get multiple roles via reacting to an emoji on a table.
+When removing a reaction, specified roles will be removed from the member.
+"""
+
+RB_RELOAD_HELP: str = """
+Reloads the roles board files and updates the messages if they are posted.
+"""
+
+RB_POST_HELP: str = """
+Posts a roles board to the current channel. Can only post unposted channel.
+"""
+
+RB_LIST_HELP: str = """
+Lists all roles boards.
+"""
+
+
+class RolesBoard(commands.Cog, name="Roles Board", description=ROLES_BOARDS_DESCRIPTION):
     def __init__(self, bot: commands.Bot):
         self.bot: commands.Bot = bot
         self.single_roles_boards: list[SingleRolesBoard, ...] = None
@@ -36,9 +75,7 @@ class RolesBoard(commands.Cog, name="Roles Board"):
         """Loads the roles boards into memory."""
         log.debug("Files in given path: %s", os.listdir(roles_board_config_folder_path))
         self.single_roles_boards = [
-            await SingleRolesBoard.single_roles_board_load(
-                os.path.join(roles_board_config_folder_path, file), self.bot
-            )
+            await SingleRolesBoard.single_roles_board_load(os.path.join(roles_board_config_folder_path, file), self.bot)
             for file in os.listdir(roles_board_config_folder_path)
             if file.endswith(".json")
         ]
@@ -52,11 +89,11 @@ class RolesBoard(commands.Cog, name="Roles Board"):
                 posted_boards_path.append(board.path)
         return posted_boards_path
 
-    @commands.hybrid_group(name="rb", brief="Roles board commands.")
+    @commands.hybrid_group(name="rb", brief="Roles board commands.", help=RB_HELP, description="Roles board commands.")
     async def roles_board(self, ctx: commands.Context):
         await ctx.send_help()
 
-    @roles_board.command(name="reload", brief="Reloads all roles boards.")
+    @roles_board.command(name="reload", brief="Reloads all roles boards.", help=RB_RELOAD_HELP)
     @is_owner()
     async def reload_roles_boards(self, ctx: commands.Context):
         await self.load_roles_boards()
@@ -65,9 +102,16 @@ class RolesBoard(commands.Cog, name="Roles Board"):
         log.info(response_message)
         await self.list_roles_board(ctx)
 
-    @roles_board.command(name="post", brief="Post a roles board to the current channel.")
+    @roles_board.command(
+        name="post",
+        brief="Post a roles board to the current channel.",
+        help=RB_POST_HELP,
+        description="Post a roles board to the current channel.",
+    )
     @is_owner()
-    async def post_roles_board(self, ctx: commands.Context, roles_board_name: str):
+    async def post_roles_board(
+        self, ctx: commands.Context, roles_board_name: str = commands.parameter(description="Roles board to post")
+    ):
         board: SingleRolesBoard | None = None
         for b in self.single_roles_boards:
             if b.get_name() == roles_board_name:
@@ -75,7 +119,10 @@ class RolesBoard(commands.Cog, name="Roles Board"):
                 break
 
         if board is None:
-            await ctx.send(f"Can't find board with name '{roles_board_name}'. Configured boards: {[b.get_name() for b in self.single_roles_boards]}.", ephemeral=True)
+            await ctx.send(
+                f"Can't find board with name '{roles_board_name}'. Configured boards: {[b.get_name() for b in self.single_roles_boards]}.",
+                ephemeral=True,
+            )
             log.info("User '%s' tried to post non-existant roles board '%s'.", ctx.author.name, roles_board_name)
             return
 
@@ -88,7 +135,11 @@ class RolesBoard(commands.Cog, name="Roles Board"):
         for reaction in board.responses.keys():
             await message.add_reaction(reaction)
         board.update_posted_status(message)
-        log.info(f"User '%s' posted roles board '%s' in channel '{ctx.message.channel.name}'.", ctx.author.name, roles_board_name)
+        log.info(
+            f"User '%s' posted roles board '%s' in channel '{ctx.message.channel.name}'.",
+            ctx.author.name,
+            roles_board_name,
+        )
 
     @post_roles_board.autocomplete("roles_board_name")
     async def post_autocomplete(self, _: discord.Interaction, current: str) -> list[discord.app_commands.Choice[str]]:
@@ -98,7 +149,9 @@ class RolesBoard(commands.Cog, name="Roles Board"):
             if current.lower() in b.get_name() and not b.posted
         ]
 
-    @roles_board.command(name="list", brief="Lists all roles boards.")
+    @roles_board.command(
+        name="list", brief="Lists all roles boards.", help=RB_LIST_HELP, description="List all roles boards."
+    )
     @is_owner()
     async def list_roles_board(self, ctx: commands.Context):
         posted: list[SingleRolesBoard] = []
@@ -141,7 +194,13 @@ class RolesBoard(commands.Cog, name="Roles Board"):
         guild: discord.Guild = self.bot.get_guild(payload.guild_id)
         member: discord.Member = guild.get_member(payload.user_id)
         await member.add_roles(*[role for role in guild.roles if role.id in roles_add])
-        log.info("Member '%s' added the reaction '%s' to the roles board with path '%s'. Added the roles '%s'.", member.name, str(payload.emoji), board.path, str(roles_add))
+        log.info(
+            "Member '%s' added the reaction '%s' to the roles board with path '%s'. Added the roles '%s'.",
+            member.name,
+            str(payload.emoji),
+            board.path,
+            str(roles_add),
+        )
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
@@ -165,7 +224,13 @@ class RolesBoard(commands.Cog, name="Roles Board"):
         guild: discord.Guild = self.bot.get_guild(payload.guild_id)
         member: discord.Member = guild.get_member(payload.user_id)
         await member.remove_roles(*[role for role in guild.roles if role.id in roles_remove])
-        log.info("Member '%s' removed his reaction '%s' form the roles board with path '%s'. Removed his roles '%s'.", member.name, str(payload.emoji), board.path, str(roles_remove))
+        log.info(
+            "Member '%s' removed his reaction '%s' form the roles board with path '%s'. Removed his roles '%s'.",
+            member.name,
+            str(payload.emoji),
+            board.path,
+            str(roles_remove),
+        )
 
     @commands.Cog.listener()
     async def on_raw_reaction_clear(self, payload: discord.RawReactionClearEvent):
@@ -195,7 +260,9 @@ class RolesBoard(commands.Cog, name="Roles Board"):
         message: discord.Message = board_and_message[1]
         if str(payload.emoji) in board.responses.keys():
             await message.add_reaction(payload.emoji)
-            log.info("Reaction '%s' from roles board with path '%s' was removed. Readded it.", str(payload.emoji), board.path)
+            log.info(
+                "Reaction '%s' from roles board with path '%s' was removed. Readded it.", str(payload.emoji), board.path
+            )
 
     @commands.Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
@@ -227,7 +294,7 @@ class RolesBoard(commands.Cog, name="Roles Board"):
     async def _update_single_roles_board(self, board: "SingleRolesBoard"):
         if not board.posted:
             return
-        
+
         if board.message.content != board.text:
             log.debug("Updated roles board '%s' text from '%s' to '%s'", board.path, board.message.content, board.text)
             await board.message.edit(content=board.text)
@@ -394,10 +461,16 @@ class SingleRolesBoard:
             message = None
             channel_id = 0
             message_id = 0
-            log.debug("Could not find message with id '%s' in channel with id '%s'. Initialize roles board as unposted.", message_id, channel_id)
+            log.debug(
+                "Could not find message with id '%s' in channel with id '%s'. Initialize roles board as unposted.",
+                message_id,
+                channel_id,
+            )
 
         posted: bool = message is not None
-        srb: SingleRolesBoard = SingleRolesBoard(text, reactions_responses, message_id, channel_id, posted, message=message, path=path)
+        srb: SingleRolesBoard = SingleRolesBoard(
+            text, reactions_responses, message_id, channel_id, posted, message=message, path=path
+        )
         srb.single_roles_board_dump()
 
         return srb
