@@ -33,3 +33,16 @@ Roles Board
 """
 roles_board_enabled: bool = True
 roles_board_config_folder_path: str = "databot/roles_boards"
+
+"""
+XP System
+"""
+xp_system_enabled: bool = True
+xp_database_path: str = "databot/data/xp.sqlite"
+temp_xp_database_path: str = "databot/data/temp_xp.sqlite"
+
+xp_cooldown: float = 60.0
+xp_per_min: float = 0.5
+# How much xp extra xp a user should get for having his cam on or is streaming.
+xp_extra_factor: float = 1
+xp_commit_interval: int = 120
