@@ -1,6 +1,8 @@
 import logging
+import random
 import time
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Optional
 
 import discord
@@ -8,13 +10,22 @@ from discord.ext import commands, tasks
 from sqlitedict import SqliteDict
 
 from databot.config import (
+    command_prefix,
+    guild_id,
     temp_xp_database_path,
+    temp_xp_max_days,
     xp_commit_interval,
     xp_cooldown,
     xp_database_path,
     xp_extra_factor,
+    xp_long_message_len,
+    xp_long_text_max,
+    xp_long_text_min,
     xp_per_min,
+    xp_roles_for_level,
     xp_system_enabled,
+    xp_text_max,
+    xp_text_min,
 )
 
 log = logging.getLogger(__name__)
@@ -38,8 +49,22 @@ class XpSystemVoice(commands.Cog, name="XpSystemVoice"):
 
     @tasks.loop(seconds=xp_commit_interval)
     async def save_user_times(self):
+        """
+        Stores the user uptime periodicaly. Afterwards the roles are given depending on the user's level.
+        """
         self.store_data()
-        # TODO: Update roles
+        # Update roles
+        guild: discord.Guild = self.bot.get_guild(guild_id)
+        for member in guild.members:
+            self._update_role(member, xp_roles_for_level)
+        # Cleanup temp leaderboard
+        self.temp_db.cleanup_outdated_entries()
+        self.temp_db.cleanup_empty_user()
+
+    async def _update_role(self, member: discord.Member, roles: list[(int, int)]):
+        level: int = self.db[member.id][LEVEL]
+        roles_to_give: list[discord.Role] = [r for l, r in roles if l >= level and r not in member.roles]
+        await member.add_roles(roles_to_give)
 
     @commands.Cog.listener()
     async def on_voice_state_update(
@@ -170,12 +195,39 @@ class XpSystemMessages(commands.Cog, name="XpSystemMessages"):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        # TODO
-        pass
+        if message.author.bot:
+            return
 
-    def add_text(self, user_id: int):
-        self.db.add_text(user_id, 1, self.db, self.temp_db)
-        self.temp_db.add_text(user_id, 1, self.db, self.temp_db)
+        member_id: int = message.author.id
+        if member_id not in self.db:
+            self.db.create_user(member_id)
+            self.temp_db.create_user(member_id)
+
+        self.add_text(member_id, 1)
+
+        cooldown: float = self.db[member_id][COOLDOWN]
+        if (
+            len(message.content) > 0
+            and not message.content.startswith(command_prefix)
+            or any(a.endswith(".jpg") or a.endswith(".png") for a in message.attachments)
+        ):
+            if cooldown + xp_cooldown > time.time():
+                return
+            self.db.update_cooldown(member_id)
+            xp: float = float(
+                random.randint(xp_long_text_min, xp_long_text_max)
+                if len(message.content) >= xp_long_message_len
+                else random.randint(xp_text_min, xp_text_max)
+            )
+            self.add_xp(member_id, xp)
+
+    def add_text(self, user_id: int, tc: int):
+        self.db.add_text(user_id, tc, self.db, self.temp_db)
+        self.temp_db.add_text(user_id, tc, self.db, self.temp_db)
+
+    def add_xp(self, user_id: int, xp: float):
+        self.db.add_xp(user_id, xp)
+        self.temp_db.add_xp(user_id, xp)
 
 
 class XpSystemPoll(commands.Cog, name="XpSystemPoll"):
@@ -208,7 +260,7 @@ class XPDB(ABC):
 class XpDataBase(XPDB):
     """Manages a sqlite database file containing the xp entries of the users.
 
-    The databank is indexed by the user's id and contains the following entries:
+    The database is indexed by the user's id and contains the following entries:
         {
             "Voice": float,
             "Text": int,
@@ -242,6 +294,13 @@ class XpDataBase(XPDB):
         return user_id in self
 
     def add_xp(self, user_id: int, xp: float):
+        """
+        Adds xp to the user. Also updates the users level if necessary.
+
+        Parameters:
+            user_id: int
+            xp: float
+        """
         log.debug("Adding user '%s' xp: %s", str(user_id), str(xp))
         if user_id not in self:
             self.create_user(user_id)
@@ -293,6 +352,7 @@ class XpDataBase(XPDB):
         if not overwrite or self.in_data(user_id):
             return False
 
+        log.info("Creating user with id '%s'.", user_id)
         self.db[user_id] = {
             VOICE: float(voice),
             TEXT: int(text),
@@ -332,36 +392,82 @@ class XpDataBase(XPDB):
         return self.db.pop(user_id)
 
 
+class TempEventType(Enum):
+    VOICE = 0
+    TEXT = 1
+    XP = 2
+
+
 class TempXpDataBase(XPDB):
+    """Manages a sqlite database file containing the temporary xp entries of the users.
+
+    The database is indexed by the user's id and contains a list containing the following event entries:
+        (TempEventType, float-, --float--)
+    which corresponse to:
+        (-type of xp--, amount, timestamp)
+    """
+
     def __init__(self, temp_db_path: str):
         self.db = SqliteDict(temp_db_path, autocommit=True, outer_stack=True)
-        # TODO
-        raise NotImplementedError
+
+    def __getitem__(self, user_id: int) -> list[(TempEventType, float | int, float)]:
+        return self.db[user_id]
+
+    def __contains__(self, user_id: int) -> bool:
+        return user_id in self.db
 
     def create_user(self, user_id: int) -> bool:
-        # TODO
-        raise NotImplementedError
+        if user_id in self:
+            return False
+
+        log.info("Creating user with id '%s'.", user_id)
+        self.db[user_id] = []
+        return True
 
     def add_xp(self, user_id: int, xp: float):
         log.debug("Adding user '%s' xp: %s", str(user_id), str(xp))
-        if user_id not in self.db:
+        if user_id not in self:
             self.db.create_user(user_id)
-        # TODO: Finish function
+
+        self.db[user_id].append((TempEventType.XP, xp, time.time()))
 
     def add_text(self, user_id: int, text: int):
         log.debug("Adding text '%s' voice: %s", str(user_id), str(text))
-        # TODO
-        raise NotImplementedError
+        if user_id not in self:
+            self.db.create_user(user_id)
+
+        self.db[user_id].append((TempEventType.TEXT, text, time.time()))
 
     def add_voice(self, user_id: int, voice: float):
         log.debug("Adding user '%s' voice: %s", str(user_id), str(voice))
-        # TODO
-        raise NotImplementedError
+        if user_id not in self:
+            self.db.create_user(user_id)
+
+        self.db[user_id].append((TempEventType.VOICE, voice, time.time()))
+
+    def cleanup_empty_user(self):
+        """Removes emtpy entries in the temp database."""
+        for user_id in self.db.keys():
+            if not self.db[user_id]:
+                del self.db[user_id]
+
+    def cleanup_outdated_entries(self):
+        """Removes all user's entries if they are to old."""
+        min_allowed_time: float = time.time() - temp_xp_max_days * 86400
+        for user_id in self.db.keys():
+            self.db[user_id] = [entry for entry in self.db[user_id] if entry[2] >= min_allowed_time]
 
 
 async def setup(bot: commands.Bot):
     if not xp_system_enabled:
         raise commands.ExtensionError("Cog 'roles_board' is disabled in the config.")
+    xp_per_interval: float = xp_commit_interval * xp_per_min / 60
+    if xp_per_interval - int(xp_per_interval) > 0.1:
+        log.warning(
+            "xp_commit_interval * xp_per_min / 60 should be close to an integer to avoid missing xp. Currently %s of %s xp would be given per commit interval.",
+            xp_per_interval,
+            int(xp_per_interval),
+        )
     try:
         db = XpDataBase(xp_database_path)
         temp_db = TempXpDataBase(temp_xp_database_path)
