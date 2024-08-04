@@ -9,24 +9,12 @@ import discord
 from discord.ext import commands, tasks
 from sqlitedict import SqliteDict
 
-from databot.config import (
-    command_prefix,
-    guild_id,
-    temp_xp_database_path,
-    temp_xp_max_days,
-    xp_commit_interval,
-    xp_cooldown,
-    xp_database_path,
-    xp_extra_factor,
-    xp_long_message_len,
-    xp_long_text_max,
-    xp_long_text_min,
-    xp_per_min,
-    xp_roles_for_level,
-    xp_system_enabled,
-    xp_text_max,
-    xp_text_min,
-)
+from databot.config import (command_prefix, guild_id, temp_xp_database_path,
+                            temp_xp_max_days, xp_commit_interval, xp_cooldown,
+                            xp_database_path, xp_extra_factor,
+                            xp_long_message_len, xp_long_text_max,
+                            xp_long_text_min, xp_per_min, xp_roles_for_level,
+                            xp_system_enabled, xp_text_max, xp_text_min)
 
 log = logging.getLogger(__name__)
 
@@ -182,8 +170,9 @@ def level_calculation(xp: float) -> int:
     level_limit: int = 100
     while xp > level_limit:
         level += 1
-        # level_limit += 100 + sum(55 + y * 10 for y in range(level))
-        level_limit: int = 100 + 55 * (level - 1) + 5 * level * (level - 1)
+        level_limit += 100 + sum(55 + y * 10 for y in range(level))
+        # TODO: Make it more efficient
+        # level_limit: int = 100 + 55 * (level - 1) + 5 * level * (level - 1)
     return level
 
 
@@ -273,7 +262,7 @@ class XpDataBase(XPDB):
     """
 
     def __init__(self, sqlite_db_path: str):
-        self.db = SqliteDict(sqlite_db_path, autocommit=True, outer_stack=True)
+        self.db: SqliteDict = SqliteDict(sqlite_db_path, autocommit=True, outer_stack=True)
 
     def __getitem__(self, user_id: int) -> dict[str, int | float]:
         return self.db[user_id]
@@ -304,7 +293,10 @@ class XpDataBase(XPDB):
         log.debug("Adding user '%s' xp: %s", str(user_id), str(xp))
         if user_id not in self:
             self.create_user(user_id)
-        self.db[user_id][XP] += xp
+
+        entry: dict = self.db[user_id]
+        entry[XP] += xp
+        self.db[user_id] = entry
 
         # Update the level of the user
         level: int = level_calculation(self.db[user_id][XP])
@@ -312,19 +304,27 @@ class XpDataBase(XPDB):
             log.debug(
                 "Increasing the level of user '%s' form '%s' to '%s'", str(user_id), str(self.db[user_id]), str(level)
             )
-            self.db[user_id][LEVEL] = level
+            entry[LEVEL] = level
+
+        self.db[user_id] = entry
 
     def add_text(self, user_id: int, text: int):
         log.debug("Adding text '%s' voice: %s", str(user_id), str(text))
         if user_id not in self.db:
-            self.db.create_user(user_id)
-        self.db[user_id][TEXT] += text
+            self.create_user(user_id)
+
+        entry: dict = self.db[user_id]
+        entry[TEXT] += text
+        self.db[user_id] = entry
 
     def add_voice(self, user_id: int, voice: float):
         log.debug("Adding user '%s' voice: %s", str(user_id), str(voice))
         if user_id not in self.db:
-            self.db.create_user(user_id)
-        self.db[user_id][VOICE] += voice
+            self.create_user(user_id)
+
+        entry: dict = self.db[user_id]
+        entry[VOICE] += voice
+        self.db[user_id] = entry
 
     def create_user(self, user_id: int, voice: float = 0.0, text: int = 0, xp: float = 0.0, overwrite=False) -> bool:
         """
@@ -349,7 +349,7 @@ class XpDataBase(XPDB):
         Return:
             bool: If a new entry is created.
         """
-        if not overwrite or self.in_data(user_id):
+        if self.in_data(user_id) and not overwrite:
             return False
 
         log.info("Creating user with id '%s'.", user_id)
