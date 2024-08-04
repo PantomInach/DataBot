@@ -375,11 +375,13 @@ class SingleRolesBoard:
             board_config: dict = json.load(f)
         log.debug("Deserialized roles board config from path '%s': %s", path, str(board_config))
         try:
-            return await SingleRolesBoard.single_roles_board_loads(board_config, bot, path=path)
+            srb: SingleRolesBoard = await SingleRolesBoard.single_roles_board_loads(board_config, bot, path=path)
         except InvalidRolesBoardConfig as irbc:
             raise InvalidRolesBoardConfig(
                 f"The given roles board config from paht '{path}' is invalid:\n", irbc
             ) from irbc
+        srb.single_roles_board_dump()
+        return srb
 
     @staticmethod
     async def single_roles_board_loads(
@@ -471,7 +473,6 @@ class SingleRolesBoard:
         srb: SingleRolesBoard = SingleRolesBoard(
             text, reactions_responses, message_id, channel_id, posted, message=message, path=path
         )
-        srb.single_roles_board_dump()
 
         return srb
 

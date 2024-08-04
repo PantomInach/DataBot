@@ -1,6 +1,7 @@
 import unittest
 
 import discord
+from requests.models import Response
 
 from databot.features.roles_board import (CHANNELID, MESSAGEID, REACTIONS,
                                           TEXT, InvalidRolesBoardConfig,
@@ -157,3 +158,15 @@ class MockBot:
                 return MockChannel(123)
             case _:
                 return None
+
+    async def fetch_channel(self, channel_id: int) -> MockChannel:
+        channel: MockChannel | None = self.get_channel(channel_id)
+        if channel is None:
+            raise get_non_found_error()
+        return self.get_channel(channel_id)
+
+
+def get_non_found_error() -> discord.NotFound:
+    response = Response()
+    response.status = None
+    return discord.NotFound(response, message="")
