@@ -1,19 +1,14 @@
 import unittest
+
 import discord
 
-from databot.features.roles_board import (
-    _is_reaction_response_type,
-    ReactionsResponse,
-    SingleRolesBoard,
-    TEXT,
-    CHANNELID,
-    MESSAGEID,
-    REACTIONS,
-    InvalidRolesBoardConfig,
-)
+from databot.features.roles_board import (CHANNELID, MESSAGEID, REACTIONS,
+                                          TEXT, InvalidRolesBoardConfig,
+                                          ReactionsResponse, SingleRolesBoard,
+                                          _is_reaction_response_type)
 
 
-class TextSingelRolesBoard(unittest.IsolatedAsyncioTestCase):
+class TestSingelRolesBoard(unittest.IsolatedAsyncioTestCase):
     def test_is_reaction_repsonse_type(self):
         valid_reactions_response: ReactionsResponse = {"Emoji1": [[123, "456"], [789, "101112"]]}
         result, message = _is_reaction_response_type(valid_reactions_response)
