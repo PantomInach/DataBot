@@ -6,9 +6,19 @@ import unittest
 import discord
 from sqlitedict import SqliteDict
 
-from databot.config import xp_extra_factor
+from databot.config import (
+    command_prefix,
+    xp_cooldown,
+    xp_extra_factor,
+    xp_long_message_len,
+    xp_long_text_max,
+    xp_long_text_min,
+    xp_text_max,
+    xp_text_min,
+)
 from databot.features.xp_system import (
     ACTIVE_MEMBERS_FOR_XP,
+    COOLDOWN,
     LEVEL,
     TEXT,
     VOICE,
@@ -16,6 +26,7 @@ from databot.features.xp_system import (
     TempEventType,
     TempXpDataBase,
     XpDataBase,
+    XpSystemMessages,
     XpSystemVoice,
     voice_state_active,
 )
@@ -307,14 +318,6 @@ class TestTempXpDatabase(unittest.TestCase):
 
 
 class TestXpSystemVoice(unittest.IsolatedAsyncioTestCase):
-    @classmethod
-    def setUpClass(cls):
-        pass
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
     def setUp(self):
         self.xp: XpSystemVoice = XpSystemVoice(None, None, None)
         self.addings: list[(int, TempEventType, float)] = []
@@ -327,9 +330,6 @@ class TestXpSystemVoice(unittest.IsolatedAsyncioTestCase):
 
         self.xp.add_xp = add_xp_callback
         self.xp.add_voice = add_voice_callback
-
-    def tearDown(self):
-        pass
 
     def test_adaptive_xp_calculation(self):
         member: MockMember = MockMember()
@@ -421,11 +421,93 @@ class TestXpSystemVoice(unittest.IsolatedAsyncioTestCase):
         self.assertGreaterEqual(self.xp.user_times[mms[0]], cur_time)
 
 
+class TestXpSystemText(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.addings: list[int, TempEventType, float] = []
+
+        def add_xp_callback(*args, **kwargs):
+            self.addings.append((args[0], TempEventType.XP, args[1]))
+
+        def add_text_callback(*args, **kwargs):
+            self.addings.append((args[0], TempEventType.TEXT, 1))
+
+        self.xp: XpSystemMessages = XpSystemMessages(
+            None, MockXpDB({1: {COOLDOWN: time.time() - xp_cooldown - 1}, 2: {COOLDOWN: time.time() - 1}}), None
+        )
+
+        self.xp.add_xp = add_xp_callback
+        self.xp.add_text = add_text_callback
+
+    async def test_on_message(self):
+        message: MockMessage = MockMessage()
+        await self.xp.on_message(message)
+        self.assertEqual(self.addings, [(message.author.id, TempEventType.TEXT, 1)])
+
+        self.setUp()
+
+        bot_message: MockMessage = MockMessage()
+        bot_message.author.bot = True
+        await self.xp.on_message(bot_message)
+        self.assertEqual(self.addings, [])
+
+        self.setUp()
+
+        prefix_message: MockMessage = MockMessage()
+        prefix_message.content = command_prefix + "help"
+        await self.xp.on_message(prefix_message)
+        self.assertEqual(self.addings, [(message.author.id, TempEventType.TEXT, 1)])
+
+        self.setUp()
+
+        atta_message: MockMessage = MockMessage()
+        atta_message.attachments = ["test.gif", "text.txt"]
+        await self.xp.on_message(atta_message)
+        self.assertEqual(self.addings, [(message.author.id, TempEventType.TEXT, 1)])
+
+        self.setUp()
+
+        atta_message: MockMessage = MockMessage()
+        atta_message.attachments = ["test.gif", "text.txt", "hi.png"]
+        await self.xp.on_message(atta_message)
+        self.assertEqual(self.addings[0], (message.author.id, TempEventType.TEXT, 1))
+        self.assertEqual(len(self.addings), 2)
+        self.assertEqual(self.addings[1][0], message.author.id)
+        self.assertEqual(self.addings[1][1], TempEventType.XP)
+
+        self.setUp()
+
+        for _ in range(100):
+            message: MockMessage = MockMessage()
+            message.content = "asdf"
+            await self.xp.on_message(message)
+            self.assertEqual(self.addings[-2], (message.author.id, TempEventType.TEXT, 1))
+            self.assertEqual(self.addings[-1][0], message.author.id)
+            self.assertEqual(self.addings[-1][1], TempEventType.XP)
+            self.assertTrue(xp_text_max >= self.addings[-1][2] >= xp_text_min)
+
+        for _ in range(100):
+            message: MockMessage = MockMessage()
+            message.content = "asdf" * xp_long_message_len
+            await self.xp.on_message(message)
+            self.assertEqual(self.addings[-2], (message.author.id, TempEventType.TEXT, 1))
+            self.assertEqual(self.addings[-1][0], message.author.id)
+            self.assertEqual(self.addings[-1][1], TempEventType.XP)
+            self.assertTrue(xp_long_text_max >= self.addings[-1][2] >= xp_long_text_min)
+
+        self.setUp()
+
+        message: MockMessage = MockMessage()
+        message.author.id = 2
+        message.content = "asdf" * xp_long_message_len
+        await self.xp.on_message(message)
+        self.assertEqual(self.addings, [(message.author.id, TempEventType.TEXT, 1)])
+
+
 class MockMember:
-    def __init__(self, id: int = 1):
+    def __init__(self, user_id: int = 1):
         self.bot: bool = False
         self.voice: MockVoiceState = MockVoiceState()
-        self.id: int = id
+        self.id: int = user_id
 
     def to_inactive(self):
         self.voice = MockVoiceState.get_inactive()
@@ -443,7 +525,7 @@ class MockMember:
 
     @staticmethod
     def get_id_range(n: int) -> list["MockMember"]:
-        return [MockMember(id=i) for i in range(1, n + 1)]
+        return [MockMember(user_id=i) for i in range(1, n + 1)]
 
 
 class MockChannel:
@@ -470,6 +552,27 @@ class MockVoiceState:
         mvs.deaf = True
         assert not voice_state_active(mvs)
         return mvs
+
+
+class MockMessage:
+    def __init__(self, content: str = "", attachments: list[str] | None = None):
+        self.author = MockMember()
+        self.content: str = content
+        self.attachments: list[str] = attachments or []
+
+
+class MockXpDB:
+    def __init__(self, data: dict):
+        self.db = data
+
+    def update_cooldown(self, *args, **kwargs):
+        pass
+
+    def __contains__(self, key):
+        return key in self.db
+
+    def __getitem__(self, key):
+        return self.db[key]
 
 
 def sqlitedict_to_dict(sd: SqliteDict) -> dict:
