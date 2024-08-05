@@ -409,6 +409,7 @@ class TempXpDataBase(XPDB):
 
     def __init__(self, temp_db_path: str):
         self.db = SqliteDict(temp_db_path, autocommit=True, outer_stack=True)
+        self.max_days: int = temp_xp_max_days
 
     def __getitem__(self, user_id: int) -> list[(TempEventType, float | int, float)]:
         return self.db[user_id]
@@ -427,23 +428,29 @@ class TempXpDataBase(XPDB):
     def add_xp(self, user_id: int, xp: float):
         log.debug("Adding user '%s' xp: %s", str(user_id), str(xp))
         if user_id not in self:
-            self.db.create_user(user_id)
+            self.create_user(user_id)
 
-        self.db[user_id].append((TempEventType.XP, xp, time.time()))
+        entry: list = self.db[user_id]
+        entry.append((TempEventType.XP, xp, time.time()))
+        self.db[user_id] = entry
 
     def add_text(self, user_id: int, text: int):
         log.debug("Adding text '%s' voice: %s", str(user_id), str(text))
         if user_id not in self:
-            self.db.create_user(user_id)
+            self.create_user(user_id)
 
-        self.db[user_id].append((TempEventType.TEXT, text, time.time()))
+        entry: list = self.db[user_id]
+        entry.append((TempEventType.TEXT, text, time.time()))
+        self.db[user_id] = entry
 
     def add_voice(self, user_id: int, voice: float):
         log.debug("Adding user '%s' voice: %s", str(user_id), str(voice))
         if user_id not in self:
-            self.db.create_user(user_id)
+            self.create_user(user_id)
 
-        self.db[user_id].append((TempEventType.VOICE, voice, time.time()))
+        entry: list = self.db[user_id]
+        entry.append((TempEventType.VOICE, voice, time.time()))
+        self.db[user_id] = entry
 
     def cleanup_empty_user(self):
         """Removes emtpy entries in the temp database."""
@@ -451,9 +458,16 @@ class TempXpDataBase(XPDB):
             if not self.db[user_id]:
                 del self.db[user_id]
 
-    def cleanup_outdated_entries(self):
-        """Removes all user's entries if they are to old."""
-        min_allowed_time: float = time.time() - temp_xp_max_days * 86400
+    def cleanup_outdated_entries(self, cur_time: float | None = None):
+        """
+        Removes all user's entries if they are to old.
+
+        Parameters:
+            cur_time: float | None
+                Provide a time to compare all events to.
+        """
+        cur_time: float = cur_time or time.time()
+        min_allowed_time: float = cur_time - self.max_days * 86400
         for user_id in self.db.keys():
             self.db[user_id] = [entry for entry in self.db[user_id] if entry[2] >= min_allowed_time]
 
