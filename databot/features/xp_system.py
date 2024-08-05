@@ -9,12 +9,24 @@ import discord
 from discord.ext import commands, tasks
 from sqlitedict import SqliteDict
 
-from databot.config import (command_prefix, guild_id, temp_xp_database_path,
-                            temp_xp_max_days, xp_commit_interval, xp_cooldown,
-                            xp_database_path, xp_extra_factor,
-                            xp_long_message_len, xp_long_text_max,
-                            xp_long_text_min, xp_per_min, xp_roles_for_level,
-                            xp_system_enabled, xp_text_max, xp_text_min)
+from databot.config import (
+    command_prefix,
+    guild_id,
+    temp_xp_database_path,
+    temp_xp_max_days,
+    xp_commit_interval,
+    xp_cooldown,
+    xp_database_path,
+    xp_extra_factor,
+    xp_long_message_len,
+    xp_long_text_max,
+    xp_long_text_min,
+    xp_per_min,
+    xp_roles_for_level,
+    xp_system_enabled,
+    xp_text_max,
+    xp_text_min,
+)
 
 log = logging.getLogger(__name__)
 
@@ -95,6 +107,9 @@ class XpSystemVoice(commands.Cog, name="XpSystemVoice"):
             float: amount of xp the user should recive.
         """
         voice_state: discord.VoiceState = voice_state or member.voice
+        if not voice_state_active(voice_state):
+            return 0.0
+
         amount_active_user_in_channel: int = len(
             [m for m in voice_state.channel.members if voice_state_active(m.voice) and not m.bot]
         )
@@ -107,9 +122,6 @@ class XpSystemVoice(commands.Cog, name="XpSystemVoice"):
     def store_data(self):
         current_time: float = time.time()
         for user, last_time in self.user_times.items():
-            if user.id not in self.db:
-                self.db.create_user(user.id)
-
             time_delta: float = current_time - last_time
             self.add_voice(user.id, time_delta)
             xp: float = self.adaptive_xp_calculation(user, time_to_xp(time_delta))
