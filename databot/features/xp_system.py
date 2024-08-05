@@ -200,9 +200,6 @@ class XpSystemMessages(commands.Cog, name="XpSystemMessages"):
             return
 
         member_id: int = message.author.id
-        if member_id not in self.db:
-            self.db.create_user(member_id)
-            self.temp_db.create_user(member_id)
 
         self.add_text(member_id, 1)
 
