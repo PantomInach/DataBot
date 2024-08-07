@@ -54,5 +54,6 @@ xp_text_max: int = 25
 xp_long_text_min: int = 20
 xp_long_text_max: int = 40
 xp_long_message_len: int = 150
+xp_per_vote: int = 25
 
 temp_xp_max_days: int = 60

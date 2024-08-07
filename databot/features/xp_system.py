@@ -22,6 +22,7 @@ from databot.config import (
     xp_long_text_max,
     xp_long_text_min,
     xp_per_min,
+    xp_per_vote,
     xp_roles_for_level,
     xp_system_enabled,
     xp_text_max,
@@ -229,15 +230,22 @@ class XpSystemMessages(commands.Cog, name="XpSystemMessages"):
 
 
 class XpSystemPoll(commands.Cog, name="XpSystemPoll"):
-    # TODO: Track poll participation
     def __init__(self, bot: commands.Bot, db: "XpDataBase", temp_db: "TempXpDataBase"):
         self.bot: commands.Bot = bot
         self.db: XpDataBase = db
         self.temp_db: TempXpDataBase = temp_db
 
     def add_xp(self, user_id: int, xp):
-        # TODO
-        raise NotImplementedError
+        self.db.add_xp(user_id, xp)
+        self.temp_db.add_xp(user_id, xp)
+
+    @commands.Cog.listener()
+    async def on_poll_vote_add(self, user: discord.Member, _: discord.PollAnswer):
+        self.add_xp(user.id, float(xp_per_vote))
+
+    @commands.Cog.listener()
+    async def on_poll_vote_remove(self, user: discord.Member, _: discord.PollAnswer):
+        self.add_xp(user.id, float(-xp_per_vote))
 
 
 class XPDB(ABC):
@@ -496,7 +504,9 @@ async def setup(bot: commands.Bot):
         temp_db = TempXpDataBase(temp_xp_database_path)
         xp_voice = XpSystemVoice(bot, db, temp_db)
         xp_text = XpSystemMessages(bot, db, temp_db)
+        xp_poll = XpSystemPoll(bot, db, temp_db)
     except Exception as exc:
         log.error("Failed initialisation of XpSystem:", exc_info=exc.__traceback__)
     await bot.add_cog(xp_voice)
     await bot.add_cog(xp_text)
+    await bot.add_cog(xp_poll)
