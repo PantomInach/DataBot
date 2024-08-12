@@ -103,9 +103,15 @@ class XpSystem(commands.Cog, name="XP System", description=XP_SYSTEM_DESCRIPTION
         self.db: XpDataBase = db
         self.temp_db: TempXpDataBase = temp_db
 
-    @commands.hybrid_command(name="top", description="Returns the level of a player.", help=XP_TOP_HELP)
+    @commands.hybrid_command(name="top", description="Sends an interactive rank list.", help=XP_TOP_HELP)
     @in_channel(top_channel, allow_in_dms=False)
-    async def top(self, ctx: commands.Context, days: Optional[float]):
+    async def top(
+        self,
+        ctx: commands.Context,
+        days: Optional[float] = commands.parameter(
+            description="Optional: Only show the gathered data over a given number of days"
+        ),
+    ):
         if days is not None:
             data: list[(int, LeaderboardEntry)] = self.temp_db.get_leaderboard_data(
                 0, leaderboard_member_per_page, LeaderBoardSortBy.XP, time.time() - (days * 3600 * 24)
@@ -125,11 +131,20 @@ class XpSystem(commands.Cog, name="XP System", description=XP_SYSTEM_DESCRIPTION
             delete_after=86400,
             view=LeaderboardButtons(self.db, self.temp_db, days=days),
         )
-        await ctx.message.delete(delay=5)
+        try:
+            await ctx.message.delete(delay=5)
+        except (discord.NotFound, discord.Forbidden):
+            pass
 
-    @commands.hybrid_command(name="level", description="Sends an interactive rank list.", help=XP_LEVEL_HELP)
+    @commands.hybrid_command(name="level", description="Returns the level of a player.", help=XP_LEVEL_HELP)
     @in_channel(top_channel, allow_in_dms=True)
-    async def level(self, ctx: commands.Context, member: Optional[discord.Member]):
+    async def level(
+        self,
+        ctx: commands.Context,
+        member: Optional[discord.Member] = commands.parameter(
+            description="Member of whom the level card shoul be shown"
+        ),
+    ):
         user_id: int = ctx.author.id
         if member is not None:
             user_id = member.id
@@ -141,8 +156,12 @@ class XpSystem(commands.Cog, name="XP System", description=XP_SYSTEM_DESCRIPTION
         text: int = self.db[user_id][TEXT]
         level: int = self.db[user_id][LEVEL]
         next_level: int = level_calculation(xp)[1]
+        try:
+            nick: str = user.nick
+        except AttributeError:
+            nick: str = user.name
 
-        embed = discord.Embed(title=f"{user.nick}     ({user.name})", color=12008408)
+        embed = discord.Embed(title=f"{nick}     ({user.name})", color=12008408)
         embed.set_thumbnail(url=avatar_url)
         embed.add_field(name="TIME", value=str(voice), inline=True)
         embed.add_field(name="TEXT", value=str(text), inline=True)
@@ -156,7 +175,6 @@ class XpSystem(commands.Cog, name="XP System", description=XP_SYSTEM_DESCRIPTION
         if user_id != ctx.author.id:
             content = ctx.author.mention
         await ctx.send(embed=embed, content=content, delete_after=86400)
-        await ctx.message.delete()
 
 
 def render_leaderboard(
