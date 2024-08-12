@@ -50,7 +50,7 @@ authors = [
 # ]
 
 dependencies = [
-  "discord.py==2.3.2",
+  "discord.py==2.4.0",
   "requests==2.31.0",
   "sqlitedict==2.1.0",
 ]

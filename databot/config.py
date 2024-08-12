@@ -57,3 +57,13 @@ xp_long_message_len: int = 150
 xp_per_vote: int = 25
 
 temp_xp_max_days: int = 60
+
+leaderboard_member_per_page: int = 10
+
+"""
+Commands Channel Configurations
+
+Specifies in which channel certain commands are allowed to be executed.
+"""
+top_channel: list[int | str] = []
+level_channel: list[int | str] = []

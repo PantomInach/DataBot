@@ -23,11 +23,16 @@ from databot.features.xp_system import (
     TEXT,
     VOICE,
     XP,
+    LeaderBoardSortBy,
     TempEventType,
     TempXpDataBase,
     XpDataBase,
     XpSystemMessages,
     XpSystemVoice,
+    leaderboard_round_float_unitless,
+    leaderboard_round_time,
+    render_leaderboard_users,
+    slice_of_sorted_leaderboard_data,
     voice_state_active,
 )
 
@@ -49,6 +54,8 @@ class TestXpDatabase(unittest.TestCase):
         self.data: dict = {
             1: {"Voice": 1.0, "Text": 1, "XP": 10.0, "Cooldown": 0.0, "Level": 0},
             2: {"Voice": 2.0, "Text": 2, "XP": 20.0, "Cooldown": 0.0, "Level": 0},
+            3: {"Voice": 0.0, "Text": 0, "XP": 30.0, "Cooldown": 0.0, "Level": 0},
+            4: {"Voice": 0.5, "Text": 2, "XP": 30.0, "Cooldown": 0.0, "Level": 0},
         }
         with SqliteDict("temp/full.sqlite", autocommit=True, outer_stack=True) as db:
             for k, v in self.data.items():
@@ -75,6 +82,10 @@ class TestXpDatabase(unittest.TestCase):
         self.assertTrue(2 in self.full)
         self.assertFalse(0 in self.full)
         self.assertFalse(0 in self.empty)
+
+        # Test len
+        self.assertEqual(len(self.full), 4)
+        self.assertEqual(len(self.empty), 0)
 
     def test_user_creation_deletion(self):
         self.assertTrue(self.empty.create_user(123))
@@ -190,6 +201,10 @@ class TestTempXpDatabase(unittest.TestCase):
         self.assertTrue(2 in self.full)
         self.assertFalse(0 in self.full)
         self.assertFalse(0 in self.empty)
+
+        # Test len
+        self.assertEqual(len(self.full), 4)
+        self.assertEqual(len(self.empty), 0)
 
     def test_create_user(self):
         self.assertTrue(self.empty.create_user(0))
@@ -315,6 +330,23 @@ class TestTempXpDatabase(unittest.TestCase):
         self.assertEqual(self.empty.db[3][0][1], 1)
         self.assertTrue(time.time() > self.empty.db[3][0][2])
         self.assertTrue(self.empty.db[3][0][2] > start_time)
+
+    def test_sum_up_user_entry(self):
+        self.assertEqual(self.full.sum_up_user_entry(1, 0.0), {VOICE: 2.0, TEXT: 2, XP: 100.0})
+        self.assertEqual(self.full.sum_up_user_entry(1, 0.9), {VOICE: 0.0, TEXT: 2, XP: 100.0})
+        self.assertEqual(self.full.sum_up_user_entry(1, 1.1), {VOICE: 0.0, TEXT: 2, XP: 0.0})
+        self.assertEqual(self.full.sum_up_user_entry(1, 86400.0 + 1.1), {VOICE: 0.0, TEXT: 1, XP: 0.0})
+        self.assertEqual(self.full.sum_up_user_entry(1, 2 * 86400.0 + 1.1), {VOICE: 0.0, TEXT: 0, XP: 0.0})
+
+        self.assertEqual(self.full.sum_up_user_entry(2, 0.0), {VOICE: 0.0, TEXT: 0, XP: 104.0})
+        self.assertEqual(self.full.sum_up_user_entry(2, 86400.0 + 1.1), {VOICE: 0.0, TEXT: 0, XP: 102.0})
+        self.assertEqual(self.full.sum_up_user_entry(2, 2 * 86400.0 + 1.1), {VOICE: 0.0, TEXT: 0, XP: 2.0})
+        self.assertEqual(self.full.sum_up_user_entry(2, 3 * 86400.0 + 1.1), {VOICE: 0.0, TEXT: 0, XP: 1.0})
+        self.assertEqual(self.full.sum_up_user_entry(2, 4 * 86400.0 + 1.1), {VOICE: 0.0, TEXT: 0, XP: 0.0})
+
+        self.assertEqual(self.full.sum_up_user_entry(3, 0.0), {VOICE: 0.0, TEXT: 0, XP: 0.0})
+
+        self.assertEqual(self.full.sum_up_user_entry(30000, 0.0), None)
 
 
 class TestXpSystemVoice(unittest.IsolatedAsyncioTestCase):
@@ -503,11 +535,125 @@ class TestXpSystemText(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.addings, [(message.author.id, TempEventType.TEXT, 1)])
 
 
+class TestOther(unittest.TestCase):
+    def test_slice_of_sorted_leaderboard_data(self):
+        data: dict[int, dict[str, float | int]] = {
+            1: {VOICE: 10.0, TEXT: 60, XP: 30.0},
+            2: {VOICE: 20.0, TEXT: 50, XP: 60.0},
+            3: {VOICE: 20.0, TEXT: 40, XP: 50.0},
+            4: {VOICE: 40.0, TEXT: 30, XP: 20.0},
+            5: {VOICE: 40.0, TEXT: 20, XP: 10.0},
+            6: {VOICE: 60.0, TEXT: 20, XP: 40.0},
+        }
+        self.assertEqual(
+            slice_of_sorted_leaderboard_data(data, LeaderBoardSortBy.XP, 0, 6),
+            [(2, data[2]), (3, data[3]), (6, data[6]), (1, data[1]), (4, data[4]), (5, data[5])],
+        )
+        self.assertEqual(
+            slice_of_sorted_leaderboard_data(data, LeaderBoardSortBy.VOICE, 0, 6),
+            [(6, data[6]), (4, data[4]), (5, data[5]), (2, data[2]), (3, data[3]), (1, data[1])],
+        )
+        self.assertEqual(
+            slice_of_sorted_leaderboard_data(data, LeaderBoardSortBy.TEXT, 0, 6),
+            [(1, data[1]), (2, data[2]), (3, data[3]), (4, data[4]), (6, data[6]), (5, data[5])],
+        )
+        self.assertEqual(
+            slice_of_sorted_leaderboard_data(data, LeaderBoardSortBy.XP, 2, 5),
+            [(6, data[6]), (1, data[1]), (4, data[4])],
+        )
+
+    def test_leaderboard_round_time(self):
+        self.assertEqual(leaderboard_round_time(0.0), "0.0h")
+        self.assertEqual(leaderboard_round_time(3600.0), "1.0h")
+        self.assertEqual(leaderboard_round_time(3600.0 * 3.5, spaces=4), "3.5h")
+        self.assertEqual(leaderboard_round_time(3600.0 * 36.5, spaces=4), "36h")
+        self.assertEqual(leaderboard_round_time(3600.0 * 360, spaces=4), "360h")
+        self.assertEqual(leaderboard_round_time(3600.0 * 1000 - 1, spaces=4), "999h")
+        self.assertEqual(leaderboard_round_time(3600.0 * 1000, spaces=4), "41d")
+        self.assertEqual(leaderboard_round_time(3600.0 * 24 * 53, spaces=4), "53d")
+        self.assertEqual(leaderboard_round_time(3600.0 * 24 * 10**3 - 1, spaces=4), "999d")
+        self.assertEqual(leaderboard_round_time(3600.0 * 24 * 10**3, spaces=4), "2.7a")
+        self.assertEqual(leaderboard_round_time(3600.0 * 24 * 365 * 9.9, spaces=4), "9.9a")
+        self.assertEqual(leaderboard_round_time(3600.0 * 24 * 365 * 10, spaces=4), "10a")
+
+        self.assertEqual(leaderboard_round_time(3600.0 * 3.5, spaces=5), "3.5h")
+        self.assertEqual(leaderboard_round_time(3600.0 * 36.5, spaces=5), "36.5h")
+        self.assertEqual(leaderboard_round_time(3600.0 * 1000.1, spaces=5), "1000h")
+        self.assertEqual(leaderboard_round_time(3600.0 * 9999.9, spaces=5), "9999h")
+        self.assertEqual(leaderboard_round_time(3600.0 * 24 * 416.7, spaces=5), "416d")
+        self.assertEqual(leaderboard_round_time(3600.0 * 24 * 9999.9, spaces=5), "9999d")
+        self.assertEqual(leaderboard_round_time(3600.0 * 24 * 10000, spaces=5), "27.3a")
+        self.assertEqual(leaderboard_round_time(3600.0 * 24 * 365 * 99.9, spaces=5), "99.9a")
+        self.assertEqual(leaderboard_round_time(3600.0 * 24 * 365 * 100, spaces=5), "100a")
+
+    def test_leaderboard_round_timeless(self):
+        self.assertEqual(leaderboard_round_float_unitless(0.0, 4), "0.0")
+        self.assertEqual(leaderboard_round_float_unitless(1000.0, 4), "1000")
+        self.assertEqual(leaderboard_round_float_unitless(9999.9, 4), "9999")
+        self.assertEqual(leaderboard_round_float_unitless(10000, 4), "10k")
+        self.assertEqual(leaderboard_round_float_unitless(999999.0, 4), "999k")
+        self.assertEqual(leaderboard_round_float_unitless(1_000_000.0, 4), "1.0M")
+        self.assertEqual(leaderboard_round_float_unitless(2_100_000.0, 4), "2.1M")
+        self.assertEqual(leaderboard_round_float_unitless(9_999_999.9, 4), "9.9M")
+        self.assertEqual(leaderboard_round_float_unitless(10_000_000, 4), "10M")
+        self.assertEqual(leaderboard_round_float_unitless(100_000_000.0, 4), "100M")
+
+        self.assertEqual(leaderboard_round_float_unitless(0.0, 5), "0.0")
+        self.assertEqual(leaderboard_round_float_unitless(999.9, 5), "999.9")
+        self.assertEqual(leaderboard_round_float_unitless(1000, 5), "1000")
+        self.assertEqual(leaderboard_round_float_unitless(10000, 5), "10.0k")
+        self.assertEqual(leaderboard_round_float_unitless(99999, 5), "99.9k")
+        self.assertEqual(leaderboard_round_float_unitless(100_000, 5), "100k")
+        self.assertEqual(leaderboard_round_float_unitless(1_000_000, 5), "1.0M")
+        self.assertEqual(leaderboard_round_float_unitless(2_100_000, 5), "2.1M")
+        self.assertEqual(leaderboard_round_float_unitless(9_999_999.9, 5), "9.9M")
+        self.assertEqual(leaderboard_round_float_unitless(10_000_000, 5), "10.0M")
+        self.assertEqual(leaderboard_round_float_unitless(99_900_000, 5), "99.9M")
+        self.assertEqual(leaderboard_round_float_unitless(100_100_000, 5), "100M")
+
+    def test_render_leaderboard_users(self):
+        data: list[(int, dict[str, float | int])] = [
+            (1, {VOICE: 0.0, TEXT: 0, XP: 0.0, LEVEL: 0}),
+            (2, {VOICE: 0.0, TEXT: 0, XP: 0.0, LEVEL: 0}),
+        ]
+        members: dict[int, MockMember] = {
+            1: MockMember(1, "User 1", "Nick 1"),
+            2: MockMember(2, "User 2", "Nick 2"),
+        }
+        self.assertEqual(
+            render_leaderboard_users(data, 0, members, display_level=True),
+            "\n   1. Nick 1                (User 1)   TIME:  0.0h   TEXT:    0   EXP:  0.0   LVL:   0"
+            + "\n   2. Nick 2                (User 2)   TIME:  0.0h   TEXT:    0   EXP:  0.0   LVL:   0",
+        )
+
+        members: dict[int, MockMember] = {
+            1: MockMember(1, "User 1", "a" * 13),
+            2: MockMember(2, "a" * 24, "Nick 2"),
+        }
+        self.assertEqual(
+            render_leaderboard_users(data, 0, members, display_level=True),
+            "\n   1. aaaaaaaaa...          (User 1)   TIME:  0.0h   TEXT:    0   EXP:  0.0   LVL:   0"
+            + "\n   2. Nick 2   (aaaaaaaaaaaaaaaa...)   TIME:  0.0h   TEXT:    0   EXP:  0.0   LVL:   0",
+        )
+
+        members: dict[int, MockMember] = {
+            1: MockMember(1, "User 1", "a" * 13),
+            2: MockMember(2, "a" * 24, "Nick 2"),
+        }
+        self.assertEqual(
+            render_leaderboard_users(data, 0, members, display_level=True),
+            "\n   1. aaaaaaaaa...          (User 1)   TIME:  0.0h   TEXT:    0   EXP:  0.0   LVL:   0"
+            + "\n   2. Nick 2   (aaaaaaaaaaaaaaaa...)   TIME:  0.0h   TEXT:    0   EXP:  0.0   LVL:   0",
+        )
+
+
 class MockMember:
-    def __init__(self, user_id: int = 1):
+    def __init__(self, user_id: int = 1, name: str | None = None, nick: str | None = None):
         self.bot: bool = False
         self.voice: MockVoiceState = MockVoiceState()
         self.id: int = user_id
+        self.nick: str = nick or "nick " + str(user_id)
+        self.name: str = name or "name " + str(user_id)
 
     def to_inactive(self):
         self.voice = MockVoiceState.get_inactive()
@@ -573,6 +719,14 @@ class MockXpDB:
 
     def __getitem__(self, key):
         return self.db[key]
+
+
+class MockGuild:
+    def __init__(self, members: dict[int, MockMember] | None = None):
+        self.members: dict[int, MockMember] = members or {}
+
+    def get_member(self, user_id: int) -> MockMember | None:
+        return self.members.get(user_id)
 
 
 def sqlitedict_to_dict(sd: SqliteDict) -> dict:
