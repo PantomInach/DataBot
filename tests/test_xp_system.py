@@ -31,6 +31,7 @@ from databot.features.xp_system import (
     XpSystemVoice,
     leaderboard_round_float_unitless,
     leaderboard_round_time,
+    level_calculation,
     render_leaderboard_users,
     slice_of_sorted_leaderboard_data,
     voice_state_active,
@@ -68,6 +69,17 @@ class TestXpDatabase(unittest.TestCase):
     def tearDown(self):
         os.remove("temp/empty.sqlite")
         os.remove("temp/full.sqlite")
+
+    def testLevelCalculatiosn(self):
+        self.assertEqual((0, 100), level_calculation(100))
+        self.assertEqual((1, 255), level_calculation(101))
+        self.assertEqual((1, 255), level_calculation(255))
+        self.assertEqual((2, 475), level_calculation(256))
+        self.assertEqual((2, 475), level_calculation(475))
+        self.assertEqual((3, 770), level_calculation(476))
+        self.assertEqual((3, 770), level_calculation(770))
+        self.assertEqual((4, 1150), level_calculation(771))
+        self.assertEqual((4, 1150), level_calculation(1150))
 
     def testDunder(self):
         # Test get items

@@ -516,9 +516,9 @@ def level_calculation(xp: float) -> (int, int):
     level_limit: int = 100
     while xp > level_limit:
         level += 1
-        level_limit += 100 + sum(55 + y * 10 for y in range(level))
-        # TODO: Make it more efficient
-        # level_limit: int = 100 + 55 * (level - 1) + 5 * level * (level - 1)
+        level_limit += 100 + 50 * level + 5 * level**2
+        # level_limit += 100 + sum(55 + y * 10 for y in range(level))  # Original calculation formular
+
     return level, level_limit
 
 
